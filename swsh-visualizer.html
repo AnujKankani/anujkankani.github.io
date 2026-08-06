@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>s = −2 Spin-Weighted Spherical Harmonics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1220; --panel:#111A29; --ink:#E9ECF2; --muted:#8A97AC; --line:#22304380;
+    --accent:#8E93F2; --red:#E5637E; --blue:#5B8DEF; --amber:#EFB157;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Mono",monospace;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  .tool{max-width:860px;margin:0 auto;padding:26px 22px 30px;}
+  .head{margin-bottom:18px;}
+  .kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;}
+  h1{font-family:"Space Grotesk",sans-serif;font-size:clamp(20px,3.4vw,26px);margin:0 0 6px;font-weight:600;letter-spacing:-.01em;}
+  .sub{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  .stage{position:relative;width:100%;aspect-ratio:1/1;max-height:62vh;border-radius:14px;
+    background:radial-gradient(120% 120% at 50% 30%, #131E30 0%, #0A101B 70%, #070C14 100%);
+    border:1px solid var(--line);overflow:hidden;touch-action:none;cursor:grab;}
+  .stage:active{cursor:grabbing;}
+  canvas{display:block;width:100%;height:100%;}
+  .mode-badge{position:absolute;top:12px;left:14px;font-family:"Space Grotesk",sans-serif;
+    font-size:15px;color:var(--ink);background:rgba(10,16,26,.55);padding:5px 11px;border-radius:8px;
+    border:1px solid var(--line);backdrop-filter:blur(4px);}
+  .mode-badge b{color:var(--accent);}
+  .hint{position:absolute;bottom:10px;right:14px;font-size:10.5px;color:var(--muted);letter-spacing:.04em;}
+  .legend{position:absolute;bottom:10px;left:14px;font-size:10px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+  .legend i{width:26px;height:8px;border-radius:3px;display:inline-block;
+    background:linear-gradient(90deg,var(--blue),#0a101b 48%,#0a101b 52%,var(--red));}
+
+  .controls{margin-top:18px;display:grid;gap:14px;}
+  .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .row .lab{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);min-width:64px;}
+  .seg{display:flex;gap:4px;flex-wrap:wrap;}
+  .seg button{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);
+    background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 12px;cursor:pointer;
+    transition:all .15s ease;}
+  .seg button:hover{color:var(--ink);}
+  .seg button[aria-pressed="true"]{color:#0A101B;background:var(--accent);border-color:var(--accent);font-weight:500;}
+  input[type=range]{flex:1;min-width:140px;accent-color:var(--accent);}
+  .mval{font-size:14px;color:var(--ink);min-width:38px;text-align:center;}
+  .note{margin-top:16px;font-size:12px;color:var(--muted);line-height:1.6;}
+  .note b{color:var(--ink);font-weight:500;}
+  /* compact mode when embedded in the site (site supplies title + caption) */
+  body.embed{background:transparent;}
+  body.embed .tool{padding:0;max-width:none;}
+  body.embed .head,body.embed .note{display:none;}
+  body.embed .stage{max-height:440px;border-radius:0;border:none;}
+  body.embed .controls{margin-top:14px;padding:0 4px;}
+</style>
+</head>
+<body>
+<script>if(location.search.indexOf('embed')>-1)document.body.classList.add('embed');</script>
+<div class="tool">
+  <div class="head">
+    <p class="kicker">Interactive · gravitational-wave modes</p>
+    <h1>Spin-weighted spherical harmonics (s = −2)</h1>
+    <p class="sub">The angular building blocks of every gravitational-wave signal. A binary's radiation is a sum of these ₋₂Y<sub>ℓm</sub> modes — the shapes below are what "the (2,2) mode" or "the (3,3) mode" actually looks like on the sky.</p>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="cv"></canvas>
+    <div class="mode-badge">₋₂Y<b id="badge">₂,₂</b></div>
+    <div class="legend"><i></i><span>Re: − / +</span></div>
+    <div class="hint">drag to rotate</div>
+  </div>
+
+  <div class="controls">
+    <div class="row">
+      <span class="lab">Degree ℓ</span>
+      <div class="seg" id="lSeg"></div>
+    </div>
+    <div class="row">
+      <span class="lab">Order m</span>
+      <input type="range" id="mRange" min="-2" max="2" step="1" value="2">
+      <span class="mval" id="mVal">+2</span>
+    </div>
+    <div class="row">
+      <span class="lab">Field</span>
+      <div class="seg" id="fSeg">
+        <button data-f="re" aria-pressed="true">Re</button>
+        <button data-f="im" aria-pressed="false">Im</button>
+        <button data-f="abs" aria-pressed="false">|Y|²</button>
+      </div>
+      <span class="lab" style="min-width:0;margin-left:14px">Style</span>
+      <div class="seg" id="styleSeg">
+        <button data-s="smooth" aria-pressed="false">smooth</button>
+        <button data-s="dots" aria-pressed="true">dots</button>
+      </div>
+      <div class="seg" style="margin-left:auto">
+        <button id="spin" aria-pressed="true">◈ rotating</button>
+        <button id="reset">reset view</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="lab">View</span>
+      <div class="seg" id="viewSeg">
+        <button data-v="top">top</button>
+        <button data-v="side">side</button>
+        <button data-v="bottom">bottom</button>
+      </div>
+      <span class="lab" style="min-width:0;margin-left:14px">Detail</span>
+      <div class="seg" id="qSeg">
+        <button data-q="low" aria-pressed="true">low</button>
+        <button data-q="high" aria-pressed="false">high</button>
+      </div>
+      <div class="seg" style="margin-left:auto">
+        <button id="axesBtn" aria-pressed="true">⊹ axes</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">The radius is deformed by the chosen field and colored by its sign, so <b>ℓ sets the number of polar bands</b> and <b>m sets the number of azimuthal lobes</b>. The (2,2) mode dominates most black-hole mergers; higher modes carry the finer structure that models like BOB aim to capture.</p>
+</div>
+
+<script>
+// ---- verified spin-weighted spherical harmonic math ----
+var F=[1];for(var i=1;i<=40;i++)F[i]=F[i-1]*i;
+function binom(n,k){if(k<0||k>n||n<0)return 0;return F[n]/(F[k]*F[n-k]);}
+function swsh(s,l,m,th,ph){
+  var pref=Math.pow(-1,m)*Math.sqrt(F[l+m]*F[l-m]*(2*l+1)/(4*Math.PI*F[l+s]*F[l-s]));
+  var sh=Math.sin(th/2),ch=Math.cos(th/2),cot=ch/sh,sum=0;
+  for(var r=0;r<=l-s;r++){
+    var b1=binom(l-s,r),b2=binom(l+s,r+s-m);
+    if(b1===0||b2===0)continue;
+    sum+=b1*b2*Math.pow(-1,l-r-s)*Math.pow(cot,2*r+s-m);
+  }
+  var mag=pref*Math.pow(sh,2*l)*sum;
+  return [mag*Math.cos(m*ph),mag*Math.sin(m*ph)];
+}
+
+// ---- state ----
+var S={l:2,m:2,field:'re',spin:true,az:0.6,el:-0.35,drag:false,px:0,py:0,quality:'low',showAxes:true,style:'dots'};
+var cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+var W=0,H=0,DPR=Math.min(window.devicePixelRatio||1,1.5);
+var geo=null; // {dir, rad, col, n, Nt, Np}
+var VX=null,VY=null,VZ=null,SR=null,SG=null,SB=null; // per-vertex projected x,y,depth + shaded r,g,b
+// low-res offscreen buffer we splat into (fixed cost regardless of display size)
+var RES=420, buf=document.createElement('canvas'), bctx=buf.getContext('2d'), img=null, data=null, zbuf=null;
+var running=false, raf=0, lastT=0, inView=true, tabHidden=false;
+var reducedMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reducedMotion)S.spin=false;
+
+function subs(n){var d={'-':'₋','0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈'};return String(n).split('').map(function(c){return d[c]||c;}).join('');}
+
+function buildGeo(){
+  var l=S.l,m=S.m,field=S.field, lo=S.quality==='low';
+  var Nt=W<420?(lo?42:60):(lo?56:84), Np=W<420?(lo?84:120):(lo?112:168);
+  var N=(Nt+1)*(Np+1);
+  var dir=new Float32Array(N*3), rad=new Float32Array(N), col=new Uint8Array(N*3);
+  var vals=new Float32Array(N), k=0, maxA=1e-9;
+  for(var i=0;i<=Nt;i++){
+    var th=(i/Nt)*Math.PI; if(th<1e-3)th=1e-3; if(th>Math.PI-1e-3)th=Math.PI-1e-3;
+    var st=Math.sin(th),ctv=Math.cos(th);
+    for(var j=0;j<=Np;j++){
+      var ph=(j/Np)*2*Math.PI;
+      var Y=swsh(-2,l,m,th,ph);
+      var v = field==='re'?Y[0] : field==='im'?Y[1] : (Y[0]*Y[0]+Y[1]*Y[1]);
+      vals[k]=v; var a=Math.abs(v); if(a>maxA)maxA=a;
+      var x3=st*Math.cos(ph), y3=ctv, z3=st*Math.sin(ph);
+      dir[k*3]=x3; dir[k*3+1]=y3; dir[k*3+2]=z3;
+      k++;
+    }
+  }
+  for(k=0;k<N;k++){
+    var v=vals[k], a=Math.abs(v)/maxA;
+    rad[k]=0.18+0.92*a;               // floor keeps a hint of sphere; lobes bulge out
+    var r,g,b, t=a<1?a:1;
+    if(field==='abs'){                // vivid sequential: indigo → magenta → amber
+      if(t<0.5){var u=t/0.5; r=48+u*(196-48); g=18+u*(30-18); b=92+u*(122-92);}
+      else{var u2=(t-0.5)/0.5; r=196+u2*(255-196); g=30+u2*(196-30); b=122+u2*(74-122);}
+    }else if(v>=0){                   // vivid red (+)
+      r=78+t*(255-78); g=24+t*(72-24); b=52+t*(96-52);
+    }else{                            // vivid blue (−)
+      r=28+t*(84-28); g=46+t*(152-46); b=86+t*(255-86);
+    }
+    col[k*3]=r|0; col[k*3+1]=g|0; col[k*3+2]=b|0;
+  }
+  geo={dir:dir,rad:rad,col:col,n:N,Nt:Nt,Np:Np};
+  document.getElementById('badge').textContent=subs(l)+','+subs(m);
+}
+
+function resize(){
+  var stage=document.getElementById('stage');
+  W=stage.clientWidth; H=stage.clientHeight;
+  cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.imageSmoothingEnabled=true;
+  RES = W<420?(S.quality==='low'?244:312):(S.quality==='low'?332:452);
+  buf.width=RES; buf.height=RES;
+  img=bctx.createImageData(RES,RES); data=img.data; zbuf=new Float32Array(RES*RES);
+  buildGeo();
+  render();
+  updateRun();
+}
+
+function render(){
+  if(!img) return;
+  var n=geo.n, dir=geo.dir, rad=geo.rad, col=geo.col;
+  if(!VX||VX.length<n){VX=new Float32Array(n);VY=new Float32Array(n);VZ=new Float32Array(n);SR=new Float32Array(n);SG=new Float32Array(n);SB=new Float32Array(n);}
+  var ca=Math.cos(S.az),sa=Math.sin(S.az),ce=Math.cos(S.el),se=Math.sin(S.el);
+  var cx=RES/2, cy=RES/2, scale=RES*0.40;
+  var Lx=-0.28,Ly=0.60,Lz=0.75, Ln=Math.sqrt(Lx*Lx+Ly*Ly+Lz*Lz);Lx/=Ln;Ly/=Ln;Lz/=Ln;
+  for(var k=0;k<n;k++){
+    var dx=dir[k*3],dy=dir[k*3+1],dz=dir[k*3+2],r=rad[k];
+    var px=dx*r,py=dy*r,pz=dz*r;
+    var rx=ca*px+sa*pz, rz=-sa*px+ca*pz;
+    var ry2=ce*py-se*rz, rz2=se*py+ce*rz;
+    VX[k]=cx+rx*scale; VY[k]=cy-ry2*scale; VZ[k]=rz2;
+    var nx=ca*dx+sa*dz, nz0=-sa*dx+ca*dz;
+    var ny2=ce*dy-se*nz0, nz2=se*dy+ce*nz0;
+    var lam=nx*Lx+ny2*Ly+nz2*Lz; if(lam<0)lam=0;
+    var ndotv=nz2>0?nz2:0;                          // curvature/rim: faces you = bright, edges = dark
+    var dep=(rz2+1.4)/2.8; if(dep<0)dep=0; else if(dep>1)dep=1;
+    var sh=(0.50+0.60*lam)*(0.60+0.40*ndotv)*(0.9+0.1*dep);
+    SR[k]=col[k*3]*sh; SG[k]=col[k*3+1]*sh; SB[k]=col[k*3+2]*sh;
+  }
+  data.fill(0); zbuf.fill(-1e9);
+  if(S.style==='dots'){
+    for(k=0;k<n;k++){
+      var bx=VX[k]|0, by=VY[k]|0, z=VZ[k];
+      var rr=SR[k]|0, gg=SG[k]|0, bb=SB[k]|0;
+      for(var oy=-1;oy<=1;oy++){
+        var yy=by+oy; if(yy<0||yy>=RES)continue; var rowo=yy*RES;
+        for(var ox=-1;ox<=1;ox++){
+          var xx=bx+ox; if(xx<0||xx>=RES)continue; var pi=rowo+xx;
+          if(z>zbuf[pi]){ zbuf[pi]=z; var o=pi<<2; data[o]=rr;data[o+1]=gg;data[o+2]=bb;data[o+3]=255; }
+        }
+      }
+    }
+  }else{                                   // smooth: fill the quad mesh as Gouraud triangles
+    var Nt=geo.Nt, Np=geo.Np, Np1=Np+1;
+    for(var i=0;i<Nt;i++){
+      var rowi=i*Np1;
+      for(var j=0;j<Np;j++){
+        var a=rowi+j, b=a+1, c=a+Np1+1, d=a+Np1;
+        tri(a,b,c); tri(a,c,d);
+      }
+    }
+  }
+  bctx.putImageData(img,0,0);
+  ctx.clearRect(0,0,W,H);
+  ctx.drawImage(buf,0,0,W,H);
+  if(S.showAxes) drawAxes(ca,sa,ce,se);
+}
+
+// Gouraud (per-pixel interpolated) z-tested triangle fill; bilinear upscale smooths the rest.
+function tri(i0,i1,i2){
+  var x0=VX[i0],y0=VY[i0],z0=VZ[i0], x1=VX[i1],y1=VY[i1],z1=VZ[i1], x2=VX[i2],y2=VY[i2],z2=VZ[i2];
+  var minx=x0<x1?(x0<x2?x0:x2):(x1<x2?x1:x2); var maxx=x0>x1?(x0>x2?x0:x2):(x1>x2?x1:x2);
+  var miny=y0<y1?(y0<y2?y0:y2):(y1<y2?y1:y2); var maxy=y0>y1?(y0>y2?y0:y2):(y1>y2?y1:y2);
+  var x0i=minx<0?0:minx|0, x1i=maxx>=RES?RES-1:maxx|0, y0i=miny<0?0:miny|0, y1i=maxy>=RES?RES-1:maxy|0;
+  if(x1i<x0i||y1i<y0i)return;
+  var det=(y1-y2)*(x0-x2)+(x2-x1)*(y0-y2); if(det<=0)return; var inv=1/det;  // cull back faces
+  var r0=SR[i0],g0=SG[i0],b0=SB[i0], r1=SR[i1],g1=SG[i1],b1=SB[i1], r2=SR[i2],g2=SG[i2],b2=SB[i2];
+  for(var y=y0i;y<=y1i;y++){
+    var rowo=y*RES, dy2=y-y2;
+    for(var x=x0i;x<=x1i;x++){
+      var dx2=x-x2;
+      var wa=((y1-y2)*dx2+(x2-x1)*dy2)*inv; if(wa<0)continue;
+      var wb=((y2-y0)*dx2+(x0-x2)*dy2)*inv; if(wb<0)continue;
+      var wc=1-wa-wb; if(wc<0)continue;
+      var pi=rowo+x, z=wa*z0+wb*z1+wc*z2;
+      if(z>zbuf[pi]){ zbuf[pi]=z; var o=pi<<2;
+        data[o]=(wa*r0+wb*r1+wc*r2)|0; data[o+1]=(wa*g0+wb*g1+wc*g2)|0; data[o+2]=(wa*b0+wb*b1+wc*b2)|0; data[o+3]=255; }
+    }
+  }
+}
+
+// small orientation triad (top-right). z is the polar/symmetry axis (θ measured from it).
+function drawAxes(ca,sa,ce,se){
+  var ox=W-46, oy=54, L=26;
+  var axes=[[1,0,0,'x','#EFB157'],[0,1,0,'z','#57C7E8'],[0,0,1,'y','#A98BFF']];
+  var pr=axes.map(function(A){
+    var x=A[0],y=A[1],z=A[2];
+    var rx=ca*x+sa*z, rz=-sa*x+ca*z, ry2=ce*y-se*rz, rz2=se*y+ce*rz;
+    return {sx:ox+rx*L, sy:oy-ry2*L, d:rz2, c:A[4], lab:A[3]};
+  });
+  pr.sort(function(a,b){return a.d-b.d;});
+  ctx.save();
+  ctx.lineWidth=1.6; ctx.font='600 11px "IBM Plex Mono",monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(var i=0;i<pr.length;i++){var P=pr[i];
+    ctx.globalAlpha=0.45+0.55*((P.d+1)/2);
+    ctx.strokeStyle=P.c; ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(P.sx,P.sy); ctx.stroke();
+    ctx.fillStyle=P.c; ctx.beginPath(); ctx.arc(P.sx,P.sy,2.2,0,6.2832); ctx.fill();
+    ctx.globalAlpha=1; ctx.fillText(P.lab, P.sx+(P.sx-ox>0?7:-7), P.sy-6);
+  }
+  ctx.restore();
+}
+
+// ---- loop that only runs when it needs to ----
+function shouldRun(){ return inView && !tabHidden && (S.spin || S.drag); }
+function loop(ts){
+  if(!running) return;
+  if(ts-lastT<32){ raf=requestAnimationFrame(loop); return; }  // ~30 fps cap
+  lastT=ts;
+  if(S.spin && !S.drag) S.az+=0.010;
+  render();
+  raf=requestAnimationFrame(loop);
+}
+function startLoop(){ if(running)return; running=true; lastT=0; raf=requestAnimationFrame(loop); }
+function stopLoop(){ running=false; if(raf)cancelAnimationFrame(raf); raf=0; }
+function updateRun(){ if(shouldRun()) startLoop(); else { stopLoop(); render(); } }
+
+// ---- controls ----
+var lSeg=document.getElementById('lSeg');
+for(var L=2;L<=8;L++){(function(L){var b=document.createElement('button');b.textContent=L;b.setAttribute('aria-pressed',L===2);b.onclick=function(){S.l=L;if(Math.abs(S.m)>L)S.m=L;setL();var mr=document.getElementById('mRange');mr.min=-L;mr.max=L;mr.value=S.m;document.getElementById('mVal').textContent=(S.m>0?'+':'')+S.m;buildGeo();render();};lSeg.appendChild(b);})(L);}
+function setL(){[].forEach.call(lSeg.children,function(b){b.setAttribute('aria-pressed', (+b.textContent)===S.l);});}
+
+var mRange=document.getElementById('mRange');
+mRange.oninput=function(){S.m=+this.value;document.getElementById('mVal').textContent=(S.m>0?'+':'')+S.m;buildGeo();render();};
+
+document.getElementById('fSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;S.field=b.dataset.f;[].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',x===b);});
+  document.querySelector('.legend span').textContent = S.field==='abs'?'|Y|²: low → high' : (S.field==='re'?'Re: − / +':'Im: − / +');
+  document.querySelector('.legend i').style.background = S.field==='abs'?'linear-gradient(90deg,#1e1a3c,#efb14b)':'linear-gradient(90deg,var(--blue),#0a101b 48%,#0a101b 52%,var(--red))';
+  buildGeo();render();});
+
+var spinBtn=document.getElementById('spin');
+if(reducedMotion){spinBtn.setAttribute('aria-pressed','false');spinBtn.textContent='▷ paused';}
+spinBtn.onclick=function(){S.spin=!S.spin;this.setAttribute('aria-pressed',S.spin);this.textContent=S.spin?'◈ rotating':'▷ paused';updateRun();};
+document.getElementById('reset').onclick=function(){S.az=0.6;S.el=-0.35;render();};
+
+document.getElementById('viewSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var v=b.dataset.v;
+  S.az=0.0; S.el = v==='top'?-1.5 : (v==='bottom'?1.5 : 0.0); render();});
+
+document.getElementById('qSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;S.quality=b.dataset.q;
+  [].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',x===b);}); resize();});
+
+document.getElementById('axesBtn').onclick=function(){S.showAxes=!S.showAxes;this.setAttribute('aria-pressed',S.showAxes);render();};
+
+document.getElementById('styleSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;S.style=b.dataset.s;
+  [].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',x===b);}); render();});
+
+var stage=document.getElementById('stage');
+function down(x,y){S.drag=true;S.px=x;S.py=y;startLoop();}
+function move(x,y){if(!S.drag)return;S.az+=(x-S.px)*0.01;S.el+=(y-S.py)*0.01;S.el=Math.max(-1.4,Math.min(1.4,S.el));S.px=x;S.py=y;}
+function up(){if(!S.drag)return;S.drag=false;updateRun();}
+stage.addEventListener('mousedown',function(e){down(e.clientX,e.clientY);});
+window.addEventListener('mousemove',function(e){move(e.clientX,e.clientY);});
+window.addEventListener('mouseup',up);
+stage.addEventListener('touchstart',function(e){var t=e.touches[0];down(t.clientX,t.clientY);},{passive:true});
+stage.addEventListener('touchmove',function(e){var t=e.touches[0];move(t.clientX,t.clientY);e.preventDefault();},{passive:false});
+stage.addEventListener('touchend',up);
+
+// only animate while on-screen and the tab is visible
+if('IntersectionObserver' in window){
+  new IntersectionObserver(function(es){inView=es[0].isIntersecting;updateRun();},{threshold:0.02}).observe(stage);
+}
+document.addEventListener('visibilitychange',function(){tabHidden=document.hidden;updateRun();});
+
+var rt;
+window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(resize,150);});
+resize();
+</script>
+</body>
+</html>
