@@ -1,0 +1,71 @@
+/* ============================================================
+   SHARED TOOL STYLES — inlined into every *-visualizer / *-explorer
+   page by tools/build.py. Edit THIS file, never the inlined copy.
+   Run `python3 tools/build.py` after changing it.
+   See TOOLS.md for the rules these styles support.
+   ============================================================ */
+:root{
+  --bg:#0B1220; --panel:#111A29; --ink:#E9ECF2; --muted:#8A97AC; --line:#22304380;
+  --accent:#8E93F2; --red:#E5637E; --blue:#5B8DEF; --amber:#EFB157;
+  --cyan:#57C7E8; --violet:#A98BFF;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Mono",monospace;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+/* Shared default. A tool with a wider layout may override .tool
+   max-width in its own <style>, with a comment saying why. */
+.tool{max-width:860px;margin:0 auto;padding:26px 22px 30px;}
+
+.head{margin-bottom:18px;}
+.kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;}
+h1{font-family:"Space Grotesk",sans-serif;font-size:clamp(20px,3.4vw,26px);margin:0 0 6px;font-weight:600;letter-spacing:-.01em;}
+.sub{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+.controls{margin-top:18px;display:grid;gap:14px;}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+/* Tools with long control labels ("Angular momentum |L|") override
+   .row .lab min-width in their own <style>. */
+.row .lab{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);min-width:64px;}
+.seg{display:flex;gap:4px;flex-wrap:wrap;}
+.seg button{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);
+  background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 12px;cursor:pointer;
+  transition:color .15s ease,background .15s ease,border-color .15s ease;}
+.seg button:hover{color:var(--ink);}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.seg button[aria-pressed="true"]{color:#0A101B;background:var(--accent);border-color:var(--accent);font-weight:500;}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--accent);}
+input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+.mval{font-size:14px;color:var(--ink);min-width:38px;text-align:center;}
+
+.note{margin-top:16px;font-size:12px;color:var(--muted);line-height:1.6;}
+.note b{color:var(--ink);font-weight:500;}
+
+/* ---- touch input ----
+   Keyed off pointer:coarse, not a width breakpoint: a small window on a
+   laptop still has a mouse, and a large tablet still has fingers.
+
+   Both platforms' guidance lands in the same place -- Apple HIG asks for
+   44x44pt, Material for 48x48dp -- and the default 13px/6px buttons here
+   come out ~31px tall, which is a miss-prone target on either. The range
+   thumbs are worse: the UA default is around 12-16px.  */
+@media (pointer: coarse) {
+  .seg button{min-height:44px;padding:10px 14px;}
+  /* Horizontal sliders only. A tool may position a range absolutely with
+     top+bottom (the geodesic zoom rail); setting height there would
+     over-constrain the box and collapse it to 44px anchored at the top. */
+  .row input[type=range]{height:44px;}
+  .row{gap:10px 12px;}
+  .seg{gap:6px;}
+}
+/* iOS paints a grey box over any tapped control; it reads as a rendering
+   glitch on a dark UI that already shows its own pressed state. */
+button,input[type=range],.seg{-webkit-tap-highlight-color:transparent;}
+
+/* ---- embed mode: the host page supplies title + caption ----
+   Activated by the ?embed=1 script in <body>. Tools add their own
+   body.embed rules for panel heights; see TOOLS.md "embed contract". */
+body.embed{background:transparent;}
+body.embed .tool{padding:0;max-width:none;}
+body.embed .head,body.embed .note{display:none;}
+body.embed .controls{margin-top:14px;padding:0 4px;}

@@ -1,0 +1,40 @@
+# Manim render output. Regenerable via:
+#   $MANIM -qh animations/bob_overview.py BOBOverview
+# Kept out of git so rendered video never bloats the clone permanently.
+media/
+
+# Video, everywhere. Git keeps every blob forever, so a 2.8 MB render is
+# permanent weight even if the file is later deleted -- and re-rendering
+# adds another full copy each time. The animation SOURCE is tracked
+# (animations/*.py) and the render is reproducible from it.
+# Posters are small stills and stay tracked, so the <video> element still
+# has something to show.
+# TO SHIP THE VIDEO: decide where it lives (committed once, or a GitHub
+# Release / other host), then either drop this rule or use
+#   git add -f assets/bob-overview.mp4
+*.mp4
+
+# Reference PDFs used while building the animations. Not site content, and
+# several are other authors' published papers -- redistributing publisher
+# PDFs from a personal domain is a copyright question worth avoiding.
+# Nothing on the site links here; the animations cite arXiv numbers instead.
+papers/
+
+# One-off exploration scenes: grids of candidate background/accent colours,
+# rendered as stills to pick a palette by eye. bg_swatches.py alone is 32
+# throwaway Scene classes (BgCyanVivid, BgWVUGoldDeep, ...). They served
+# their purpose -- the chosen values now live in the overview scripts -- and
+# nothing references them. Kept on disk, out of the repo.
+animations/bg_swatches.py
+animations/bi_swatches.py
+
+# Python
+__pycache__/
+*.pyc
+
+# Editor / OS noise
+.DS_Store
+*.swp
+
+# Windows "downloaded from the internet" markers next to the papers
+*:Zone.Identifier
