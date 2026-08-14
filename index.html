@@ -178,7 +178,7 @@
   .soft.feature p{color:var(--field-soft);}
   .soft p a,.pub .links a,.contact-links a,.facts dd{overflow-wrap:anywhere;}
 
-  /* recognition + talks */
+  /* awards + talks (tail of the Publications section, under .sub-head) */
   .rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;}
   @media(max-width:800px){.rec-grid{grid-template-columns:1fr;gap:40px;}}
   .award{padding:16px 0;border-bottom:1px solid var(--line);}
@@ -221,6 +221,23 @@
   }
   .bob-cap b{font-family:"Space Grotesk",sans-serif;font-weight:600;color:#fff;}
   .bob-cap a{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--amber);white-space:nowrap;}
+  /* paper explainers: a responsive card grid of lazy-loading videos.
+     auto-fit + minmax gives 3 across on a wide screen and collapses to 1 on
+     a phone without a media query. aspect-ratio reserves the box before the
+     poster decodes, so the grid does not jump on load. */
+  .exp-intro{max-width:70ch;color:var(--ink-soft);margin:0 0 28px;font-size:16px;}
+  .exp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:30px 26px;}
+  .exp-item{margin:0;}
+  .exp-item video{
+    width:100%;height:auto;aspect-ratio:16/9;display:block;
+    border-radius:10px;border:1px solid var(--line);background:#0b0b0d;
+  }
+  .exp-item figcaption{margin-top:13px;}
+  .exp-item h3{font-family:"Newsreader",serif;font-size:17.5px;font-weight:600;
+    line-height:1.3;margin:0 0 7px;}
+  .exp-item figcaption p{font-size:14.5px;color:var(--ink-soft);line-height:1.5;margin:0 0 9px;}
+  .exp-item figcaption a{font-family:"IBM Plex Mono",monospace;font-size:12.5px;}
+
   .bob-eqs{
     display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:22px;
   }
@@ -264,33 +281,12 @@
   .random-body p{font-size:14.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5;}
   .random-body a{font-family:"IBM Plex Mono",monospace;font-size:13px;}
 
-  /* research highlights */
-  .highlight{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center;padding:40px 0;border-bottom:1px solid var(--line);}
-  .highlight:last-child{border-bottom:none;}
-  .highlight.flip .hl-media{order:2;}
-  .hl-figure{aspect-ratio:16/10;background:var(--panel);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;color:var(--ink-soft);font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.06em;}
-  .hl-figure img{width:100%;height:100%;object-fit:cover;border-radius:10px;display:block;}
-  .hl-figcap{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--field-soft);margin-top:10px;letter-spacing:.02em;}
-  .hl-meta{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--accent);letter-spacing:.04em;margin-bottom:8px;}
-  .hl-body h3{font-size:23px;line-height:1.2;margin:0 0 12px;}
-  .hl-body p{margin:0 0 14px;color:var(--ink-soft);font-size:16px;line-height:1.55;}
-  .hl-links{font-family:"IBM Plex Mono",monospace;font-size:13px;}
-  @media(max-width:760px){
-    .highlight{grid-template-columns:1fr;gap:20px;padding:32px 0;}
-    .highlight.flip .hl-media{order:0;}
-  }
+  /* Sub-heading for a block folded into another section (awards & talks
+     inside Research). Lighter than .sec-head h2 so it reads as a division
+     of the section, not a new one. */
+  .sub-head{margin:56px 0 24px;padding-top:34px;border-top:1px solid var(--line);}
+  .sub-head h3{font-size:clamp(19px,2.4vw,23px);margin:0;}
 
-  /* what i'm working on now */
-  .now-list{display:grid;gap:2px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
-  .now-item{background:var(--paper);padding:22px 26px;display:grid;grid-template-columns:1fr auto;gap:14px 20px;align-items:start;}
-  .now-item h3{font-size:18px;margin:0 0 5px;display:flex;align-items:center;gap:10px;}
-  .now-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex:0 0 auto;box-shadow:0 0 0 4px rgba(233,162,59,.16);}
-  .now-item p{margin:0;font-size:15.5px;color:var(--ink-soft);line-height:1.5;grid-column:1/-1;}
-  .now-status{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);border:1px solid var(--line);border-radius:999px;padding:4px 11px;white-space:nowrap;align-self:center;}
-  @media(max-width:600px){
-    .now-item{grid-template-columns:1fr;}
-    .now-status{justify-self:start;}
-  }
 
   @media(max-width:600px){
     body{font-size:17px;}
@@ -323,15 +319,13 @@
     <span class="nav-name">Anuj Kankani</span>
     <div class="nav-right">
       <div class="nav-links">
-        <a href="#about">About</a>
+        <a href="#about">About me</a>
         <a href="#research">Research</a>
-        <a href="#bob">BOB</a>
-        <a href="#highlights">Highlights</a>
-        <a href="#now">Now</a>
         <a href="#publications">Publications</a>
+        <a href="#bob">BOB</a>
+        <a href="#explainers">Explainers</a>
         <a href="#software">Software</a>
-        <a href="#tools">Tools</a>
-        <a href="#recognition">Recognition</a>
+        <a href="#widgets">Widgets</a>
         <a href="#contact">Contact</a>
       </div>
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
@@ -374,7 +368,7 @@
   <div class="wrap">
     <div class="about-grid">
       <div>
-        <p class="eyebrow">About</p>
+        <p class="eyebrow">About me</p>
         <p>I'm a PhD candidate in physics at West Virginia University, working with Sean&nbsp;T.&nbsp;McWilliams on the theory and modeling of gravitational waves from black-hole binaries.</p>
         <p>My work develops fast, analytical merger–ringdown waveform models, uses numerical relativity to test strong-field predictions of general relativity, and simulates the relativistic plasmas that surround compact objects. I care about models that are both physically grounded and useful to the people analyzing real data — from LIGO today to LISA in the coming decade.</p>
         <p>I expect to complete my PhD in 2027.</p>
@@ -414,133 +408,6 @@
         <h3>Relativistic Plasma Astrophysics</h3>
         <p>General Relativistic Particle-in-Cell (GRPIC) simulations of the magnetospheres and jets of black holes, including what drives temperature anisotropies in relativistic jets.</p>
       </div>
-    </div>
-  </div>
-</section>
-
-<section id="bob">
-  <div class="wrap">
-    <div class="sec-head"><p class="eyebrow">BOB</p><h2>The Backwards One Body model, in a minute</h2></div>
-    <p class="bob-intro">Most merger models push forwards from an inspiral and fit a ringdown on the end. BOB starts from what the system <em>must</em> become — a single perturbed black hole — and works backwards. The merger waveform then follows from the physics, with almost nothing tuned to numerical relativity.</p>
-
-    <figure class="bob-video">
-      <!-- preload="none" + poster: nothing but the 29 KB still is fetched
-           until the visitor actually hits play. The 2.8 MB video is never
-           downloaded for someone who only scrolls past. -->
-      <video
-        controls
-        preload="none"
-        playsinline
-        poster="assets/bob-overview-poster.jpg"
-        width="1920" height="1080"
-        aria-label="A one-minute explainer deriving the BOB amplitude and frequency equations">
-        <source src="assets/bob-overview.mp4" type="video/mp4">
-        Your browser doesn't support embedded video —
-        <a href="assets/bob-overview.mp4">download the MP4</a> instead.
-      </video>
-      <figcaption class="bob-cap">
-        <span><b>How BOB gets its two equations</b> — perturbed null geodesics at the light ring give the amplitude; the News gives the frequency</span>
-        <a href="assets/bob-overview.mp4" target="_blank" rel="noopener">open video &#8599;</a>
-      </figcaption>
-    </figure>
-
-    <div class="bob-eqs">
-      <div class="bob-eq">
-        <span class="lab">Amplitude</span>
-        <p>A bundle of null rays perturbed off the light ring diverges at the Lyapunov rate. Carrying that divergence through the transport equation gives a <strong>sech</strong> envelope — no free parameters.</p>
-      </div>
-      <div class="bob-eq">
-        <span class="lab">Frequency</span>
-        <p>The angular-momentum flux is quadratic in the News, and dJ/dΩ stays roughly constant through merger–ringdown. Substituting the amplitude and integrating gives Ω, rising monotonically to the ringdown value.</p>
-      </div>
-    </div>
-
-    <p><code class="bob-install">pip install gwBOB</code></p>
-  </div>
-</section>
-
-<section id="highlights">
-  <div class="wrap">
-    <div class="sec-head"><p class="eyebrow">Highlights</p><h2>A few papers, up close</h2></div>
-
-    <!-- ===== HIGHLIGHT: figure on the LEFT =====
-         Replace the placeholder <div class="hl-figure">...</div> with:
-         <div class="hl-figure"><img src="figures/bob.png" alt="Describe the figure"></div>
-         Add class="flip" to the .highlight div to put the figure on the right (see next block). -->
-    <div class="highlight">
-      <div class="hl-media">
-        <div class="hl-figure">Add figure &rarr; figures/bob-waveform.png</div>
-        <p class="hl-figcap">e.g. BOB vs. NR waveform comparison</p>
-      </div>
-      <div class="hl-body">
-        <p class="hl-meta">2025 · submitted to PRD · arXiv:2510.25012</p>
-        <h3>BOB the (Waveform) Builder</h3>
-        <p>A comprehensive validation of the fully analytical BOB model for the dominant (2,2) mode: minimally tuned to NR, it reaches accuracy comparable to highly-calibrated effective-one-body and surrogate models, and holds up where NR catalogs are sparse.</p>
-        <div class="hl-links"><a href="https://arxiv.org/abs/2510.25012">arXiv:2510.25012</a></div>
-      </div>
-    </div>
-
-    <!-- ===== HIGHLIGHT: figure on the RIGHT (note class="flip") ===== -->
-    <div class="highlight flip">
-      <div class="hl-media">
-        <div class="hl-figure">Add figure &rarr; figures/direct-wave.png</div>
-        <p class="hl-figcap">e.g. direct-wave decomposition</p>
-      </div>
-      <div class="hl-body">
-        <p class="hl-meta">2026 · submitted to PRL · arXiv:2607.02380</p>
-        <h3>The Direct Wave Is Not a Meaningful Test of Horizon Properties</h3>
-        <p>Using numerical-relativity strain data, this Letter shows the direct wave's frequency doesn't track the remnant's horizon frequency or surface gravity — meaning direct-wave tests of Hawking's area law can indicate violations that aren't real.</p>
-        <div class="hl-links"><a href="https://arxiv.org/abs/2607.02380">arXiv:2607.02380</a></div>
-      </div>
-    </div>
-
-    <!-- ===== HIGHLIGHT: figure on the LEFT ===== -->
-    <div class="highlight">
-      <div class="hl-media">
-        <div class="hl-figure">Add figure &rarr; figures/boundary-to-bound.png</div>
-        <p class="hl-figcap">e.g. scattering-angle comparison</p>
-      </div>
-      <div class="hl-body">
-        <p class="hl-meta">2024 · Phys. Rev. D 110, 064033 · arXiv:2404.03607</p>
-        <h3>Testing the Boundary-to-Bound Correspondence With Numerical Relativity</h3>
-        <p>A large suite of NR simulations of bound and unbound black-hole encounters tests the boundary-to-bound correspondence in the non-perturbative regime, and finds it breaks down across a wide range of eccentricities — bounding where the relationships apply.</p>
-        <div class="hl-links"><a href="https://arxiv.org/abs/2404.03607">arXiv:2404.03607</a></div>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<section id="now">
-  <div class="wrap">
-    <div class="sec-head"><p class="eyebrow">Now</p><h2>What I'm working on right now</h2></div>
-    <div class="now-list">
-
-      <!-- Duplicate a .now-item block to add a project; update the status pill text. -->
-      <div class="now-item">
-        <h3><span class="now-dot"></span>LisaWave-JAX</h3>
-        <span class="now-status">In development</span>
-        <p>Co-developing JAX-based data-analysis tools for LISA — targeting massive black-hole binaries and galactic binaries.</p>
-      </div>
-
-      <div class="now-item">
-        <h3><span class="now-dot"></span>Relativistic jet plasmas</h3>
-        <span class="now-status">Ongoing</span>
-        <p>GRPIC simulations (Entity toolkit) exploring what drives temperature anisotropies in the jets of black holes.</p>
-      </div>
-
-      <div class="now-item">
-        <h3><span class="now-dot"></span>Extending the BOB model</h3>
-        <span class="now-status">Ongoing</span>
-        <p>Pushing the Backwards One Body waveform model into new regimes and beyond the dominant mode.</p>
-      </div>
-
-      <div class="now-item">
-        <h3><span class="now-dot"></span>Dynamical-background mergers</h3>
-        <span class="now-status">NASA-funded</span>
-        <p>Modeling black-hole mergers with a dynamical background spacetime — the focus of my NASA WV Space Grant fellowship.</p>
-      </div>
-
     </div>
   </div>
 </section>
@@ -619,6 +486,162 @@
       </div>
     </div>
 
+    <!-- ===== Awards & talks =====
+         Sits below the publication list so papers come first. Was briefly a
+         standalone "Recognition & Talks" section, then folded into Research.
+         Left column = .award blocks, right column = .talk blocks; duplicate
+         a block to add an entry. The newest goes at the top of its column. -->
+    <div class="sub-head"><h3>Awards &amp; recent talks</h3></div>
+    <div class="rec-grid">
+      <div>
+        <div class="award">
+          <div class="meta">2021 – 2024</div>
+          <h3>Ruby Distinguished Doctoral Fellow</h3>
+          <p>Awarded to outstanding doctoral students in STEM fields at West Virginia University.</p>
+        </div>
+        <div class="award">
+          <div class="meta">2024 – 2025</div>
+          <h3>NASA WV Space Grant Graduate Fellowship</h3>
+          <p>For the proposal "Modeling Black Hole Mergers with a Dynamical Background Spacetime."</p>
+        </div>
+        <div class="award">
+          <div class="meta">2025</div>
+          <h3>Mohindar Seehra Research Award</h3>
+          <p>Departmental award recognizing outstanding research efforts in physics.</p>
+        </div>
+      </div>
+      <div>
+        <div class="talk">
+          <div class="t-meta"><b>2026</b> · SCEECS — Plasmas Around Black Holes &amp; Neutron Stars · poster</div>
+          <p>Driving Temperature Anisotropies in the Jets of Black Holes</p>
+        </div>
+        <div class="talk">
+          <div class="t-meta"><b>2026</b> · 16th International LISA Symposium · contributed talk</div>
+          <p>BOB the (Waveform) Builder + Direct Waves</p>
+        </div>
+        <div class="talk">
+          <div class="t-meta">Center for Gravitational Waves &amp; Cosmology Symposium · contributed talk</div>
+          <p>Modeling Extreme Gravity: From Relativistic Plasmas to Gravitational Waves</p>
+        </div>
+        <div class="talk">
+          <div class="t-meta"><b>2026</b> · APS Global Physics Summit · contributed talk</div>
+          <p>BOB the (Waveform) Builder: Optimizing Analytical Merger Waveforms</p>
+        </div>
+        <div class="talk">
+          <div class="t-meta"><b>2025</b> · APS Global Physics Summit · contributed talk</div>
+          <p>Merger-Ringdown Modeling of Gravitational Waves Beyond the Dominant Mode</p>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</section>
+
+<section id="bob">
+  <div class="wrap">
+    <div class="sec-head"><p class="eyebrow">BOB</p><h2>The Backwards One Body model, in a minute</h2></div>
+    <p class="bob-intro">Most merger models push forwards from an inspiral and fit a ringdown on the end. BOB starts from what the system <em>must</em> become — a single perturbed black hole — and works backwards. The merger waveform then follows from the physics, with almost nothing tuned to numerical relativity.</p>
+
+    <figure class="bob-video">
+      <!-- preload="none" + poster: nothing but the 29 KB still is fetched
+           until the visitor actually hits play. The 2.8 MB video is never
+           downloaded for someone who only scrolls past. -->
+      <video
+        controls
+        preload="none"
+        playsinline
+        poster="assets/bob-overview-poster.jpg"
+        width="1920" height="1080"
+        aria-label="A one-minute explainer deriving the BOB amplitude and frequency equations">
+        <source src="assets/bob-overview.mp4" type="video/mp4">
+        Your browser doesn't support embedded video —
+        <a href="assets/bob-overview.mp4">download the MP4</a> instead.
+      </video>
+      <figcaption class="bob-cap">
+        <span><b>How BOB gets its two equations</b> — perturbed null geodesics at the light ring give the amplitude; the News gives the frequency</span>
+        <a href="assets/bob-overview.mp4" target="_blank" rel="noopener">open video &#8599;</a>
+      </figcaption>
+    </figure>
+
+    <div class="bob-eqs">
+      <div class="bob-eq">
+        <span class="lab">Amplitude</span>
+        <p>A bundle of null rays perturbed off the light ring diverges at the Lyapunov rate. Carrying that divergence through the transport equation gives a <strong>sech</strong> envelope — no free parameters.</p>
+      </div>
+      <div class="bob-eq">
+        <span class="lab">Frequency</span>
+        <p>The angular-momentum flux is quadratic in the News, and dJ/dΩ stays roughly constant through merger–ringdown. Substituting the amplitude and integrating gives Ω, rising monotonically to the ringdown value.</p>
+      </div>
+    </div>
+
+    <p><code class="bob-install">pip install gwBOB</code></p>
+  </div>
+</section>
+
+<!-- ===== PAPER EXPLAINERS =====
+     One short animation per paper. Same loading discipline as the BOB video:
+     preload="none" + a poster, so a visitor who only scrolls past downloads
+     the ~36 KB still and nothing else.
+
+     TO ADD ONE: duplicate a .exp-item, point <source> and poster at the new
+     files, and link the arXiv entry. Posters are generated from the render:
+       ffmpeg -ss <t> -i <render>.mp4 -frames:v 1 -vf scale=1280:-1 -q:v 4 \
+              assets/<name>-poster.jpg
+     Pick a moment where a slide is fully built, not mid-transition. -->
+<section id="explainers">
+  <div class="wrap">
+    <div class="sec-head"><p class="eyebrow">Explainers</p><h2>The papers, in about a minute each</h2></div>
+    <p class="exp-intro">Short animated walkthroughs of the main result in each paper — the physical picture and where the equations come from, without the full derivation.</p>
+
+    <div class="exp-grid">
+
+      <figure class="exp-item">
+        <video controls preload="none" playsinline
+               poster="assets/bobbuilder-poster.jpg" width="1920" height="1080"
+               aria-label="Animated explainer: validating the BOB waveform model against numerical relativity">
+          <source src="assets/bobbuilder-overview.mp4" type="video/mp4">
+          Your browser doesn't support embedded video —
+          <a href="assets/bobbuilder-overview.mp4">download the MP4</a> instead.
+        </video>
+        <figcaption>
+          <h3>BOB the (Waveform) Builder</h3>
+          <p>What BOB actually models, why its amplitude already contains overtone information, and how it holds up against calibrated models where numerical-relativity coverage runs thin.</p>
+          <a href="https://arxiv.org/abs/2510.25012">arXiv:2510.25012 &#8599;</a>
+        </figcaption>
+      </figure>
+
+      <figure class="exp-item">
+        <video controls preload="none" playsinline
+               poster="assets/bobinsights-poster.jpg" width="1920" height="1080"
+               aria-label="Animated explainer: why the BOB model is accurate near merger">
+          <source src="assets/bobinsights-overview.mp4" type="video/mp4">
+          Your browser doesn't support embedded video —
+          <a href="assets/bobinsights-overview.mp4">download the MP4</a> instead.
+        </video>
+        <figcaption>
+          <h3>Direct Waves in BBH Mergers: Insights from BOB</h3>
+          <p>Two routes to the same envelope — diverging null geodesics and quasinormal-mode poles — and what is left once the quasinormal content is filtered out.</p>
+          <a href="https://arxiv.org/abs/2603.15474">arXiv:2603.15474 &#8599;</a>
+        </figcaption>
+      </figure>
+
+      <figure class="exp-item">
+        <video controls preload="none" playsinline
+               poster="assets/directwave-poster.jpg" width="1920" height="1080"
+               aria-label="Animated explainer: the direct wave is not a meaningful test of horizon properties">
+          <source src="assets/directwave-overview.mp4" type="video/mp4">
+          Your browser doesn't support embedded video —
+          <a href="assets/directwave-overview.mp4">download the MP4</a> instead.
+        </video>
+        <figcaption>
+          <h3>The Direct Wave Is Not a Horizon Test</h3>
+          <p>The prompt emission after merger does not track the remnant's horizon frequency, so using it to test the area law can report violations that never happened.</p>
+          <a href="https://arxiv.org/abs/2607.02380">arXiv:2607.02380 &#8599;</a>
+        </figcaption>
+      </figure>
+
+    </div>
   </div>
 </section>
 
@@ -650,9 +673,9 @@
   </div>
 </section>
 
-<section id="tools">
+<section id="widgets">
   <div class="wrap">
-    <div class="sec-head"><p class="eyebrow">Tools</p><h2>Interactive tools</h2></div>
+    <div class="sec-head"><p class="eyebrow">Widgets</p><h2>Interactive widgets</h2></div>
     <p class="tools-intro">Small explainers I've built to make the physics tangible — no install, they run right in your browser.</p>
     <figure class="tool-embed">
       <figcaption class="tool-cap">
@@ -727,53 +750,6 @@
 </section>
 
      ============================================================ -->
-
-<section id="recognition">
-  <div class="wrap">
-    <div class="sec-head"><p class="eyebrow">Recognition &amp; Talks</p><h2>Awards and recent presentations</h2></div>
-    <div class="rec-grid">
-      <div>
-        <div class="award">
-          <div class="meta">2021 – 2024</div>
-          <h3>Ruby Distinguished Doctoral Fellow</h3>
-          <p>Awarded to outstanding doctoral students in STEM fields at West Virginia University.</p>
-        </div>
-        <div class="award">
-          <div class="meta">2024 – 2025</div>
-          <h3>NASA WV Space Grant Graduate Fellowship</h3>
-          <p>For the proposal "Modeling Black Hole Mergers with a Dynamical Background Spacetime."</p>
-        </div>
-        <div class="award">
-          <div class="meta">2025</div>
-          <h3>Mohindar Seehra Research Award</h3>
-          <p>Departmental award recognizing outstanding research efforts in physics.</p>
-        </div>
-      </div>
-      <div>
-        <div class="talk">
-          <div class="t-meta"><b>2026</b> · SCEECS — Plasmas Around Black Holes &amp; Neutron Stars · poster</div>
-          <p>Driving Temperature Anisotropies in the Jets of Black Holes</p>
-        </div>
-        <div class="talk">
-          <div class="t-meta"><b>2026</b> · 16th International LISA Symposium · contributed talk</div>
-          <p>BOB the (Waveform) Builder + Direct Waves</p>
-        </div>
-        <div class="talk">
-          <div class="t-meta">Center for Gravitational Waves &amp; Cosmology Symposium · contributed talk</div>
-          <p>Modeling Extreme Gravity: From Relativistic Plasmas to Gravitational Waves</p>
-        </div>
-        <div class="talk">
-          <div class="t-meta"><b>2026</b> · APS Global Physics Summit · contributed talk</div>
-          <p>BOB the (Waveform) Builder: Optimizing Analytical Merger Waveforms</p>
-        </div>
-        <div class="talk">
-          <div class="t-meta"><b>2025</b> · APS Global Physics Summit · contributed talk</div>
-          <p>Merger-Ringdown Modeling of Gravitational Waves Beyond the Dominant Mode</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <footer id="contact">
   <div class="wrap">

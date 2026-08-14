@@ -151,7 +151,7 @@ These are research artifacts published under your name. Treat errors here as mor
 
 ## Adding a tool to the site
 
-**Current state, and its limit:** the homepage embeds each tool as a live `<iframe>` in the `#tools` section, with hand-tuned heights per tool ([index.html](index.html), `.tool-embed iframe` and `.tool-embed.geo iframe` plus their mobile overrides).
+**Current state, and its limit:** the homepage embeds each tool as a live `<iframe>` in the `#widgets` section. Heights are no longer hand-tuned — each tool reports its own via `Viz.autoHeight()`, and the `.tool-embed iframe` CSS in [index.html](index.html) is only the no-JS floor.
 
 This does not scale, and it's the main open infrastructure risk. Every tool added this way is another live document, canvas, and rAF loop on a single mobile page. **Target state: a `tools/` gallery of static cards linking to standalone pages, with at most one live embed on the homepage.** Prefer adding new tools as gallery entries rather than extending the inline-embed pattern.
 

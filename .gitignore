@@ -3,16 +3,19 @@
 # Kept out of git so rendered video never bloats the clone permanently.
 media/
 
-# Video, everywhere. Git keeps every blob forever, so a 2.8 MB render is
-# permanent weight even if the file is later deleted -- and re-rendering
-# adds another full copy each time. The animation SOURCE is tracked
-# (animations/*.py) and the render is reproducible from it.
-# Posters are small stills and stay tracked, so the <video> element still
-# has something to show.
-# TO SHIP THE VIDEO: decide where it lives (committed once, or a GitHub
-# Release / other host), then either drop this rule or use
-#   git add -f assets/bob-overview.mp4
+# Video. The rendered masters under media/ stay out (they are regenerable and
+# each re-render is another full copy), but the four DEPLOYED explainers in
+# assets/ are tracked -- the site references them and GitHub Pages has to
+# serve something.
+#
+# Those are web derivatives, not the masters: 30 fps, CRF 26, which is ~66%
+# smaller than manim's 1080p60 output and visually identical on slide content
+# (RMS difference 1.09/255 on the densest frame). Re-encode with:
+#   ffmpeg -i media/videos/<scene>/1080p60/<Scene>.mp4 \
+#          -c:v libx264 -crf 26 -preset slow -r 30 \
+#          -pix_fmt yuv420p -movflags +faststart -an assets/<name>.mp4
 *.mp4
+!assets/*.mp4
 
 # Reference PDFs used while building the animations. Not site content, and
 # several are other authors' published papers -- redistributing publisher

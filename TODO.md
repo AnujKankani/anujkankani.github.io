@@ -8,7 +8,7 @@ Conventions: `[ ]` open · `[x]` done · `[~]` in progress · `[?]` blocked on a
 
 ## Blocking decisions
 
-- [?] **Where does `assets/bob-overview.mp4` live?** Opened 2026-08-11. `*.mp4` is gitignored, so the 2.8 MB render is not in the repo; the BOB section references it three times and 404s at all three until this is settled. Commit it once (permanent in history, another copy per re-render), host it on a GitHub Release (breaks the "only external request is Google Fonts" rule), or keep the section hidden. **Blocks pushing `index.html` with the BOB section visible.**
+*(none open — the video-hosting question was resolved 2026-08-13, see [Done](#done))*
 
 ---
 
@@ -34,10 +34,10 @@ These are live on a page aimed at postdoc hiring committees.
 
 - [ ] **Real contact links.** The footer contact block still ships `mailto:your.email@mail.wvu.edu`, `scholar.google.com/citations?user=YOUR_ID`, and an all-zeros ORCID (`orcid.org/0000-0000-0000-0000`). The page says "I'm on the postdoc market for 2027" — the most important action on the site is a dead link. *Needs the real email, Scholar ID, and ORCID from you; I won't guess these.* The GitHub and arXiv links next to them are real.
 - [ ] **Commit `CV.pdf`.** Grep `href="CV.pdf"` — linked twice and 404 at both, the hero's secondary CTA and the footer.
-- [ ] **Decide where `bob-overview.mp4` lives.** Deferred 2026-08-11: `*.mp4` is gitignored, so the 2.8 MB render is *not* committed. The BOB section in [index.html](index.html) references it three times — `<source>`, the no-video-support download link, and "open video ↗" in the caption — so all three 404 until this is resolved. The poster JPG *is* tracked, so the section renders a play button that fails rather than an empty box. Options: `git add -f` it once (permanent ~2.8 MB in history, and another copy per re-render), host it on a GitHub Release (breaks the "only external request is Google Fonts" rule), or keep the section hidden until the file ships. **Do not push `index.html` with the BOB section visible and no video.**
+- [ ] **Real figure exports for the animations.** `bobbuilder_overview.py`, `bobinsights_overview.py` and `directwave_overview.py` draw hand-tuned curves behind a SCHEMATIC banner. Needed: BOB-the-Builder Figs. 5/6/16/25, BOB-insights Fig. 4, direct-wave Figs. 1/3. Every *number* on screen already comes from the papers; only the plotted shapes are stand-ins. Drop the banner in the same commit that lands the data, never before.
 - [ ] **Restore the Random section** once there is real content. Cut 2026-08-06 — the markup survives commented-out in [index.html](index.html) with restore instructions; the CSS is still live, so bringing it back is a comment-delete plus re-adding the nav link.
 - [ ] **Add `<meta name="description">`, Open Graph tags, and a favicon** to all three pages — currently none have any. Shared links render as bare URLs with no title card.
-- [ ] **Fill the three highlight figure slots.** Grep `Add figure &rarr;` — three placeholders naming `figures/bob-waveform.png`, `figures/direct-wave.png`, `figures/boundary-to-bound.png`. `figures/` does not exist yet. These double as OG images once they exist.
+- [ ] **No figures anywhere on the site.** The Highlights section that held the three figure slots was removed 2026-08-11, which also removed the only real images the page had. Worth deciding whether the paper work should be shown visually somewhere — Research or Publications — and those figures would double as OG images. `figures/` still does not exist.
 
 ---
 
@@ -50,8 +50,17 @@ These are live on a page aimed at postdoc hiring committees.
 
 ## Done
 
+**2026-08-13**
+
+- [x] **Explainers section + videos in the repo.** One animated walkthrough per paper, as a responsive card grid after the publication list. The video-hosting question is closed: `assets/*.mp4` is now tracked, the manim masters under `media/` stay ignored. What ships is a web derivative — 30 fps, CRF 26 — which is **66% smaller** than the 1080p60 master and visually identical on slide content (RMS difference 1.09/255 measured on the densest text-and-curve frame). Four videos total **5.6 MB** instead of 16.6 MB. Re-render freely; only re-encode into `assets/` when the deployed version should change, since each one is a new blob in history.
+- [x] **`bobbuilder_overview.py`** — 100 s explainer for BOB the (Waveform) Builder. Fig. 6 reproduced by fitting to anchors read off the paper's figure; equations reconstructed from PDF word positions, since linear text extraction scrambles two-column maths.
+- [x] **Homepage order.** Publications above the awards block, BOB after Publications, Explainers after BOB. Nav order matches document order.
+- [x] **`.nojekyll`** — GitHub Pages runs Jekyll by default, which silently skips paths beginning with `_` (`tools/_shared.*`).
+- [x] **Three skills under `.claude/skills/`** — `academic-site`, `physics-widget`, `paper-animation` — recording the checks this work produced.
+
 **2026-08-11**
 
+- [x] **Restructured the homepage.** Nav went to About me / Research / BOB / Publications / Software / Widgets / Contact (Explainers added 2026-08-13). Now removed (with its `.now-*` CSS). `#tools` renamed `#widgets` (section, eyebrow and heading); Highlights removed outright; Recognition & Talks folded into Research under an "Awards & recent talks" sub-head, reusing the existing `.rec-grid` / `.award` / `.talk` styles. Dead `.highlight` / `.hl-*` CSS deleted, `.sub-head` added. Verified every nav anchor resolves to a real `id`. *Both removed sections survive in the initial commit — `git show HEAD:index.html` recovers them verbatim, including the awards text — so nothing is lost.*
 - [x] **Kerr.** [geodesic-explorer.html](geodesic-explorer.html) is now equatorial Kerr (Bardeen–Press–Teukolsky), with Schwarzschild as the a = 0 case. `Delta`, `Veff`, `accel`, `dphidtau`, `rHorizon`, `rPhoton`, `rISCO`, `circEL`, `bCrit`, `energyAtRest`. Veff depends on E as well as L, so "release from rest" is the implicit condition `E² = Veff(r₀;E)`, solved in closed form.
 - [x] **UI rework of the geodesic tool.** Spin slider 0→0.99 with an explicit prograde/retrograde toggle (`rISCO` is even in `a`, so inferring sense from `sign(a·L)` drew the wrong ISCO); presets re-derive their orbit as the spin changes; `Explore!` unlocks all three sliders. Removed the frame-dragging and periapsis-precession presets.
 - [x] **Effective-potential panel, rebuilt.** x-axis from the horizon to 2·r_ISCO; a y-zoom rail down the right edge of the panel blending a wide framing and a tight one. The tight end frames the band outside `potRCut()` — the light ring for massive orbits, `min(r_ph, 3(L−aE)/(L+aE))` for photons, since ~32% of the photon range has its barrier peak *inside* the light ring. Went from 9% of the panel height carrying the physics to 86–91%.
@@ -59,7 +68,7 @@ These are live on a page aimed at postdoc hiring committees.
 - [x] **The sphere was an ellipse.** `width:100%` is definite, so `aspect-ratio` derived the height and `max-height` clamped only that — the stage box was never square, and blitting the square buffer across it stretched the sphere 2.3× embedded, 1.5× standalone. Now letterboxed into a centred square. Caught by screenshot, not by tests.
 - [x] **`|Y|` field** added alongside `|Y|²` in the SWSH viewer, on the sequential colour ramp (a non-negative field on the diverging ramp renders entirely as "+").
 - [x] **Mobile, both platforms.** `Viz.autoHeight()` — the tool measures its own content and posts the height to the host. Fixed heights could not work: content height depends on how control rows wrap, which is not monotonic in width (geodesic: 1076px at 320 wide, 692px at 700), so the bottom control row was clipped at every phone width. Verified end to end on the shipped `index.html` at nine widths, 320→1200: applied height equals content height exactly. Plus 44px touch targets under `pointer: coarse`, and `touch-action: pan-y` on the SWSH stage so a phone can scroll past it.
-- [x] **Manim animations.** `bob_overview.py` rendered to 61.2s and embedded in a lazy-loading BOB section on the homepage. `directwave_overview.py` and `bobinsights_overview.py` written but still carry **SCHEMATIC placeholder data** — they need real figure exports before rendering. Palette-exploration scenes (`bg_swatches.py`, `bi_swatches.py`) are gitignored.
+- [x] **Manim animations.** All four render clean at 1080p60: `bob_overview.py` 61.2s (teal), `directwave_overview.py` 75.1s (near-black), `bobinsights_overview.py` 89.0s (maroon), `bobbuilder_overview.py` 85.2s (caramel). Only the BOB overview is embedded on the site so far, in a lazy-loading section. The other three carry **SCHEMATIC placeholder curves** — the quoted numbers are real, the plotted shapes are not. Palette-exploration scenes (`bg_swatches.py`, `bi_swatches.py`) are gitignored.
 - [x] **Suite grew 50 → 243 checks** and past physics: UI state driven through `loadUI`, rendering contracts (the potential axis never inverts and never clips the E² line across ~600k parameter/zoom pairs; triad arms point along the axes they label), layout contracts (auto-height, the zoom rail's CSS specificity, the touch-target floor). Size cap raised 15 → 25 KB.
 - [x] **Comment audit across all nine code files.** Fixed false claims (`Viz` "exposes exactly three things"; a documented handle field `running` that is actually `isRunning()`; a cited `fpsToMs` that never existed; `extract.js` claiming to "strip" DOM wiring it in fact evaluates; "BOB in ~30 seconds" for a 61.2s film) and checked every code identifier named in a comment still exists.
 

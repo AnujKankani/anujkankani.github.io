@@ -45,7 +45,9 @@ There is no `npm install` — the harness has no dependencies.
 
 A local server is needed rather than `file://` because the tool pages are loaded into `index.html` through `<iframe>` and read `location.search`.
 
-Deploy = commit to `main` and push. There is no CI, so verify before pushing — and run `tools/build.py --check` first if you touched `tools/_shared.*`.
+Deploy = commit to `main` and push. An empty `.nojekyll` at the repo root disables GitHub Pages' default Jekyll pass — the site is plain static HTML that Jekyll can only interfere with, most sharply by skipping paths beginning with `_` (`tools/_shared.css`, `tools/_shared.js`). Keep that file.
+
+There is no CI, so verify before pushing — and run `tools/build.py --check` first if you touched `tools/_shared.*`.
 
 **Visual checks are possible here.** Chrome is reachable from WSL and can screenshot headlessly, which is the only way to catch rendering bugs the test suite cannot see (a stretched sphere, a collapsed slider, a clipped iframe):
 
@@ -64,7 +66,7 @@ Each deployed `.html` file is fully self-contained: inline `<style>`, inline `<s
 
 `tools/build.py` is compatible with this: it inlines shared source at build time and the committed output stays dependency-free. The rule is about what the visitor's browser fetches, not about whether a generator exists.
 
-- [index.html](index.html) — the whole site. Nav, hero, and the sections About / Research / BOB / Highlights / Now / Publications / Software / Tools / Recognition / Contact. Section `id`s are the anchor targets in the nav, so renaming an `id` means updating `.nav-links`. (Random is written but commented out — see Content editing.)
+- [index.html](index.html) — the whole site. Nav, hero, and eight sections: About me / Research / Publications / BOB / Explainers / Software / Widgets / Contact. Section `id`s are the anchor targets in the nav, so renaming an `id` means updating `.nav-links` — the ids are `about`, `research`, `publications`, `bob`, `explainers`, `software`, `widgets`, `contact`. The nav order follows document order, so moving a section means editing both. Awards and talks live at the *tail of the Publications section* under a `.sub-head`, so papers come first; there is no separate Recognition section and no nav entry for them. (Random is written but commented out — see Content editing.)
 - [swsh-visualizer.html](swsh-visualizer.html) — s = −2 spin-weighted spherical harmonic viewer (2D canvas, custom projection + z-buffer splatting into an offscreen square buffer). `RES` is chosen per resize from the drawn square and the detail tier — 244 / 312 / 332 / 452 — so the cost is independent of display size. The buffer is blitted **letterboxed** into a centred square: the stage box is not square (`width:100%` is definite, so `aspect-ratio` derives the height and `max-height` clamps only that), and stretching it to the box renders the sphere as an ellipse.
 - [geodesic-explorer.html](geodesic-explorer.html) — **equatorial Kerr** geodesics (Schwarzschild is the a = 0 case): RK4 orbit integration plus an effective-potential panel, on two canvases.
 
@@ -120,10 +122,14 @@ The hero waveform in `index.html` is *illustrative only* — a hand-tuned chirp 
 
 ## Content editing
 
-Publications, highlights, talks, awards, and "Now" items are plain HTML blocks meant to be duplicated. Several carry HTML comments explaining how (e.g. add `class="flip"` to a `.highlight` to move the figure to the other side; replace a `.hl-figure` / `.random-figure` placeholder div with `<div class="hl-figure"><img src="figures/…" alt="…"></div>`). Preserve those comments — they're the editing instructions for the site's owner.
+Publications, talks and awards are plain HTML blocks meant to be duplicated — `.pub`, `.talk`, `.award`. Several carry HTML comments explaining how (e.g. the awards/talks block inside Research names which column is which). Preserve those comments — they're the editing instructions for the site's owner.
 
 The **Random** section is written but wrapped in an HTML comment, and its nav link removed — it held placeholder cards with dead links. The CSS is still live, so restoring it is a comment-delete plus re-adding the nav link. Instructions are in the comment itself; keep them.
 
-Known placeholders still in [index.html](index.html), not yet filled in: the `mailto:your.email@mail.wvu.edu` address, `scholar.google.com/…user=YOUR_ID`, the all-zeros ORCID, the three `.hl-figure` figure slots, and `CV.pdf` (linked twice but not committed). A `figures/` directory is referenced but does not exist yet.
+Known placeholders still in [index.html](index.html), not yet filled in: the `mailto:your.email@mail.wvu.edu` address, `scholar.google.com/…user=YOUR_ID`, the all-zeros ORCID, and `CV.pdf` (linked twice but not committed). A `figures/` directory is referenced only from inside the commented-out Random section, and does not exist yet.
 
-The **BOB section** embeds `assets/bob-overview.mp4`, which is gitignored (2.8 MB; git keeps blobs forever). The poster JPG *is* tracked, so without the video the section shows a play button that fails. Do not push that section visible until the video's hosting is decided — see TODO.md.
+**Deployed video IS tracked** (`assets/*.mp4`, ~5.6 MB for four files); the manim masters under `media/` are not. What ships is a web derivative — 30 fps, CRF 26, about 66% smaller than the 1080p60 master and visually identical on slide content. The re-encode command is in `.gitignore` next to the rule. Re-render freely; only re-encode into `assets/` when the deployed version should change, since each one is a new blob in history.
+
+Four videos are referenced: the BOB overview in `#bob`, and three paper explainers in `#explainers`. Posters are tracked too (~36 KB each).
+
+To add an explainer: duplicate a `.exp-item`, point `<source>` and `poster` at the new files, link the arXiv entry. Generate the poster from the render with `ffmpeg -ss <t> -i <render>.mp4 -frames:v 1 -vf scale=1280:-1 -q:v 4 assets/<name>-poster.jpg`, choosing a moment where a slide is fully built rather than mid-transition.

@@ -1,4 +1,4 @@
-"""Direct Waves in BBH Mergers: Insights from BOB -- ~75 s.
+"""Direct Waves in BBH Mergers: Insights from BOB -- 89 s at 1080p60.
 
 Kankani & McWilliams, arXiv:2603.15474.
 
@@ -176,11 +176,21 @@ class BOBInsightsOverview(Scene):
     #     reproduce it?  (~16 s)
     # ------------------------------------------------------------------
     def beat_question(self):
-        """Poles sit at Re(omega) = -alpha*delta, i.e. LEFT of the imaginary
-        axis: omega_n = -alpha*delta - i*alpha*(n+1/2). See footnote 1 of the
-        paper (pole condition -beta - i*omega/alpha = -n, beta = -1/2 + i*delta,
-        delta > 0 -- delta = 2.09 for the paper's V0 = 0.605, alpha = 0.362).
-        Consistent with the e^{+i alpha delta (t-r_*)} factor in Eq. (7).
+        """Poles at omega_n = +/- alpha*delta - i*alpha*(n+1/2): a ladder of
+        overtones marching down in Im(omega), mirrored about the imaginary
+        axis.
+
+        BOTH signs are real QNMs. The paper writes the pole location as
+        omega_n = i*alpha*sqrt(1/4 - V0/alpha^2) - i*alpha*(n+1/2), and that
+        square root has two branches; taking the principal one gives
+        Re(omega) = -alpha*delta, the other gives +alpha*delta. The spectrum is
+        symmetric because a real time-domain signal needs the mirror pair
+        (omega and -omega*), and the mode conventionally quoted for the
+        dominant prograde harmonic is the Re(omega) > 0 one.
+
+        delta = sqrt(V0/alpha^2 - 1/4) = 2.09 for the paper's V0 = 0.605,
+        alpha = 0.362, so Re(omega) = +/-0.757 and the overtone spacing in
+        Im(omega) is alpha = 0.362.
         """
         title = Text("BOB's amplitude is a hyperbolic secant",
                      font="sans-serif", color=INK, weight=BOLD).scale(0.58)
@@ -214,7 +224,7 @@ class BOBInsightsOverview(Scene):
 
         # The QNM picture it must be reconciled with: a ladder of poles.
         plane_c = RIGHT * 3.30 + UP * 0.30
-        re_axis = Line(plane_c + LEFT * 1.70, plane_c + RIGHT * 1.10,
+        re_axis = Line(plane_c + LEFT * 1.45, plane_c + RIGHT * 1.45,
                        stroke_color=MUTED, stroke_width=1.4)
         im_axis = Line(plane_c + UP * 0.55, plane_c + DOWN * 2.00,
                        stroke_color=MUTED, stroke_width=1.4)
@@ -223,13 +233,21 @@ class BOBInsightsOverview(Scene):
         im_lab = MathTex(r"\mathrm{Im}\,\omega", color=MUTED).scale(0.38)
         im_lab.next_to(im_axis.get_top(), RIGHT, buff=0.08)
 
+        # BOTH signs of Re(omega). The Poschl-Teller spectrum is symmetric
+        # about the imaginary axis -- omega_n = +/- alpha*delta - i*alpha*(n+1/2)
+        # -- because the square root in the pole condition has two branches.
+        # A real time-domain signal needs the mirror pair (omega and -omega*),
+        # and the conventionally quoted prograde mode is the Re(omega) > 0 one,
+        # so drawing only the left branch read as "QNMs live at Re(omega) < 0",
+        # which is not what the spectrum looks like.
         poles = VGroup(*[
-            Dot(plane_c + np.array([-0.80, -(n + 0.45) * 0.42, 0]),
-                radius=0.050, color=GREEN) for n in range(4)
+            Dot(plane_c + np.array([sgn * 0.80, -(n + 0.45) * 0.42, 0]),
+                radius=0.050, color=GREEN)
+            for n in range(4) for sgn in (+1, -1)
         ])
         pole_lab = Text("QNM overtones", font="monospace",
                         color=GREEN).scale(0.24)
-        pole_lab.next_to(poles, LEFT, buff=0.18)
+        pole_lab.move_to(plane_c + DOWN * 2.32)
 
         self.play(Create(re_axis), Create(im_axis), FadeIn(re_lab),
                   FadeIn(im_lab), run_time=0.8)
@@ -417,8 +435,18 @@ class BOBInsightsOverview(Scene):
         sub.next_to(title, DOWN, buff=0.26)
         self.play(FadeIn(sub), run_time=0.8)
 
+        # Manim draws the x-axis at y = 0 whenever 0 falls inside y_range. The
+        # earlier range [-3.2, 0.4] straddled zero with only 0.4 above it, so
+        # the axis was drawn along the TOP and both curves hung underneath it.
+        # Keeping y_range at [0, ...] puts the axis on the bottom where it
+        # belongs, with the decay above it.
+        #
+        # The curve is log|Re N22| measured up from an arbitrary floor. That is
+        # only a normalisation choice (log(A/A_ref)), and the y-axis carries no
+        # numeric ticks, so nothing on screen claims an absolute value.
+        Y_TOP = 2.9
         ax = Axes(
-            x_range=[0, 35, 10], y_range=[-3.2, 0.4, 1],
+            x_range=[0, 35, 10], y_range=[0, Y_TOP, 1],
             x_length=8.0, y_length=2.9,
             axis_config={"stroke_color": MUTED, "stroke_width": 1.5,
                          "include_tip": False, "font_size": 20},
@@ -430,7 +458,7 @@ class BOBInsightsOverview(Scene):
         xticks = VGroup()
         for tval in (-15, -5, 5, 15, 20):
             lbl = MathTex(str(tval), color=MUTED).scale(0.40)
-            lbl.next_to(ax.c2p(tval + T_OFF, -3.2), DOWN, buff=0.14)
+            lbl.next_to(ax.c2p(tval + T_OFF, 0), DOWN, buff=0.14)
             xticks.add(lbl)
         xlab = MathTex(r"(t-t_p)\ [M]", color=MUTED).scale(0.46)
         xlab.next_to(xticks, DOWN, buff=0.14)
@@ -442,8 +470,11 @@ class BOBInsightsOverview(Scene):
 
         # Filtered NR and filtered BOB: the point is that they COINCIDE.
         def filtered(u, phase=0.0):
+            # Linear fall in log amplitude, dipped where |Re| passes through
+            # zero. Offset so the whole trace stays inside [0, Y_TOP]: it runs
+            # from ~2.43 at the left down to ~0.15 at the right.
             t = u - T_OFF
-            base = -0.30 - 0.055 * (t + 15.0)
+            base = 2.95 - 0.055 * (t + 15.0)
             osc = 0.42 * np.abs(np.cos(0.30 * t + phase))
             return base - 0.9 * (1.0 - osc)
 
@@ -453,7 +484,7 @@ class BOBInsightsOverview(Scene):
                       stroke_width=3.0, color=ROSE, stroke_opacity=0.95)
 
         nr_lab = Text("filtered NR", font="monospace", color=INK).scale(0.28)
-        nr_lab.next_to(ax.c2p(30, -0.55), RIGHT, buff=0.10).shift(LEFT * 1.5)
+        nr_lab.next_to(ax.c2p(30, 2.55), RIGHT, buff=0.10).shift(LEFT * 1.5)
         bob_lab = Text("filtered BOB", font="monospace", color=ROSE).scale(0.28)
         bob_lab.next_to(nr_lab, DOWN, buff=0.14, aligned_edge=LEFT)
 
