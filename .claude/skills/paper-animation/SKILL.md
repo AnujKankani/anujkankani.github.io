@@ -1,6 +1,6 @@
 ---
 name: paper-animation
-description: Write Manim explainer animations for a research paper. Use when building or editing a paper-overview animation - reading the source paper, pulling equations out of a two-column PDF, choosing a legible palette, avoiding Manim's axis and layout traps, and verifying each beat before a full render. Not tied to any one paper or field.
+description: Write Manim explainer animations for a research paper, and draw physics illustrations generally. Use when building or editing a paper-overview animation - reading the source paper, pulling equations out of a two-column PDF, choosing a legible palette, avoiding Manim's axis and layout traps, and verifying each beat before a full render - or when drawing any figure that depicts a physical system, where the geometry itself makes a claim. Not tied to any one paper or field.
 ---
 
 # Manim animations for papers
@@ -181,6 +181,63 @@ plot and let colour do the attribution. Check by rendering, not by reasoning.
 - Fixed RNG seed for any scatter, so the figure is reproducible run to run.
 - Rendered video does not belong in git — every re-render adds a full copy.
   Gitignore it and keep the source, which reproduces it.
+
+## Drawing physics: the shape carries the claim
+
+Applies to any physics illustration, animated or static. Each of these shipped
+wrong first and was caught by looking at the render, not by reasoning.
+
+- **Symmetry that the physics does not have will draw itself.** A bipolar jet
+  is *collinear*: both lobes rotate by the same angle about the source.
+  Rotating them by opposite angles splays them into a V, and four of those
+  read as a butterfly. Likewise a rotating magnetosphere winds **one** spiral —
+  alternating the sweep direction of field lines both tangles them and depicts
+  a field no rotating object can produce.
+- **Direction of travel lives in the trail, and one reversal flips the
+  meaning.** The same blob with the same tail reads as *accretion* or as a
+  *jet* depending only on which end the head is. Check it deliberately.
+- **Taper the trail.** A uniform-width stroke with a dot on the end reads as a
+  lollipop, not as motion.
+- **Structure beats scale.** A family of curves sharing one knee looks wrong
+  even at the right magnitudes; if each member should also turn over earlier,
+  the knee has to depend on the index.
+- **Beware accidental faces.** Two similar dark discs side by side, at the same
+  height, with anything vertical between them, read as eyes and a nose. Unequal
+  sizes, contact, or a vertical offset breaks it. This is very hard to unsee
+  once noticed and very easy to miss while building — ask someone.
+- **Emergence has to be constructed.** For a wave to look like it *leaves* a
+  body rather than wrapping around it, pin its envelope to zero at that body's
+  edge — and key that taper to the **edge**, not to the end of the path. Keyed
+  to the path, the whole taper happens hidden behind the body and nothing
+  changes on screen.
+- **Detail must survive the smallest size it ships at.** Islands 8px wide on a
+  1200px canvas vanish; a mark that reads at 64px can be mush at 16px. Render
+  at the real size and look.
+
+### Worked example: a reconnecting current sheet
+
+Kept because it is the clearest case of "structure is the claim", and because
+the naive drawing — a wavy ribbon with evenly spaced beads on it — is wrong in
+five separate ways. What a tearing-unstable layer actually looks like in PIC
+and MHD reconnection runs:
+
+- the layer is **only thin between islands**. It bulges wherever a plasmoid
+  sits, so the outline is a string of beads of very different sizes, not a
+  tube of constant width. Build the thickness as a thin baseline plus a bump
+  at each island and the rest falls out of the construction;
+- islands are **hierarchical, not monotonic** — small secondary ones sit
+  between large ones, because they form, merge and get swept up continuously.
+  A smooth ramp of sizes reads as decoration;
+- between every adjacent pair sits an **X-point**, where the layer pinches
+  thinnest and the field reconnects. Do not draw these; let them emerge from
+  the thickness function;
+- plasmoids are **closed loops around an O-point**, so they read as nested
+  rings, not flat discs;
+- islands are advected **both ways** from the centre and grow toward the
+  outflow ends, where the largest are ejected;
+- the sheet is **finite**, terminating in an outflow exhaust. End it at the
+  outermost island, not at a fixed span, or a bare spike of layer sticks out
+  past the last plasmoid like a spear tip.
 
 ## Physics-claim discipline
 

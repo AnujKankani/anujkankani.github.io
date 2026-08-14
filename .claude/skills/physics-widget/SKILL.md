@@ -171,6 +171,19 @@ test that only matches typed-array constructors will miss all of that.
 - A regex over a whole file **will match your own comments**. Match against
   the extracted function or rule body.
 
+### Capturing a widget as a still
+
+Headless Chrome will not animate one for you. It reports
+`prefers-reduced-motion: reduce`, so a tool that honours it starts **paused**;
+and `--virtual-time-budget` advances the clock without ticking rAF (measured:
+6 frames in 20 s of virtual time), so nothing progresses even once running.
+
+Drive the state rather than waiting for it: if `step()` and `render()` are
+top-level globals, call `step()` in a loop and `render()` once. The capture is
+then exact and identical run to run. Worth keeping those two as plain
+top-level functions rather than burying them in a closure — it makes the tool
+scriptable from the outside for exactly this.
+
 ## Accessibility and input
 
 - `aria-pressed` on every segmented control, kept in sync from state.

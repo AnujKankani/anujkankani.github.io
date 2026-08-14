@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OG tool card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#0E141F; --ink:#E9ECF2; --ink-soft:#9BA6B7; --line:#242E3D;
+    --accent:#8E93F2;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1200px;height:630px;overflow:hidden;}
+  body{
+    background:var(--paper);color:var(--ink);
+    font-family:'Space Grotesk',system-ui,sans-serif;
+    display:flex;align-items:center;gap:48px;padding:0 68px;position:relative;
+  }
+  body::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(900px 480px at 12% 26%, rgba(124,131,240,.15), transparent 62%),
+               radial-gradient(760px 420px at 92% 78%, rgba(224,112,180,.10), transparent 64%);
+  }
+  .copy{position:relative;flex:0 0 470px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:17px;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:22px;
+    white-space:nowrap;   /* a wrapped eyebrow reads as a broken line, not a kicker */
+  }
+  h1{font-size:56px;font-weight:700;letter-spacing:-.022em;line-height:1.06;margin-bottom:22px;}
+  .sub{font-size:23px;line-height:1.45;color:var(--ink-soft);}
+  .by{
+    margin-top:34px;padding-top:22px;border-top:1px solid var(--line);
+    font-family:'IBM Plex Mono',monospace;font-size:17px;color:var(--ink-soft);
+    letter-spacing:.05em;
+  }
+  .by b{color:var(--ink);font-weight:500;}
+  .stage{position:relative;flex:1;display:flex;align-items:center;justify-content:center;}
+  .win{position:relative;overflow:hidden;border-radius:10px;}
+  .win iframe{position:absolute;border:0;display:block;}
+</style>
+</head>
+<body>
+  <div class="copy">
+    <p class="eyebrow" id="eyebrow"></p>
+    <h1 id="title"></h1>
+    <p class="sub" id="sub"></p>
+    <p class="by">anujkankani.github.io · <b>Anuj Kankani</b></p>
+  </div>
+  <div class="stage"><div class="win" id="win"><iframe id="fr" title="widget"></iframe></div></div>
+<script>
+  /* Renders the real widget in a same-origin iframe rather than pasting a
+     screenshot, so the card cannot drift from what the page actually draws. */
+  var CFG = {
+    swsh: {
+      eyebrow:'Interactive · Gravitational-wave modes',
+      title:'Spin-weighted spherical harmonics',
+      sub:'The angular basis of every gravitational-wave signal. Rotate it, sweep ℓ and m.',
+      src:'/swsh-visualizer.html?embed=1', w:600, h:900,
+      crop:'#stage'      // full widget fits but crowds the sphere; the art is the point
+    },
+    geo: {
+      eyebrow:'Interactive · Strong-field orbits',
+      title:'Kerr geodesic explorer',
+      sub:'Integrate equatorial orbits around a spinning black hole, against the effective potential.',
+      src:'/geodesic-explorer.html?embed=1', w:620, h:900,
+      crop:'.panel.orbit',   // the control stack is tall enough to shrink the art to nothing
+      steps:900              // build a real trail (see below)
+    }
+  };
+  var key = (location.search.match(/tool=(\w+)/) || [])[1] || 'swsh';
+  var c = CFG[key];
+  document.getElementById('eyebrow').textContent = c.eyebrow;
+  document.getElementById('title').textContent   = c.title;
+  document.getElementById('sub').textContent     = c.sub;
+
+  var fr = document.getElementById('fr'), win = document.getElementById('win');
+  fr.style.width = c.w + 'px';
+  fr.style.height = c.h + 'px';
+
+  fr.addEventListener('load', function(){
+    var d = fr.contentDocument, w = fr.contentWindow;
+
+    /* Headless Chrome reports prefers-reduced-motion: reduce, so the geodesic
+       tool starts paused -- and virtual time advances the clock without
+       ticking rAF (20 s of virtual time fired 6 frames). Drive the integrator
+       directly instead: step() and render() are top-level globals, so the
+       trail below is the tool's own RK4 output, not a drawn approximation. */
+    if (c.steps && typeof w.step === 'function') {
+      for (var i = 0; i < c.steps && !w.done; i++) w.step();
+      w.render();
+    }
+
+    /* Crop to a real measured rect rather than a guessed height: the control
+       rows wrap differently at every width, so any hardcoded box clips a row. */
+    var cw, ch;
+    if (c.crop) {
+      var r = d.querySelector(c.crop).getBoundingClientRect();
+      cw = Math.ceil(r.width); ch = Math.ceil(r.height);
+      fr.style.left = (-r.left) + 'px';
+      fr.style.top  = (-r.top)  + 'px';
+    } else {
+      /* No crop: the window IS the frame, so it must not be offset. Measuring
+         the body rect and shifting by -top pushed the whole widget off-centre. */
+      cw = c.w; ch = Math.ceil(d.body.getBoundingClientRect().height);
+      fr.style.left = '0'; fr.style.top = '0'; fr.style.height = ch + 'px';
+    }
+    win.style.width = cw + 'px';
+    win.style.height = ch + 'px';
+
+    var scale = Math.min(1, (630 - 56) / ch, (1200 - 68 - 470 - 48 - 68) / cw);
+    if (scale < 1) {
+      win.style.transformOrigin = 'center center';
+      win.style.transform = 'scale(' + scale.toFixed(4) + ')';
+    }
+  });
+
+  fr.src = c.src;
+</script>
+</body>
+</html>

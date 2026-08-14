@@ -1495,6 +1495,154 @@ suite('golden rule 1 :: resource budget', () => {
   });
 });
 
+suite('every page :: social preview and favicon', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const root = path.join(__dirname, '..');
+  const SITE = 'https://anujkankani.github.io/';
+  const pages = ['index.html', 'swsh-visualizer.html', 'geodesic-explorer.html'];
+
+  pages.forEach((f) => {
+    const src = fs.readFileSync(path.join(root, f), 'utf8');
+    /* Scope every match to the head. A regex over the whole file happily
+       matches prose in a comment further down -- that false pass has bitten
+       this suite three times already. */
+    const head = src.slice(0, src.indexOf('</head>'));
+    const meta = (attr, key) => {
+      const m = head.match(
+        new RegExp('<meta ' + attr + '="' + key.replace(/[:.]/g, '\\$&') +
+                   '" content="([^"]*)">'));
+      return m ? m[1] : null;
+    };
+
+    const desc = meta('name', 'description');
+    ok(`${f}: has a description`, !!desc && desc.length > 40);
+    /* Google truncates around 160 chars; longer is not an error but the tail
+       is invisible, so keep the payload in the first 160. */
+    ok(`${f}: description within 200 chars (${desc ? desc.length : 0})`,
+      !!desc && desc.length <= 200);
+
+    ['og:type', 'og:title', 'og:description', 'og:url', 'og:image',
+     'og:image:width', 'og:image:height'].forEach((k) => {
+      ok(`${f}: ${k} present`, !!meta('property', k));
+    });
+    ok(`${f}: twitter:card is summary_large_image`,
+      meta('name', 'twitter:card') === 'summary_large_image');
+
+    /* The two failure modes that produce a broken card with no error anywhere:
+       a relative og:image (scrapers do not resolve it) and a URL pointing at a
+       file that was never committed. */
+    const img = meta('property', 'og:image');
+    ok(`${f}: og:image is an absolute URL`, !!img && img.startsWith(SITE));
+    const rel = img ? img.slice(SITE.length) : '';
+    ok(`${f}: og:image file exists (${rel})`,
+      !!rel && fs.existsSync(path.join(root, rel)));
+
+    const canon = head.match(/<link rel="canonical" href="([^"]+)">/);
+    ok(`${f}: canonical is absolute`, !!canon && canon[1].startsWith(SITE));
+    ok(`${f}: og:url matches canonical`,
+      !!canon && meta('property', 'og:url') === canon[1]);
+
+    /* A favicon FILE would be the first runtime fetch other than the font. */
+    const icon = head.match(/<link rel="icon" href="([^"]+)">/);
+    ok(`${f}: favicon is inlined, not fetched`,
+      !!icon && icon[1].startsWith('data:image/svg+xml,'));
+    ok(`${f}: favicon has no raw spaces`, !!icon && !/\s/.test(icon[1]));
+
+    ok(`${f}: theme-color declared`, !!meta('name', 'theme-color'));
+  });
+
+  /* index.html drives theme-color from the theme script rather than a
+     media query, because a media query keeps reporting the SYSTEM colour
+     after the user has explicitly toggled. Guard both halves of that. */
+  const idx = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  ok('index.html: theme script sets theme-color',
+    /meta\[name="theme-color"\]/.test(idx) && /__applyTheme/.test(idx));
+  ok('index.html: toggle routes through the same path',
+    /window\.__applyTheme\(next\)/.test(idx));
+
+  /* The cards are generated; losing the generator makes them unmaintainable. */
+  ['tools/og-card.html', 'tools/og-tool.html', 'tools/mkfav.js'].forEach((g) => {
+    ok(`generator ${g} is committed`, fs.existsSync(path.join(root, g)));
+  });
+});
+
+suite('index.html :: hero figure', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const root = path.join(__dirname, '..');
+  const src = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+
+  /* Match the class ATTRIBUTE loosely: the block also carries `bleed`, and
+     pinning the exact string made every check below silently fail the moment
+     a second class was added. */
+  const m = src.match(/<div class="hero-fig[^"]*">\s*([\s\S]*?)\s*<\/div>/);
+  ok('hero figure block present', !!m);
+  const fig = m ? m[1] : '';
+
+  ok('figure is an inline <svg>', /^<svg\b/.test(fig));
+  /* Referencing a file would be the first runtime fetch other than the font. */
+  ok('figure is not a fetched asset',
+    !/<img\b/.test(fig) && !/xlink:href|href\s*=\s*"[^"]*\.svg/.test(fig));
+
+  /* The figure has no text, so the honesty about it being an illustration and
+     the description for a screen reader both live in the aria-label. */
+  const label = fig.match(/aria-label="([^"]*)"/);
+  ok('figure has an aria-label', !!label && label[1].length > 40);
+  ok('aria-label says it is an illustration',
+    !!label && /illustration/i.test(label[1]));
+
+  /* Regenerating and pasting is the obvious way to break theming: the
+     standalone build is hard-coded light, and pasting THAT would leave a
+     cream figure sitting on the dark page. */
+  const hexes = fig.match(/#[0-9A-Fa-f]{6}/g) || [];
+  ok(`figure uses theme variables, not literal colours (${hexes.length} found)`,
+    hexes.length === 0, hexes.slice(0, 6).join(' '));
+  ['--ink', '--field', '--wave-1', '--wave-2', '--wave-3'].forEach((v) => {
+    ok(`figure references ${v}`, fig.indexOf('var(' + v + ')') > -1);
+  });
+
+  /* viewBox with no fixed width/height is what lets the CSS scale it. The
+     origin is not assumed to be 0 0 -- the box has been cropped and uncropped
+     once already, so only the shape of the attribute is pinned here. */
+  const vb = fig.match(/viewBox="(-?[\d.]+) (-?[\d.]+) ([\d.]+) ([\d.]+)"/);
+  ok('figure has a viewBox', !!vb);
+  /* The box is INTENTIONALLY taller than the drawn content: the figure sits
+     between two rules and needs the air. What must hold is that it stays a
+     wide band -- a near-square hero would push the whole page down. */
+  const ar = vb ? Number(vb[3]) / Number(vb[4]) : 0;
+  ok(`figure stays a wide band (aspect ${ar.toFixed(2)}:1)`, ar >= 2 && ar <= 4);
+  ok('figure has no fixed width/height', !/<svg[^>]*\swidth="\d/.test(fig));
+
+  const css = src.slice(0, src.indexOf('</style>'));
+  ok('hero-fig svg is fluid width', /\.hero-fig svg\{[^}]*width:100%/.test(css));
+  ok('hero-fig svg height is auto',
+    /\.hero-fig svg\{[^}]*height:auto/.test(css));
+
+
+  /* The breakout must keep the child combinator. Every bled block also carries
+     a component rule with a `margin` shorthand declared LATER at equal
+     specificity, so a bare `.bleed` loses margin-left and the block widens
+     rightward off the page instead of centring. */
+  ok('breakout uses .wrap > .bleed, not bare .bleed',
+    /\.wrap\s*>\s*\.bleed\s*\{/.test(css) && !/^\s*\.bleed\s*\{/m.test(css));
+  const bleed = css.match(/\.wrap\s*>\s*\.bleed\s*\{([^}]*)\}/);
+  ok('breakout sets both width and margin-left',
+    !!bleed && /width:/.test(bleed[1]) && /margin-left:/.test(bleed[1]));
+  /* Guard the scrollbar allowance: 100vw includes it, so widening to exactly
+     100vw overflows horizontally on desktop. */
+  ok('breakout leaves scrollbar allowance',
+    !!bleed && /100vw\s*-\s*\d+px/.test(bleed[1]));
+
+  /* The old chirp generator must stay commented: with its SVG gone,
+     getElementById('chirpPath') is null and the next line throws, taking out
+     every script below it in the same block. */
+  const scripts = src.slice(src.lastIndexOf('<script>'));
+  ok('chirp generator stays disabled',
+    !/^\s*var path=document\.getElementById\('chirpPath'\);/m
+      .test(scripts.replace(/\/\*[\s\S]*?\*\//g, '')));
+});
+
 /* ---------------- report ---------------- */
 console.log('\n' + '-'.repeat(52));
 if (failed) {

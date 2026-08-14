@@ -1,6 +1,6 @@
 ---
 name: academic-site
-description: Build and maintain a static academic site with embedded interactive physics widgets. Use when adding or changing a self-contained HTML tool, wiring it into a host page, working on responsive/touch behaviour, or verifying rendering. Covers the embed contract, the animation-loop rules, the CSS traps that fail silently, and how to verify visually instead of guessing.
+description: Build and maintain a static academic site with embedded interactive physics widgets. Use when adding or changing a self-contained HTML tool, wiring it into a host page, adding inline SVG figures or social-preview metadata, working on responsive/touch/layout behaviour, or verifying rendering. Covers the embed contract, the animation-loop rules, theming inline figures, breakout layout past the reading column, the CSS traps that fail silently, and how to verify by measuring instead of guessing.
 ---
 
 # Academic site with interactive widgets
@@ -110,6 +110,86 @@ window still has a mouse, a large tablet still has fingers.
   across such a box stretches it. Letterbox into `min(W,H)` centred instead.
 - Multi-line text is left-aligned inside its own box; centring the box still
   leaves ragged lines under a centred figure.
+- **A `margin` shorthand declared later beats your longhand.** `.thing{margin:
+  44px 0 0}` resets `margin-left` to 0 even if an earlier rule of equal
+  specificity set it deliberately.
+- **A stray `*/` silently deletes the rule after it.** Appending prose after a
+  comment's closing `*/` leaves loose tokens in the stylesheet, and CSS error
+  recovery swallows the block that follows. The change then does *nothing* —
+  no error, no visual clue, and every measurement comes back identical to
+  before the edit. This is the strongest argument for re-measuring after a CSS
+  change rather than reading the diff and assuming.
+
+## Search and social preview
+
+Easy to skip entirely, and then every shared link renders as a bare URL. Two
+of these fail **silently** — no error, no warning, nothing in devtools:
+
+- **`og:image` must be an absolute URL.** Scrapers do not resolve relative
+  paths; they simply report no image.
+- **Keep the favicon a `data:` URI**, or it becomes the first runtime fetch
+  other than the font. Percent-encode it, spaces included. Simplify the mark
+  until it survives 16px — a faithful miniature of a detailed logo turns to
+  mush. Cut detail, not size, and render it at 16/32/64 on light *and* dark to
+  check.
+
+`theme-color` must be driven by the same function that applies the theme, not
+a `media="(prefers-color-scheme: …)"` pair — a media query keeps reporting the
+*system* colour after the user has explicitly toggled.
+
+**Generate social cards from the live pages** rather than drawing them: render
+the real component in a same-origin iframe and crop to a measured element
+rect. A hand-made card drifts the moment the page changes; a generated one
+cannot. Commit the generator — an asset whose generator is lost cannot be
+regenerated after the next redesign.
+
+## Inline SVG figures that follow the theme
+
+Generate figures from a committed script, then **inline** the SVG rather than
+referencing a file, so the page still fetches nothing.
+
+Emit **two builds** from one generator: a standalone one with literal colours,
+and a themed one whose colours are the page's CSS custom properties. Only the
+themed build belongs in the page. Pasting the standalone build back in leaves
+a light figure sitting on a dark theme — so **test that no literal hex
+survives** in the inlined copy. That is the failure mode, and it is invisible
+until someone loads the other theme.
+
+**Outline colour and "void" colour must be separate tokens.** The outline
+should flip light on a dark background. But a shape that means *absence* — a
+black hole, a punched-through hole — must stay dark in both themes. Mapping
+both to one `--ink` turns a black hole into a white disc.
+
+Strip fixed `width`/`height`, keep the `viewBox`, size with `width:100%;
+height:auto`. When the artwork carries no text, the `aria-label` is where both
+the description and the "this is an illustration, not data" caveat live.
+
+## The reading column also caps everything else
+
+A `max-width` on the content column exists for prose — it holds body text near
+60 characters a line, which is right. But it silently caps figures, embedded
+widgets and media grids too, and those have no such limit. Measure before
+deciding: one site used **56% of a 1920px screen and 42% of a 2560px one**,
+with line length already capped so the extra width bought the text nothing.
+
+The fix is a breakout class on the non-prose blocks, not a wider column:
+
+```css
+@media (min-width:1340px){
+  .wrap > .bleed{
+    --w:min(calc(var(--maxw-wide) - 56px), calc(100vw - 80px));
+    width:var(--w);
+    margin-left:calc((100% - var(--w)) / 2);
+  }
+}
+```
+
+- **Child combinator, not a bare class.** Each of those blocks also carried a
+  component rule with a `margin` *shorthand* declared later at equal
+  specificity, which reset `margin-left` to 0 — so they widened to the *right*,
+  off the page, instead of centring.
+- **`100vw` includes the scrollbar.** Widening to exactly `100vw` overflows
+  horizontally on desktop. Subtract an allowance.
 
 ## Verification: measure, do not eyeball
 
@@ -130,10 +210,38 @@ is not. To measure narrow viewports honestly, load the page in an `<iframe>`
 of the target width from a scratch harness page and read
 `getBoundingClientRect()` / `scrollWidth` inside it.
 
+### Headless Chrome also lies in two ways that stop animation
+
+- **It reports `prefers-reduced-motion: reduce`.** Anything honouring that —
+  auto-play, auto-spin — starts *stopped*, so an unattended capture shows a
+  motionless scene and you go looking for a bug in your own code.
+- **`--virtual-time-budget` advances the clock without ticking rAF.** A frame
+  counter measured **6 frames in 20 s of virtual time**; `--headless=new` did
+  not help. Animations simply do not progress.
+
+So **do not wait for an animation to reach a state — drive it there.** If the
+page's step function is a top-level global, call it in a loop and then render
+once. That is exact, reproduces byte-for-byte between runs, and removes timing
+from the problem entirely.
+
+### Measuring overflow correctly
+
+Use `documentElement.scrollWidth > documentElement.clientWidth`. Both
+`body.scrollWidth` and a sweep of `getBoundingClientRect()` yield false
+positives — in particular **SVG children report geometry outside the `viewBox`
+that the browser actually clips**, so a correctly-clipped figure looks like a
+150px overflow. Skip anything with an `ownerSVGElement`.
+
+`getBBox()` on an `<svg>` gives real content bounds, which is how you find
+wasted space inside a figure. But the slack is `bbox.y - viewBox.y`, **not**
+`bbox.y` — assuming a zero origin reports phantom whitespace on a cropped box,
+and I nearly acted on that number.
+
 Write throwaway measurement harnesses rather than guessing. Useful ones:
 
 - element-overflow probe: list everything whose `right > viewport`
 - height probe: content height at each device width
+- width probe: content width and % of screen used across real viewport sizes
 - end-to-end probe: load the *shipped* host page, scroll lazy iframes into
   view, compare applied height to content height
 
@@ -152,6 +260,14 @@ Delete them afterwards; keep them out of the repo.
 - **A regex over a whole file will match your own comments.** Three tests
   passed against prose in the comment above the code they meant to check.
   Match against the extracted rule/function body.
+- **Never pin an exact `class="…"` string.** A check anchored on
+  `class="hero-fig"` stopped matching the moment a second class was added, and
+  every assertion in that suite then passed vacuously against an empty match.
+  Match the attribute loosely (`class="hero-fig[^"]*"`).
+- **A test encodes an assumption, and assumptions expire.** One asserted a
+  figure's viewBox was cropped tight to its artwork; the crop was later
+  reverted *by design* and the test was simply wrong. Assert the contract
+  ("stays a wide band") rather than the current value.
 - Guard the invisible contracts too: CSS specificity, touch-target floor,
   the auto-height mechanism.
 
@@ -167,6 +283,12 @@ Delete them afterwards; keep them out of the repo.
 - Cutting a section: comment it out with restore instructions rather than
   deleting, and remove its nav link in the same change. Delete the CSS only
   once nothing references it.
+- **Removing an element can kill unrelated JavaScript.** If a generator for
+  that element sits near the top of a *shared* `<script>` block, its
+  `getElementById(...)` now returns null and the next line throws — taking out
+  every script below it in the same block (theme toggle, nav, iframe sizing).
+  Comment the generator out in the same edit: inert is not enough, and the
+  page will look fine until you try the theme toggle.
 - After any nav or section change, verify **every anchor resolves to a real
   `id`** — programmatically, not by clicking.
 

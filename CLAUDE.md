@@ -66,7 +66,7 @@ Each deployed `.html` file is fully self-contained: inline `<style>`, inline `<s
 
 `tools/build.py` is compatible with this: it inlines shared source at build time and the committed output stays dependency-free. The rule is about what the visitor's browser fetches, not about whether a generator exists.
 
-- [index.html](index.html) — the whole site. Nav, hero, and eight sections: About me / Research / Publications / BOB / Explainers / Software / Widgets / Contact. Section `id`s are the anchor targets in the nav, so renaming an `id` means updating `.nav-links` — the ids are `about`, `research`, `publications`, `bob`, `explainers`, `software`, `widgets`, `contact`. The nav order follows document order, so moving a section means editing both. Awards and talks live at the *tail of the Publications section* under a `.sub-head`, so papers come first; there is no separate Recognition section and no nav entry for them. (Random is written but commented out — see Content editing.)
+- [index.html](index.html) — the whole site. Nav, hero, and eight sections: About me / Research / Publications / BOB / Explainers / Software / Widgets / Contact. Section `id`s are the anchor targets in the nav, so renaming an `id` means updating `.nav-links` — the ids are `about`, `research`, `publications`, `bob`, `explainers`, `software`, `widgets`, `contact`. Note `contact` is on the `<footer>`, not a `<section>`, so grepping `<section id=` finds only seven. The nav order follows document order, so moving a section means editing both. Awards and talks live at the *tail of the Publications section* under a `.sub-head`, so papers come first; there is no separate Recognition section and no nav entry for them. (Random is written but commented out — see Content editing.)
 - [swsh-visualizer.html](swsh-visualizer.html) — s = −2 spin-weighted spherical harmonic viewer (2D canvas, custom projection + z-buffer splatting into an offscreen square buffer). `RES` is chosen per resize from the drawn square and the detail tier — 244 / 312 / 332 / 452 — so the cost is independent of display size. The buffer is blitted **letterboxed** into a centred square: the stage box is not square (`width:100%` is definite, so `aspect-ratio` derives the height and `max-height` clamps only that), and stretching it to the box renders the sphere as an ellipse.
 - [geodesic-explorer.html](geodesic-explorer.html) — **equatorial Kerr** geodesics (Schwarzschild is the a = 0 case): RK4 orbit integration plus an effective-potential panel, on two canvases.
 
@@ -75,6 +75,14 @@ Each deployed `.html` file is fully self-contained: inline `<style>`, inline `<s
 `index.html` supports light and dark; the two tool pages are dark-only by design (they render onto a dark `--bg` and sit inside a dark `.tool-embed` frame in both site themes).
 
 Theme is applied via `data-theme="light"|"dark"` on `<html>`. An inline script in `<head>` sets it *before* first paint from `localStorage.theme`, falling back to `prefers-color-scheme` — keep that script inline and first, or the page flashes. `#themeToggle` flips the attribute and writes back to `localStorage` inside a `try/catch` (sandboxed previews block storage). All colors go through CSS custom properties defined in the `:root` / `:root[data-theme="dark"]` pair; add new colors as variables in both blocks rather than hard-coding hex values.
+
+That inline script also owns `<meta name="theme-color">`, through `window.__applyTheme(t)` — the toggle calls the same function. This must not become a `media="(prefers-color-scheme: …)"` pair, which would keep reporting the *system* colour after the user has explicitly toggled.
+
+### Search and social preview
+
+All three pages carry `description` / Open Graph / `twitter:card` / `canonical` tags and an inline SVG favicon. Two things fail **silently** if changed: `og:image` must be an **absolute** URL (scrapers do not resolve relative paths and report nothing), and the favicon must stay a `data:` URI (a `favicon.ico` would be the first runtime fetch other than the font). Both are covered by the `every page :: social preview and favicon` suite.
+
+The cards in `assets/og-*.jpg` are **generated from the live pages**, not hand-drawn — `tools/og-card.html` and `tools/og-tool.html` render the real widget in a same-origin iframe and crop to a measured element rect. Regeneration commands, and the two headless-Chrome traps involved (`prefers-reduced-motion` is reported as `reduce`, and `--virtual-time-budget` advances the clock without ticking rAF), are in [TOOLS.md](TOOLS.md).
 
 ### The embed contract between the site and the tool pages
 
@@ -99,7 +107,7 @@ Both tools drive the shared `Viz.loop()` from `tools/_shared.js`, which owns `ru
 
 A live example of why: in the SWSH viewer `shouldRun` is `S.spin || S.drag` while `tick` is `if(S.spin && !S.drag)`. A drag that never ends — a touch the system cancels — leaves the loop running forever on a motionless sphere, so `up()` is wired to `touchcancel`, `pointercancel` and window `blur` as well as `mouseup`/`touchend`.
 
-Both also honor `prefers-reduced-motion`: the SWSH viewer disables auto-spin, and `index.html` skips the hero chirp's stroke-dash draw-in.
+Both also honor `prefers-reduced-motion`: the SWSH viewer disables auto-spin. `index.html` used to skip the hero chirp's stroke-dash draw-in; the chirp has since been replaced by a static figure, so the homepage no longer animates anything.
 
 ### Physics conventions
 
@@ -118,7 +126,20 @@ Two consequences worth holding on to. **Veff depends on E as well as L** — the
 
 The SWSH formula in [swsh-visualizer.html](swsh-visualizer.html) is the standard Goldberg sum with a precomputed factorial table. Treat changes to `swsh()` as a physics change and check against known closed forms before committing. Its coordinate mapping is `(X, Z, −Y)` — the third component is negated so the basis has determinant +1; a mirrored figure reverses the apparent handedness of ±m, which for s = −2 *is* the circular polarisation.
 
-The hero waveform in `index.html` is *illustrative only* — a hand-tuned chirp (`phase = 2π(5t + 9t^3.4)`, power-law growth to `tm=0.72`, then exponential decay). It is not BOB output and shouldn't be described as a real waveform.
+### The hero figure
+
+Since 2026-08-14 the hero carries `.hero-fig`: one black hole bisected, the gravitational-wave description on the left (a single wave leaving along the axis) and the plasma one on the right (a conical accretion flow with particles accelerated at its boundary). It replaced the chirp band.
+
+It is generated by `tools/mkfigure_light.py` (`variant_hero`) and **inlined**, not referenced, so the page still fetches nothing but the font. Two things make it work and are covered by the `index.html :: hero figure` suite:
+
+- **Its colours are CSS custom properties, not hex.** The generator emits a hard-coded light build *and* a themed one (`hero-inline.svg`); only the themed one belongs in the page. Pasting the standalone build back in would leave a cream figure sitting on the dark theme. `--ink` draws the outlines and flips light on a dark page; `--field` fills the hole and is near-black in *both* palettes, which is why the two are separate constants in the generator.
+- **viewBox, no fixed width/height**, with `.hero-fig svg{width:100%;height:auto}`. The artwork carries no text, so the "this is an illustration" note and the description for screen readers both live in the SVG's `aria-label`.
+
+Regenerate with `python3 tools/mkfigure_light.py <outdir>` and paste `hero-inline.svg` into the `.hero-fig` div.
+
+The chirp's **markup was removed** (recover it from commit `7b35225` if ever wanted); its **generator is still in the file, commented out**. That generator must stay commented rather than merely inert: with the SVG gone, `getElementById('chirpPath')` returns null and the next line throws, taking out every script below it in the same block (theme toggle, nav, iframe auto-height). The `.wave-wrap` CSS is now dead too and is marked as such.
+
+The chirp was *illustrative only* — hand-tuned, not BOB output. It still appears in the favicon and the `og-home.jpg` social card, which are generated separately — so **the social card no longer matches the page it advertises**. Worth deciding whether the chirp stays the site's mark or the cards get regenerated from the new figure.
 
 ## Content editing
 

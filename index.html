@@ -4,18 +4,57 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anuj Kankani — Gravitational-Wave Physics</title>
+<meta name="description" content="PhD student in gravitational and high-energy astrophysics at West Virginia University. Merger–ringdown waveform models, numerical relativity, and relativistic plasmas.">
+<meta name="author" content="Anuj Kankani">
+<link rel="canonical" href="https://anujkankani.github.io/">
+
+<!-- Social preview. og:image MUST be an absolute URL -- scrapers do not
+     resolve relative paths and fail silently, showing a card with no image.
+     The card itself is generated, not hand-drawn; see TOOLS.md. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Anuj Kankani">
+<meta property="og:title" content="Anuj Kankani — Gravitational-Wave Physics">
+<meta property="og:description" content="PhD student in gravitational and high-energy astrophysics at West Virginia University. Merger–ringdown waveform models, numerical relativity, and relativistic plasmas.">
+<meta property="og:url" content="https://anujkankani.github.io/">
+<meta property="og:image" content="https://anujkankani.github.io/assets/og-home.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Anuj Kankani — PhD student in gravitational and high-energy astrophysics, over an inspiral–merger–ringdown chirp.">
+<!-- X/Twitter falls back to the og:* tags for title, description and image,
+     so only the card type has to be declared here. -->
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Tab icon: the site's chirp mark, simplified until it survives 16px.
+     Inlined as a data URI so the page still fetches nothing but the font.
+     The chirp is no longer drawn on the page itself -- this and the
+     og-home.jpg card are the only places it still appears. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='0'%3E%3Cstop%20offset='0'%20stop-color='%237C83F0'/%3E%3Cstop%20offset='.55'%20stop-color='%23E070B4'/%3E%3Cstop%20offset='1'%20stop-color='%23F0B457'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%230E141F'/%3E%3Cpath%20d='M3.2%2016.0L3.5%2016.0L3.7%2016.0L4.0%2016.0L4.3%2016.0L4.5%2016.0L4.8%2016.0L5.1%2015.9L5.3%2015.9L5.6%2015.8L5.9%2015.8L6.1%2015.7L6.4%2015.7L6.7%2015.6L6.9%2015.5L7.2%2015.5L7.5%2015.4L7.7%2015.3L8.0%2015.2L8.3%2015.1L8.5%2015.1L8.8%2015.0L9.1%2015.0L9.3%2014.9L9.6%2014.9L9.9%2015.0L10.1%2015.0L10.4%2015.1L10.7%2015.2L10.9%2015.3L11.2%2015.5L11.5%2015.8L11.7%2016.0L12.0%2016.3L12.3%2016.7L12.5%2017.1L12.8%2017.5L13.1%2017.9L13.3%2018.3L13.6%2018.7L13.9%2019.2L14.1%2019.5L14.4%2019.9L14.7%2020.1L14.9%2020.3L15.2%2020.3L15.5%2020.2L15.7%2019.9L16.0%2019.5L16.3%2018.9L16.5%2018.1L16.8%2017.2L17.1%2016.1L17.3%2014.8L17.6%2013.5L17.9%2012.2L18.1%2011.0L18.4%209.9L18.7%209.1L18.9%208.5L19.2%208.4L19.5%208.7L19.7%209.6L20.0%2011.0L20.3%2012.9L20.5%2015.2L20.8%2017.7L21.1%2020.3L21.3%2022.1L21.6%2022.8L21.9%2022.8L22.1%2022.2L22.4%2021.0L22.7%2019.5L22.9%2017.9L23.2%2016.4L23.5%2015.1L23.7%2014.2L24.0%2013.7L24.3%2013.6L24.5%2013.8L24.8%2014.4L25.1%2015.1L25.3%2015.8L25.6%2016.4L25.9%2016.8L26.1%2017.0L26.4%2017.0L26.7%2016.8L26.9%2016.4L27.2%2016.0L27.5%2015.7L27.7%2015.5L28.0%2015.5L28.3%2015.6L28.5%2015.8L28.8%2016.0'%20fill='none'%20stroke='url(%23g)'%20stroke-width='2.7'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E">
+
+<!-- Tints the browser chrome on mobile. A media-query pair would disagree with
+     an explicit toggle, so the theme script below drives this instead. -->
+<meta name="theme-color" content="#FAF9F6">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script>
   (function(){
+    // Applies a theme and keeps the mobile browser-chrome tint in step with it.
+    // Exposed so the toggle uses the same path -- a media-query theme-color
+    // would keep showing the system colour after an explicit override.
+    function apply(t){
+      document.documentElement.setAttribute('data-theme',t);
+      var m=document.querySelector('meta[name="theme-color"]');
+      if(m) m.setAttribute('content', t==='dark' ? '#0E141F' : '#FAF9F6');
+    }
+    window.__applyTheme = apply;
     try{
       var t=localStorage.getItem('theme');
       if(t!=='light'&&t!=='dark'){ t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'; }
-      document.documentElement.setAttribute('data-theme',t);
+      apply(t);
     }catch(e){
       var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.setAttribute('data-theme',d?'dark':'light');
+      apply(d?'dark':'light');
     }
   })();
 </script>
@@ -35,6 +74,7 @@
     --on-field:#F4F3EF;    /* text/elements sitting on the dark field band */
     --wave-1:#3B3F9E; --wave-2:#B5348A; --wave-3:#E9A23B;
     --maxw:1080px;
+    --maxw-wide:1320px;   /* breakout width for non-prose blocks; see .bleed */
     color-scheme:light;
   }
   :root[data-theme="dark"]{
@@ -64,6 +104,31 @@
   a:hover{color:var(--accent-2);}
   a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px;}
   .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;}
+
+  /* Breakout for blocks that are not prose. The --maxw cap exists for reading
+     -- it holds body text at ~60 characters a line -- but it was also capping
+     the hero figure, the widget embeds and the video grid, which have no such
+     limit and were using 56% of a 1920px screen. Those get .bleed and widen
+     past the column; text keeps the cap.
+
+     Below the breakpoint .bleed does nothing and the block just fills its
+     wrap, so there is no narrow-screen overflow to guard against. The 80px
+     subtraction is scrollbar allowance: 100vw includes the scrollbar, and
+     without it a wide viewport can overflow horizontally by ~15px.
+
+     Selector is `.wrap > .bleed`, not `.bleed`: every one of these blocks also
+     carries a component rule with a `margin` SHORTHAND (`.hero-fig{margin:44px
+     0 0}` and friends), declared later in this stylesheet at equal
+     specificity. As a bare `.bleed` the margin-left below lost to those, and
+     the blocks widened to the RIGHT off the edge of the page instead of
+     centring -- 86px of horizontal scroll at 1341px wide. */
+  @media (min-width:1340px){
+    .wrap > .bleed{
+      --bleed-w:min(calc(var(--maxw-wide) - 56px), calc(100vw - 80px));
+      width:var(--bleed-w);
+      margin-left:calc((100% - var(--bleed-w)) / 2);
+    }
+  }
   .mono{font-family:"IBM Plex Mono",monospace;}
   .eyebrow{
     font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.18em;
@@ -118,7 +183,15 @@
   .btn.primary{background:var(--ink);color:var(--paper);}
   .btn.primary:hover{background:var(--accent);border-color:var(--accent);}
 
-  /* waveform signature */
+  /* Hero figure. The SVG carries its own viewBox, so width:100% + height:auto
+     is all the sizing it needs; a fixed height would distort it. */
+  .hero-fig{margin:44px 0 0;border-top:1px solid var(--line);padding-top:26px;}
+  .hero-fig svg{display:block;width:100%;height:auto;}
+
+  /* Waveform signature: DEAD as of 2026-08-14. The .wave-wrap markup was
+     replaced by .hero-fig, not commented out, so nothing on the page uses
+     these rules. Kept only so a restore from git needs no CSS work; delete
+     them once the chirp is definitively gone. */
   .wave-wrap{margin:52px 0 0;border-top:1px solid var(--line);}
   .wave{display:block;width:100%;height:150px;}
   .wave path{fill:none;stroke-width:2;stroke-linecap:round;}
@@ -347,19 +420,22 @@
       <a class="btn" href="CV.pdf">Download CV</a>
     </div>
 
-    <div class="wave-wrap">
-      <svg class="wave" id="wave" viewBox="0 0 1080 150" preserveAspectRatio="none" aria-hidden="true">
-        <defs>
-          <linearGradient id="chirp" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"  stop-color="var(--wave-1)"/>
-            <stop offset="55%" stop-color="var(--wave-2)"/>
-            <stop offset="100%" stop-color="var(--wave-3)"/>
-          </linearGradient>
-        </defs>
-        <line class="axis" x1="0" y1="75" x2="1080" y2="75"/>
-        <path class="draw" id="chirpPath" stroke="url(#chirp)"/>
-      </svg>
-      <div class="wave-label"><span>Inspiral</span><span>Merger</span><span>Ringdown</span></div>
+    <!-- Hero figure. One black hole, bisected: a single gravitational wave
+         leaving on the left, a conical accretion flow with particles
+         accelerated at its boundary on the right. Generated by
+         tools/mkfigure_light.py (variant_hero) and inlined rather than
+         referenced, so the page still fetches nothing but the font. Its
+         colours are the site's CSS custom properties, so it follows the
+         theme; regenerate with:
+             python3 tools/mkfigure_light.py <outdir>
+         and paste the contents of hero-inline.svg below.
+
+         It is an ILLUSTRATION, not simulation output - the aria-label says
+         so, which is where that belongs given the artwork carries no text.
+
+         The chirp band this replaced is in git history at 7b35225. -->
+    <div class="hero-fig bleed">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" role="img" aria-label="Illustration: a black hole split down the middle. On the left a gravitational wave leaves along the axis; on the right a conical accretion flow runs onto the hole, with particles accelerated at its boundary and escaping across it."><defs><clipPath id="hL"><rect x="0" y="0" width="595" height="480"/></clipPath><clipPath id="hR"><rect x="605" y="0" width="1200" height="480"/></clipPath></defs><g transform="rotate(0 600 240)"><g clip-path="url(#hL)"><path d="M-30.00 240.00L-29.19 240.00L-28.39 240.00L-27.58 240.00L-26.77 240.00L-25.96 240.00L-25.16 239.99L-24.35 239.99L-23.54 239.98L-22.74 239.98L-21.93 239.97L-21.12 239.96L-20.31 239.95L-19.51 239.93L-18.70 239.92L-17.89 239.90L-17.09 239.88L-16.28 239.86L-15.47 239.83L-14.66 239.80L-13.86 239.77L-13.05 239.74L-12.24 239.71L-11.44 239.67L-10.63 239.62L-9.82 239.58L-9.01 239.53L-8.21 239.48L-7.40 239.43L-6.59 239.37L-5.79 239.31L-4.98 239.25L-4.17 239.18L-3.36 239.11L-2.56 239.03L-1.75 238.96L-0.94 238.88L-0.14 238.79L0.67 238.71L1.48 238.62L2.29 238.53L3.09 238.43L3.90 238.33L4.71 238.23L5.51 238.13L6.32 238.02L7.13 237.91L7.94 237.80L8.74 237.69L9.55 237.57L10.36 237.46L11.16 237.34L11.97 237.22L12.78 237.09L13.59 236.97L14.39 236.84L15.20 236.72L16.01 236.59L16.81 236.46L17.62 236.33L18.43 236.20L19.24 236.07L20.04 235.94L20.85 235.81L21.66 235.68L22.46 235.56L23.27 235.43L24.08 235.30L24.89 235.18L25.69 235.06L26.50 234.94L27.31 234.82L28.11 234.70L28.92 234.59L29.73 234.48L30.54 234.37L31.34 234.27L32.15 234.17L32.96 234.07L33.76 233.98L34.57 233.89L35.38 233.81L36.19 233.74L36.99 233.66L37.80 233.60L38.61 233.54L39.41 233.49L40.22 233.44L41.03 233.40L41.84 233.37L42.64 233.34L43.45 233.33L44.26 233.32L45.06 233.32L45.87 233.32L46.68 233.34L47.49 233.37L48.29 233.40L49.10 233.44L49.91 233.50L50.71 233.56L51.52 233.63L52.33 233.72L53.14 233.81L53.94 233.92L54.75 234.04L55.56 234.16L56.36 234.30L57.17 234.45L57.98 234.61L58.79 234.79L59.59 234.97L60.40 235.17L61.21 235.38L62.01 235.60L62.82 235.84L63.63 236.08L64.44 236.34L65.24 236.61L66.05 236.90L66.86 237.20L67.66 237.50L68.47 237.83L69.28 238.16L70.09 238.51L70.89 238.86L71.70 239.23L72.51 239.62L73.31 240.01L74.12 240.42L74.93 240.84L75.74 241.27L76.54 241.71L77.35 242.16L78.16 242.62L78.96 243.10L79.77 243.58L80.58 244.07L81.39 244.58L82.19 245.09L83.00 245.61L83.81 246.14L84.61 246.68L85.42 247.22L86.23 247.78L87.04 248.34L87.84 248.90L88.65 249.48L89.46 250.05L90.26 250.64L91.07 251.22L91.88 251.81L92.69 252.40L93.49 253.00L94.30 253.60L95.11 254.20L95.91 254.79L96.72 255.39L97.53 255.99L98.34 256.58L99.14 257.18L99.95 257.77L100.76 258.35L101.56 258.93L102.37 259.50L103.18 260.07L103.99 260.63L104.79 261.18L105.60 261.72L106.41 262.26L107.21 262.78L108.02 263.29L108.83 263.78L109.64 264.26L110.44 264.73L111.25 265.18L112.06 265.62L112.86 266.03L113.67 266.43L114.48 266.81L115.29 267.17L116.09 267.51L116.90 267.82L117.71 268.11L118.51 268.38L119.32 268.62L120.13 268.84L120.94 269.02L121.74 269.18L122.55 269.31L123.36 269.42L124.16 269.49L124.97 269.53L125.78 269.53L126.59 269.51L127.39 269.45L128.20 269.35L129.01 269.22L129.81 269.06L130.62 268.86L131.43 268.62L132.24 268.34L133.04 268.02L133.85 267.67L134.66 267.28L135.46 266.84L136.27 266.37L137.08 265.85L137.89 265.30L138.69 264.71L139.50 264.07L140.31 263.39L141.11 262.67L141.92 261.92L142.73 261.12L143.54 260.27L144.34 259.39L145.15 258.47L145.96 257.51L146.76 256.51L147.57 255.47L148.38 254.39L149.19 253.27L149.99 252.12L150.80 250.93L151.61 249.71L152.41 248.45L153.22 247.15L154.03 245.83L154.84 244.47L155.64 243.09L156.45 241.67L157.26 240.23L158.06 238.77L158.87 237.28L159.68 235.77L160.49 234.24L161.29 232.69L162.10 231.12L162.91 229.54L163.71 227.95L164.52 226.35L165.33 224.74L166.14 223.12L166.94 221.51L167.75 219.89L168.56 218.28L169.36 216.67L170.17 215.07L170.98 213.48L171.79 211.90L172.59 210.34L173.40 208.80L174.21 207.28L175.01 205.78L175.82 204.32L176.63 202.88L177.44 201.49L178.24 200.12L179.05 198.80L179.86 197.53L180.66 196.30L181.47 195.12L182.28 194.00L183.09 192.93L183.89 191.92L184.70 190.98L185.51 190.10L186.31 189.29L187.12 188.55L187.93 187.89L188.74 187.31L189.54 186.80L190.35 186.38L191.16 186.05L191.96 185.81L192.77 185.65L193.58 185.59L194.39 185.62L195.19 185.76L196.00 185.99L196.81 186.32L197.61 186.75L198.42 187.28L199.23 187.93L200.04 188.67L200.84 189.52L201.65 190.48L202.46 191.55L203.26 192.72L204.07 194.00L204.88 195.39L205.69 196.88L206.49 198.48L207.30 200.18L208.11 201.98L208.91 203.89L209.72 205.89L210.53 207.99L211.34 210.18L212.14 212.47L212.95 214.84L213.76 217.29L214.56 219.83L215.37 222.44L216.18 225.12L216.99 227.88L217.79 230.69L218.60 233.56L219.41 236.49L220.21 239.45L221.02 242.46L221.83 245.51L222.64 248.58L223.44 251.67L224.25 254.77L225.06 257.88L225.86 260.99L226.67 264.08L227.48 267.16L228.29 270.22L229.09 273.24L229.90 276.22L230.71 279.15L231.51 282.02L232.32 284.83L233.13 287.55L233.94 290.20L234.74 292.75L235.55 295.19L236.36 297.53L237.16 299.75L237.97 301.84L238.78 303.80L239.59 305.61L240.39 307.27L241.20 308.78L242.01 310.11L242.81 311.28L243.62 312.26L244.43 313.06L245.24 313.66L246.04 314.07L246.85 314.28L247.66 314.28L248.46 314.07L249.27 313.64L250.08 313.00L250.89 312.14L251.69 311.06L252.50 309.75L253.31 308.23L254.11 306.48L254.92 304.52L255.73 302.34L256.54 299.94L257.34 297.33L258.15 294.51L258.96 291.49L259.76 288.28L260.57 284.88L261.38 281.30L262.19 277.55L262.99 273.63L263.80 269.56L264.61 265.36L265.41 261.02L266.22 256.56L267.03 252.01L267.84 247.36L268.64 242.64L269.45 237.86L270.26 233.04L271.06 228.19L271.87 223.33L272.68 218.49L273.49 213.67L274.29 208.89L275.10 204.18L275.91 199.55L276.71 195.03L277.52 190.62L278.33 186.36L279.14 182.25L279.94 178.32L280.75 174.59L281.56 171.08L282.36 167.79L283.17 164.76L283.98 161.99L284.79 159.51L285.59 157.32L286.40 155.45L287.21 153.90L288.01 152.69L288.82 151.83L289.63 151.32L290.44 151.19L291.24 151.42L292.05 152.03L292.86 153.03L293.66 154.41L294.47 156.17L295.28 158.32L296.09 160.84L296.89 163.75L297.70 167.02L298.51 170.64L299.31 174.62L300.12 178.93L300.93 183.56L301.74 188.50L302.54 193.72L303.35 199.20L304.16 204.93L304.96 210.87L305.77 217.01L306.58 223.31L307.39 229.75L308.19 236.30L309.00 242.91L309.81 249.58L310.61 256.24L311.42 262.89L312.23 269.47L313.04 275.95L313.84 282.30L314.65 288.49L315.46 294.47L316.26 300.20L317.07 305.66L317.88 310.82L318.69 315.63L319.49 320.06L320.30 324.09L321.11 327.68L321.91 330.81L322.72 333.45L323.53 335.58L324.34 337.18L325.14 338.24L325.95 338.73L326.76 338.64L327.56 337.98L328.37 336.72L329.18 334.88L329.99 332.45L330.79 329.45L331.60 325.87L332.41 321.74L333.21 317.07L334.02 311.88L334.83 306.20L335.64 300.06L336.44 293.49L337.25 286.53L338.06 279.22L338.86 271.61L339.67 263.72L340.48 255.63L341.29 247.38L342.09 239.02L342.90 230.61L343.71 222.21L344.51 213.87L345.32 205.66L346.13 197.63L346.94 189.85L347.74 182.37L348.55 175.26L349.36 168.56L350.16 162.34L350.97 156.65L351.78 151.53L352.59 147.03L353.39 143.20L354.20 140.08L355.01 137.69L355.81 136.07L356.62 135.23L357.43 135.20L358.24 135.99L359.04 137.59L359.85 140.02L360.66 143.25L361.46 147.29L362.27 152.09L363.08 157.63L363.89 163.89L364.69 170.80L365.50 178.33L366.31 186.42L367.11 195.00L367.92 204.01L368.73 213.38L369.54 223.03L370.34 232.87L371.15 242.83L371.96 252.82L372.76 262.74L373.57 272.51L374.38 282.04L375.19 291.23L375.99 300.00L376.80 308.26L377.61 315.93L378.41 322.93L379.22 329.18L380.03 334.62L380.84 339.18L381.64 342.82L382.45 345.47L383.26 347.11L384.06 347.71L384.87 347.25L385.68 345.72L386.49 343.13L387.29 339.48L388.10 334.81L388.91 329.16L389.71 322.56L390.52 315.09L391.33 306.79L392.14 297.77L392.94 288.10L393.75 277.88L394.56 267.22L395.36 256.23L396.17 245.02L396.98 233.72L397.79 222.45L398.59 211.33L399.40 200.51L400.21 190.09L401.01 180.20L401.82 170.97L402.63 162.51L403.44 154.92L404.24 148.30L405.05 142.74L405.86 138.32L406.66 135.10L407.47 133.12L408.28 132.44L409.09 133.06L409.89 134.99L410.70 138.22L411.51 142.72L412.31 148.45L413.12 155.34L413.93 163.32L414.74 172.30L415.54 182.16L416.35 192.78L417.16 204.04L417.96 215.79L418.77 227.88L419.58 240.14L420.39 252.42L421.19 264.55L422.00 276.36L422.81 287.68L423.61 298.36L424.42 308.25L425.23 317.18L426.04 325.04L426.84 331.71L427.65 337.07L428.46 341.04L429.26 343.56L430.07 344.57L430.88 344.06L431.69 342.01L432.49 338.45L433.30 333.42L434.11 326.99L434.91 319.25L435.72 310.30L436.53 300.29L437.34 289.34L438.14 277.64L438.95 265.37L439.76 252.70L440.56 239.85L441.37 227.02L442.18 214.41L442.99 202.23L443.79 190.69L444.60 179.98L445.41 170.28L446.21 161.75L447.02 154.55L447.83 148.81L448.64 144.62L449.44 142.07L450.25 141.20L451.06 142.05L451.86 144.59L452.67 148.80L453.48 154.60L454.29 161.89L455.09 170.55L455.90 180.43L456.71 191.34L457.51 203.10L458.32 215.48L459.13 228.26L459.94 241.19L460.74 254.04L461.55 266.56L462.36 278.51L463.16 289.67L463.97 299.80L464.78 308.73L465.59 316.26L466.39 322.25L467.20 326.59L468.01 329.18L468.81 329.97L469.62 328.95L470.43 326.14L471.24 321.60L472.04 315.43L472.85 307.75L473.66 298.74L474.46 288.58L475.27 277.49L476.08 265.72L476.89 253.51L477.69 241.14L478.50 228.88L479.31 216.99L480.11 205.73L480.92 195.36L481.73 186.11L482.54 178.16L483.34 171.71L484.15 166.88L484.96 163.78L485.76 162.47L486.57 162.96L487.38 165.23L488.19 169.20L488.99 174.78L489.80 181.80L490.61 190.08L491.41 199.41L492.22 209.54L493.03 220.22L493.84 231.16L494.64 242.10L495.45 252.74L496.26 262.83L497.06 272.11L497.87 280.35L498.68 287.35L499.49 292.96L500.29 297.04L501.10 299.51L501.91 300.35L502.71 299.57L503.52 297.22L504.33 293.41L505.14 288.29L505.94 282.04L506.75 274.88L507.56 267.04L508.36 258.79L509.17 250.38L509.98 242.09L510.79 234.17L511.59 226.86L512.40 220.38L513.21 214.91L514.01 210.60L514.82 207.54L515.63 205.78L516.44 205.32L517.24 206.12L518.05 208.06L518.86 211.01L519.66 214.76L520.47 219.09L521.28 223.74L522.09 228.41L522.89 232.80L523.70 236.55L524.51 239.24L525.31 240.00L526.12 240.00L526.93 240.00L527.74 240.00L528.54 240.00L529.35 240.00L530.16 240.00L530.96 240.00L531.77 240.00L532.58 240.00L533.39 240.00L534.19 240.00L535.00 240.00" fill="none" stroke="var(--wave-1)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g><g clip-path="url(#hR)"><path d="M661.00 240.00L675.98 237.16L690.95 234.27L705.92 231.32L720.90 228.32L735.88 225.26L750.85 222.15L765.83 218.99L780.80 215.77L795.77 212.49L810.75 209.16L825.73 205.78L840.70 202.34L855.67 198.84L870.65 195.30L885.62 191.69L900.60 188.04L915.58 184.32L930.55 180.56L945.52 176.73L960.50 172.86L975.48 168.93L990.45 164.94L1005.42 160.90L1020.40 156.81L1035.38 152.66L1050.35 148.45L1065.33 144.19L1080.30 139.88L1095.28 135.51L1110.25 131.09L1125.22 126.61L1140.20 122.08L1155.17 117.49L1170.15 112.85L1185.12 108.16L1200.10 103.41L1215.08 98.60L1230.05 93.74L1245.03 88.83L1260.00 83.86L1260.00 396.14L1245.03 391.17L1230.05 386.26L1215.08 381.40L1200.10 376.59L1185.12 371.84L1170.15 367.15L1155.17 362.51L1140.20 357.92L1125.22 353.39L1110.25 348.91L1095.28 344.49L1080.30 340.12L1065.33 335.81L1050.35 331.55L1035.38 327.34L1020.40 323.19L1005.42 319.10L990.45 315.06L975.48 311.07L960.50 307.14L945.52 303.27L930.55 299.44L915.58 295.68L900.60 291.96L885.62 288.31L870.65 284.70L855.67 281.16L840.70 277.66L825.73 274.22L810.75 270.84L795.77 267.51L780.80 264.23L765.83 261.01L750.85 257.85L735.88 254.74L720.90 251.68L705.92 248.68L690.95 245.73L675.98 242.84L661.00 240.00Z" fill="var(--wave-3)" stroke="var(--ink)" stroke-width="5.0" stroke-linejoin="round"/><path d="M661.00 240.00L680.97 237.68L700.93 235.30L720.90 232.86L740.87 230.36L760.83 227.80L780.80 225.18L800.77 222.50L820.73 219.76L840.70 216.97L860.67 214.11L880.63 211.19L900.60 208.22L920.57 205.18L940.53 202.09L960.50 198.94L980.47 195.72L1000.43 192.45L1020.40 189.12L1040.37 185.73L1060.33 182.28L1080.30 178.77L1100.27 175.20L1120.23 171.57L1140.20 167.88L1160.17 164.13L1180.13 160.32L1200.10 156.46L1220.07 152.53L1240.03 148.55L1260.00 144.50" fill="none" stroke="var(--ink)" stroke-width="2.4" opacity=".38"/><path d="M661.00 240.00L680.97 239.11L700.93 238.19L720.90 237.25L740.87 236.29L760.83 235.31L780.80 234.30L800.77 233.27L820.73 232.22L840.70 231.15L860.67 230.05L880.63 228.93L900.60 227.78L920.57 226.62L940.53 225.43L960.50 224.22L980.47 222.98L1000.43 221.72L1020.40 220.44L1040.37 219.14L1060.33 217.81L1080.30 216.46L1100.27 215.09L1120.23 213.70L1140.20 212.28L1160.17 210.84L1180.13 209.38L1200.10 207.89L1220.07 206.38L1240.03 204.85L1260.00 203.30" fill="none" stroke="var(--ink)" stroke-width="2.4" opacity=".38"/><path d="M661.00 240.00L680.97 240.89L700.93 241.81L720.90 242.75L740.87 243.71L760.83 244.69L780.80 245.70L800.77 246.73L820.73 247.78L840.70 248.85L860.67 249.95L880.63 251.07L900.60 252.22L920.57 253.38L940.53 254.57L960.50 255.78L980.47 257.02L1000.43 258.28L1020.40 259.56L1040.37 260.86L1060.33 262.19L1080.30 263.54L1100.27 264.91L1120.23 266.30L1140.20 267.72L1160.17 269.16L1180.13 270.62L1200.10 272.11L1220.07 273.62L1240.03 275.15L1260.00 276.70" fill="none" stroke="var(--ink)" stroke-width="2.4" opacity=".38"/><path d="M661.00 240.00L680.97 242.32L700.93 244.70L720.90 247.14L740.87 249.64L760.83 252.20L780.80 254.82L800.77 257.50L820.73 260.24L840.70 263.03L860.67 265.89L880.63 268.81L900.60 271.78L920.57 274.82L940.53 277.91L960.50 281.06L980.47 284.28L1000.43 287.55L1020.40 290.88L1040.37 294.27L1060.33 297.72L1080.30 301.23L1100.27 304.80L1120.23 308.43L1140.20 312.12L1160.17 315.87L1180.13 319.68L1200.10 323.54L1220.07 327.47L1240.03 331.45L1260.00 335.50" fill="none" stroke="var(--ink)" stroke-width="2.4" opacity=".38"/><path d="M940.4 148.0Q912.9 187.4 876.4 219.8Q905.6 181.8 928.7 139.0Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="934.5" cy="143.5" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/><path d="M1175.0 70.5Q1145.7 118.3 1105.6 158.7Q1138.1 113.1 1162.8 62.1Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="1168.9" cy="66.3" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/><path d="M890.7 328.9Q861.1 293.6 840.1 251.7Q868.3 288.0 902.4 319.8Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="896.5" cy="324.4" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/><path d="M1088.4 391.4Q1055.8 349.6 1033.2 300.6Q1063.3 344.3 1100.5 382.8Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="1094.5" cy="387.1" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/><path d="M1247.6 448.0Q1213.3 401.2 1190.1 347.0Q1221.0 396.1 1260.0 439.9Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="1253.8" cy="444.0" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/></g><g clip-path="url(#hL)"><circle cx="600" cy="240" r="75" fill="var(--wave-1)" stroke="var(--ink)" stroke-width="5.0"/><circle cx="600" cy="240" r="63" fill="var(--field)"/></g><g clip-path="url(#hR)"><circle cx="600" cy="240" r="75" fill="var(--wave-3)" stroke="var(--ink)" stroke-width="5.0"/><circle cx="600" cy="240" r="63" fill="var(--field)"/></g></g></svg>
     </div>
   </div>
 </header>
@@ -594,7 +670,7 @@
     <div class="sec-head"><p class="eyebrow">Explainers</p><h2>The papers, in about a minute each</h2></div>
     <p class="exp-intro">Short animated walkthroughs of the main result in each paper — the physical picture and where the equations come from, without the full derivation.</p>
 
-    <div class="exp-grid">
+    <div class="exp-grid bleed">
 
       <figure class="exp-item">
         <video controls preload="none" playsinline
@@ -677,14 +753,14 @@
   <div class="wrap">
     <div class="sec-head"><p class="eyebrow">Widgets</p><h2>Interactive widgets</h2></div>
     <p class="tools-intro">Small explainers I've built to make the physics tangible — no install, they run right in your browser.</p>
-    <figure class="tool-embed">
+    <figure class="tool-embed bleed">
       <figcaption class="tool-cap">
         <span><b>Spin-weighted spherical harmonics (s = −2)</b> — the angular modes every waveform is built from</span>
         <a href="swsh-visualizer.html" target="_blank" rel="noopener">open full &#8599;</a>
       </figcaption>
       <iframe src="swsh-visualizer.html?embed=1" loading="lazy" title="s = -2 spin-weighted spherical harmonic visualizer"></iframe>
     </figure>
-    <figure class="tool-embed geo">
+    <figure class="tool-embed geo bleed">
       <figcaption class="tool-cap">
         <span><b>Geodesic orbits around a black hole</b> — how matter and light move in curved spacetime</span>
         <a href="geodesic-explorer.html" target="_blank" rel="noopener">open full &#8599;</a>
@@ -769,7 +845,17 @@
 </footer>
 
 <script>
-  // Generate an inspiral–merger–ringdown chirp as the page signature.
+  /* Hero chirp generator: DISABLED 2026-08-14 alongside the markup in the
+     header. It has to stay commented out rather than merely inert -- with the
+     SVG gone, getElementById('chirpPath') returns null and the very next line
+     throws, which would kill every script below it in this block (the theme
+     toggle, the nav, the iframe auto-height).
+
+     Restoring the chirp means recovering the .wave-wrap markup from git
+     (commit 7b35225) -- unlike this script, it is not commented out further
+     up, it was replaced by the hero figure.
+
+  // Generate an inspiral-merger-ringdown chirp as the page signature.
   (function(){
     var W=1080, H=150, mid=H/2, N=760, tm=0.72, pts=[];
     for(var i=0;i<=N;i++){
@@ -794,6 +880,7 @@
       requestAnimationFrame(function(){ requestAnimationFrame(function(){ path.style.strokeDashoffset=0; }); });
     }
   })();
+  */
 
   // Dark-mode toggle. Persists to localStorage on the deployed site;
   // in sandboxed previews the try/catch keeps it working for the session.
@@ -803,7 +890,7 @@
     btn.addEventListener('click', function(){
       var cur=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';
       var next=cur==='dark'?'light':'dark';
-      document.documentElement.setAttribute('data-theme',next);
+      window.__applyTheme(next);
       try{ localStorage.setItem('theme',next); }catch(e){}
     });
   })();

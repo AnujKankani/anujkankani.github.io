@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OG card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Palette lifted verbatim from index.html's dark theme so the card and the
+     site read as the same object. */
+  :root{
+    --field:#080C14;
+    --paper:#0E141F;
+    --ink:#E9ECF2;
+    --ink-soft:#9BA6B7;
+    --line:#242E3D;
+    --wave-1:#7C83F0; --wave-2:#E070B4; --wave-3:#F0B457;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1200px;height:630px;overflow:hidden;}
+  body{
+    background:var(--paper);
+    font-family:'Space Grotesk',system-ui,sans-serif;
+    color:var(--ink);
+    display:flex;flex-direction:column;justify-content:center;
+    padding:0 84px;
+    position:relative;
+  }
+  /* Faint field wash behind the type, echoing the site's dark band. */
+  body::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(1100px 520px at 18% 24%, rgba(124,131,240,.14), transparent 62%),
+               radial-gradient(900px 460px at 88% 82%, rgba(224,112,180,.10), transparent 64%);
+  }
+  .inner{position:relative;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:21px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--wave-1);margin-bottom:26px;
+  }
+  h1{
+    font-size:104px;font-weight:700;letter-spacing:-.028em;line-height:1;
+    margin-bottom:28px;
+  }
+  .role{
+    font-size:31px;font-weight:500;color:var(--ink);line-height:1.34;
+    max-width:930px;
+  }
+  .affil{
+    font-size:25px;font-weight:400;color:var(--ink-soft);margin-top:12px;
+  }
+  .wave-wrap{position:absolute;left:0;right:0;bottom:0;height:190px;}
+  svg{display:block;width:100%;height:100%;}
+  .axis{stroke:var(--line);stroke-width:1.5;}
+  #chirpPath{fill:none;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;}
+  .labels{
+    position:absolute;left:84px;right:84px;bottom:22px;
+    display:flex;justify-content:space-between;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:17px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+  <div class="inner">
+    <p class="eyebrow">Gravitational-Wave Theory &amp; Modeling</p>
+    <h1>Anuj Kankani</h1>
+    <p class="role">PhD student in gravitational and high-energy astrophysics</p>
+    <p class="affil">West Virginia University · Advisor: Sean T. McWilliams</p>
+  </div>
+
+  <div class="wave-wrap">
+    <svg viewBox="0 0 1200 190" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="chirp" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="var(--wave-1)"/>
+          <stop offset="55%"  stop-color="var(--wave-2)"/>
+          <stop offset="100%" stop-color="var(--wave-3)"/>
+        </linearGradient>
+      </defs>
+      <line class="axis" x1="0" y1="95" x2="1200" y2="95"/>
+      <path id="chirpPath" stroke="url(#chirp)"/>
+    </svg>
+  </div>
+  <div class="labels"><span>Inspiral</span><span>Merger</span><span>Ringdown</span></div>
+
+<script>
+  /* The site's chirp mark: phase = 2pi(5t + 9t^3.4), growth to tm=0.72, then
+     exponential decay, rescaled to this card's box. Illustrative, not model
+     output.
+
+     NOTE: this was copied from the homepage hero, which no longer draws a
+     chirp -- the hero is now the split black-hole figure. So the social card
+     and the page it advertises no longer match. Either regenerate this card
+     from the new figure or accept the chirp as the site's mark; decide before
+     changing it further. */
+  (function(){
+    var W=1200, H=190, mid=95, N=900, tm=0.72, pts=[];
+    for(var i=0;i<=N;i++){
+      var t=i/N;
+      var phase=2*Math.PI*(5*t + 9*Math.pow(t,3.4));
+      var env = t<tm ? Math.pow(t/tm,1.7) : Math.exp(-(t-tm)*15);
+      var amp=env*(mid-16);
+      pts.push((i===0?'M':'L')+(t*W).toFixed(1)+' '+(mid-amp*Math.sin(phase)).toFixed(2));
+    }
+    document.getElementById('chirpPath').setAttribute('d', pts.join(' '));
+  })();
+</script>
+</body>
+</html>

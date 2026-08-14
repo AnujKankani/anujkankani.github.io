@@ -12,7 +12,7 @@ Everything below follows from these. If a proposed change violates one, it's the
 2. **The visitor installs nothing.** These are widgets, not notebooks. No download step, no Python, no build tooling on the visitor's side. It works when they click a link, in whatever browser they already have.
 3. **It is resource light.** The audience is on laptops and phones, and multiple tools may be alive on one page. Assume a mid-range Android on a warm battery, not a workstation.
 
-Constraint 3 is the binding one and the easiest to violate accidentally. Payload is not the problem — the existing tools are 14–19 KB gzipped, and twenty of those still wouldn't matter. **The problem is CPU: unbounded animation loops, oversized canvases, and per-frame allocation.**
+Constraint 3 is the binding one and the easiest to violate accidentally. Payload is not the problem — the existing tools are 15–20 KB gzipped, and twenty of those still wouldn't matter. **The problem is CPU: unbounded animation loops, oversized canvases, and per-frame allocation.**
 
 ## Golden rules
 
@@ -139,7 +139,7 @@ These are research artifacts published under your name. Treat errors here as mor
 - **Landmark values must be exact, not eyeballed:** ISCO at r = 6M, photon sphere at r = 3M, horizon at r = 2M, critical impact parameter b = 3√3 M ≈ 5.196M. If a rendered feature lands somewhere else, the integrator is wrong — not the label.
 - **Integrators:** RK4 with a fixed step is the current standard (see [geodesic-explorer.html](geodesic-explorer.html)). Substep per frame (`STEPS` there) rather than taking one huge step, and keep the state vector allocation-free.
 - **Verified math gets a comment saying so**, as `swsh()` does. Changing a function marked verified is a physics change: check it against known closed forms before committing, and say in the commit message what you checked against.
-- **Decorative ≠ physical.** The homepage hero chirp is hand-tuned illustration, not model output, and is labeled as such. Never let a decorative curve be mistaken for a result.
+- **Decorative ≠ physical.** The chirp mark (removed from the homepage 2026-08-14, still used by the favicon and the social card) is hand-tuned illustration, not model output. Never let a decorative curve be mistaken for a result.
 
 ## Accessibility and interaction
 
@@ -244,6 +244,48 @@ The two existing tools had diverged through copy-paste. All reconciled:
 
 Once both tools are migrated onto the shared runtime these can no longer drift, since the values live in `tools/_shared.js`.
 
+## Social preview cards and the favicon
+
+Every page carries `description` / Open Graph / `twitter:card` tags and an inline
+SVG favicon. Two rules that fail *silently* if broken:
+
+- **`og:image` must be an absolute URL.** Scrapers do not resolve relative
+  paths; a relative one yields a card with no image and no error anywhere.
+- **Keep the favicon a `data:` URI.** A `favicon.ico` file would be the first
+  runtime fetch other than the font.
+
+The three cards in `assets/og-*.jpg` are generated, not hand-drawn, so they
+cannot drift from the pages they advertise. With `python3 -m http.server 8000`
+running:
+
+```bash
+CHROME="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
+shoot(){ "$CHROME" --headless --disable-gpu --hide-scrollbars \
+  --screenshot="C:\\Users\\Public\\c.png" --window-size=1200,630 \
+  --virtual-time-budget=9000 "$1" && \
+  ffmpeg -y -v error -i /mnt/c/Users/Public/c.png -q:v 3 "$2"; }
+
+shoot "http://localhost:8000/tools/og-card.html"            assets/og-home.jpg
+shoot "http://localhost:8000/tools/og-tool.html?tool=swsh"  assets/og-swsh.jpg
+shoot "http://localhost:8000/tools/og-tool.html?tool=geo"   assets/og-geodesic.jpg
+```
+
+`tools/og-tool.html` loads the **real widget** in a same-origin iframe and
+crops to a measured element rect, so a card can never show a stale render or a
+half-clipped control row. Two things it has to work around, both of which cost
+an afternoon once:
+
+- Headless Chrome reports `prefers-reduced-motion: reduce`, so the geodesic
+  tool starts paused and the card showed a motionless particle with no trail.
+- `--virtual-time-budget` advances the clock without ticking rAF — 20 s of
+  virtual time fired **6 frames**. So the trail is built by calling the tool's
+  own `step()` in a loop and then `render()`, which is exact rather than
+  timing-dependent, and reproduces byte-for-byte on re-run.
+
+The favicon is the chirp mark with the cycle count cut until it survives 16 px (the chirp itself is no longer drawn on the homepage).
+Regenerate with `node tools/mkfav.js <outdir>`, then paste the contents of
+`favicon-uri.txt` into the `<link rel="icon">` of all three pages.
+
 ## Pre-ship checklist
 
 - [ ] **Resource cost justified** — if the tool is heavier than the two existing ones, say why in the PR/commit, or cut back until it isn't
@@ -258,5 +300,6 @@ Once both tools are migrated onto the shared runtime these can no longer drift, 
 - [ ] Controls have `aria-pressed` / visible readouts; drag works on touch
 - [ ] Readable at 360 px wide
 - [ ] No new runtime fetches
+- [ ] `description`, Open Graph and favicon tags present; `og:image` **absolute** and the file committed
 - [ ] `tools/build.py --check` clean and `tools/test.js` passing
 - [ ] New physics has a test in [tools/test.js](tools/test.js)
