@@ -1,6 +1,6 @@
 ---
 name: physics-widget
-description: Build an interactive browser physics widget - orbit integrators, field/mode visualisers, potential plots. Use when writing or reviewing the widget itself: getting the physics right, validating against closed forms, keeping on-screen claims true across the whole control range, canvas rendering, control/state handling, the frame budget, and how to test any of it. For the host page and embedding, see the academic-site skill.
+description: Build an interactive browser physics widget - orbit integrators, field/mode visualisers, potential plots. Use when writing or reviewing the widget itself: getting the physics right, validating against closed forms, keeping on-screen claims true across the whole control range, canvas rendering, control/state handling, touch and drag handling, the frame budget, and how to test any of it - including writing physics as pure functions so the tests can bind to the shipped code, and finding checks that cannot fail. For the host page and embedding, see the academic-site skill.
 ---
 
 # Interactive physics widgets
@@ -136,6 +136,17 @@ physics, and:
   dragging "in" will sometimes zoom out;
 - verify by scanning the parameter space that the axis never inverts.
 
+**Two allocation shapes that hide from a regex guard.** An array literal passed
+straight as an argument — `ctx.setLineDash([4,5])` — and any canvas factory
+call — `createRadialGradient`, `createPattern`, `createImageData`. A guard
+matching `= [` and `return [` sees neither, so a loop can allocate six objects
+a frame under a green check. Cache both on change, and make the guard
+understand `if (key !== cached) { ... }` so caching is not itself flagged.
+
+**`Array.shift()` in a trail buffer is O(n).** Trimming one vertex per push
+over a 2600-element array, 40× a frame, is a memmove per push. Trim in chunks,
+or use a ring buffer.
+
 ## Frame budget
 
 | knob | rule |
@@ -152,10 +163,41 @@ physics, and:
 tables and scratch objects to module scope. Note that a naive "no allocation"
 test that only matches typed-array constructors will miss all of that.
 
+## Write the physics as pure functions of an explicit state
+
+`Veff(r)` reading module-level `mu`, `L`, `aSpin`, `Efix` is the natural way to
+write a widget and the wrong one. A test can then only probe it at whatever
+state the UI happens to be in, so sweeping `(a, E, L)` from outside is
+impossible — and what happens next is predictable: the suite grows its **own
+reimplementation** of the formula to sweep, and guards the shipped code with a
+source regex to stop the two drifting.
+
+That arrangement tests the *text* of the shipped function and the *arithmetic*
+of a copy. A sign error introduced in the real code passes, as long as the
+regex still matches.
+
+```js
+function veffOf(r, m, Lz, a, E){ … }        // pure: the test binds to this
+function Veff(r){ return veffOf(r, mu, L, aSpin, Efix); }   // what the tool calls
+```
+
+Keep the one-argument wrappers so no call site changes — the refactor is then
+mechanical and low-risk. **Test the seam the split introduces**: drive the live
+UI through several states and assert the wrapper equals the pure form at the
+current state. That is now the only way the two can disagree, and it is a
+one-line comparison.
+
+The payoff is concrete. After rebinding, mutating the shipped `−3(L−aE)²/r⁴`
+term failed `accel = −½ dVeff/dr`, and dropping the shipped frame-dragging term
+failed the release-from-rest identity. Neither mutation could have failed the
+old suite.
+
 ## Testing
 
 - Exercise the **actual functions inlined in the page**, not copies. Pull the
-  inline `<script>` out and evaluate it in a sandbox with DOM stubs.
+  inline `<script>` out and evaluate it in a sandbox with DOM stubs. If a
+  function cannot be probed at an arbitrary state, that is a signature problem,
+  not a testing problem — see above.
 - Stub the controls **faithfully**. A range stub that accepts any value hides
   precisely the clamp/step bugs described above.
 - **Drive the real UI** — click presets, move sliders — rather than asserting
@@ -170,6 +212,9 @@ test that only matches typed-array constructors will miss all of that.
 - **Mutation-test every check.** Reintroduce the bug; confirm the test fails.
 - A regex over a whole file **will match your own comments**. Match against
   the extracted function or rule body.
+- **A source regex is a stopgap, not a test.** It is what you write when the
+  code cannot be called; the fix is to make the code callable. Treat every
+  `source X matches the expected form` check as a TODO against the signature.
 
 ### Capturing a widget as a still
 
@@ -185,6 +230,21 @@ top-level functions rather than burying them in a closure — it makes the tool
 scriptable from the outside for exactly this.
 
 ## Accessibility and input
+
+**Lock a drag to one axis, once per gesture.** `touch-action: pan-y` is not
+enough on its own: the browser only decides a swipe belongs to the page after
+the first few `touchmove`s, and those have already reached your handler. The
+opening pixels of a scroll then rotate the scene, and the change survives the
+`pointercancel` that follows. Accumulate raw movement until it clears a small
+threshold (~6px), pick the dominant axis, and ignore the other one until the
+gesture ends. Make the ignored axis reachable another way — a view button —
+so nothing is actually lost.
+
+**Test a lock with a DIAGONAL gesture.** A purely vertical drag has zero
+horizontal movement, so it passes whether or not the lock exists: the first
+version of this check survived deleting the feature it tested. Real gestures
+drift, and the drift is the bug.
+
 
 - `aria-pressed` on every segmented control, kept in sync from state.
 - Labels on sliders; `role="group"` with a label on button groups.

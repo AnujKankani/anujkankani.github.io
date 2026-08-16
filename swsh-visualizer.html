@@ -76,6 +76,14 @@
   .note{margin-top:16px;font-size:12px;color:var(--muted);line-height:1.6;}
   .note b{color:var(--ink);font-weight:500;}
 
+  /* Source + licence line. For an interactive physics explainer, reuse is most
+     of the value to another researcher, so every standalone tool says where the
+     code is. Inline in a sentence, so WCAG 2.5.8's inline-in-text exemption
+     applies and it needs no coarse-pointer sizing of its own. */
+  .srcline{margin-top:12px;font-size:11px;color:var(--muted);letter-spacing:.02em;}
+  .srcline a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.18);}
+  .srcline a:hover{border-bottom-color:currentColor;}
+
   /* ---- touch input ----
      Keyed off pointer:coarse, not a width breakpoint: a small window on a
      laptop still has a mouse, and a large tablet still has fingers.
@@ -102,7 +110,7 @@
      body.embed rules for panel heights; see TOOLS.md "embed contract". */
   body.embed{background:transparent;}
   body.embed .tool{padding:0;max-width:none;}
-  body.embed .head,body.embed .note{display:none;}
+  body.embed .head,body.embed .note,body.embed .srcline{display:none;}
   body.embed .controls{margin-top:14px;padding:0 4px;}
 </style>
 <!-- /VIZ:CSS -->
@@ -122,7 +130,7 @@
   canvas{display:block;width:100%;height:100%;}
   .mode-badge{position:absolute;top:12px;left:14px;font-family:"Space Grotesk",sans-serif;
     font-size:15px;color:var(--ink);background:rgba(10,16,26,.55);padding:5px 11px;border-radius:8px;
-    border:1px solid var(--line);backdrop-filter:blur(4px);}
+    border:1px solid var(--line);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
   .mode-badge b{color:var(--accent);}
   .hint{position:absolute;bottom:10px;right:14px;font-size:10.5px;color:var(--muted);letter-spacing:.04em;}
   .legend{position:absolute;bottom:10px;left:14px;font-size:10px;color:var(--muted);display:flex;align-items:center;gap:6px;}
@@ -186,13 +194,18 @@
          opts.render     () => void   draw one frame  [required]
          opts.observe    Element      element whose visibility gates the
                                       loop [required]
-         opts.resize     () => void   called debounced on window resize
+         opts.resize     () => void   called debounced on window resize; must
+                                      leave a correct frame (the runtime does
+                                      not render again after it)
          opts.fps        number       frames per second; default Viz.FRAME_MS
 
        Returns a handle: { update, start, stop, isRunning(), destroy }.
-       Call handle.update() after any state change that could alter
-       shouldRun(); it re-evaluates and renders a final frame when
-       halting, so the static view stays correct.
+         update()   call after ANY state change that could alter shouldRun();
+                    re-evaluates and renders one final frame when halting, so
+                    the static view stays correct. No-op once destroyed.
+         start()    enforces the visibility gate itself, so the drag-start
+                    shortcut cannot smuggle in an off-screen rAF.
+         destroy()  disconnects the observer and removes both listeners.
        --------------------------------------------------------- */
     Viz.loop = function (opts) {
       if (!opts || typeof opts.render !== 'function') {
@@ -227,8 +240,16 @@
         raf = window.requestAnimationFrame(frame);
       }
 
+      /* start() is part of the public handle, so it has to enforce rule 2 itself
+         -- it used to check only `running || destroyed`, which meant a tool
+         calling it directly (swsh does, on drag start) could kick off a rAF
+         while the frame was scrolled out of view or the tab was hidden. frame()
+         caught it one frame later, so the cost was small, but "never animate
+         off-screen" was not actually guaranteed by the API that advertises this
+         method. Nothing is lost by refusing: the observer calls update() when
+         the element comes back, which starts the loop then. */
       function start() {
-        if (running || destroyed) return;
+        if (running || destroyed || !inView || tabHidden) return;
         running = true; lastT = 0;
         raf = window.requestAnimationFrame(frame);
       }
@@ -239,32 +260,55 @@
         raf = 0;
       }
 
-      /* The one entry point tools should call. */
+      /* The one entry point tools should call. Renders once when halting so the
+         static frame stays correct -- but never after destroy(), or a stray
+         call would paint through a torn-down tool. */
       function update() {
+        if (destroyed) return;
         if (shouldRun()) start();
         else { stop(); render(); }
       }
 
+      /* Every listener below is RETAINED so destroy() can undo it. They used to
+         be anonymous and unreachable: destroy() set a flag and stopped the rAF,
+         but the observer, the visibilitychange handler and the resize handler
+         all stayed live, so a destroyed loop kept calling the tool's render()
+         on every tab switch and every resize, and pinned its whole closure
+         graph. Nothing calls destroy() on this site yet -- the docblock
+         advertises it, so the first caller would have inherited that. */
+      var io = null;
       if ('IntersectionObserver' in window) {
-        new window.IntersectionObserver(function (es) {
+        io = new window.IntersectionObserver(function (es) {
           inView = es[0].isIntersecting;
           update();
-        }, { threshold: 0.02 }).observe(opts.observe);
+        }, { threshold: 0.02 });
+        io.observe(opts.observe);
       }
 
-      document.addEventListener('visibilitychange', function () {
+      function onVisibility() {
         tabHidden = document.hidden;
         update();
-      });
+      }
+      document.addEventListener('visibilitychange', onVisibility);
 
       /* Debounced: mobile browsers fire resize continuously while the
          URL bar collapses during scroll. */
+      var rt = 0, onResize = null;
       if (typeof opts.resize === 'function') {
-        var rt;
-        window.addEventListener('resize', function () {
+        onResize = function () {
           clearTimeout(rt);
-          rt = setTimeout(function () { opts.resize(); update(); }, 150);
-        });
+          rt = setTimeout(function () {
+            opts.resize();
+            /* CONTRACT: opts.resize() must leave a correct frame on screen.
+               Both tools end theirs with render(). This used to call update()
+               here, which renders again whenever the loop is idle -- so every
+               resize drew the same frame twice (three times in swsh, whose
+               resize() also called updateRun()). Re-evaluate the run state
+               without the extra paint. */
+            if (shouldRun()) start(); else stop();
+          }, 150);
+        };
+        window.addEventListener('resize', onResize);
       }
 
       return {
@@ -272,7 +316,14 @@
         start: start,
         stop: stop,
         isRunning: function () { return running; },
-        destroy: function () { destroyed = true; stop(); }
+        destroy: function () {
+          destroyed = true;
+          stop();
+          if (io) io.disconnect();
+          document.removeEventListener('visibilitychange', onVisibility);
+          if (onResize) window.removeEventListener('resize', onResize);
+          clearTimeout(rt);
+        }
       };
     };
 
@@ -453,6 +504,7 @@
   </div>
 
   <p class="note">The radius is deformed by the chosen field — colored by sign for Re and Im, by magnitude for |Y|² — so <b>ℓ − max(|m|, 2) gives the number of nodal circles in latitude</b> — the spin weight sets a floor, which is why ₋₂Y<sub>ℓm</sub> is not the scalar ℓ − |m| rule — and the Re and Im views show <b>2|m| azimuthal lobes</b>, separated by 2|m| nodal meridians. <b>|Y| and |Y|² are axisymmetric at every m</b>, so those lobes vanish in both — they differ only in how sharply the latitude profile is peaked, |Y|² exaggerating the contrast between lobe and node. At m = 0 the mode is axisymmetric in every view, and Im vanishes identically. Each mode is normalized to its own peak, so shapes are comparable but amplitudes are not: the (2,2) mode dominates most black-hole mergers, and higher modes carry the finer structure that models like BOB aim to capture.</p>
+  <p class="srcline">Source: <a href="https://github.com/AnujKankani/anujkankani.github.io/blob/main/swsh-visualizer.html" target="_blank" rel="noopener">swsh-visualizer.html</a> · <a href="https://github.com/AnujKankani/anujkankani.github.io/blob/main/LICENSE" target="_blank" rel="noopener">MIT licensed</a> — self-contained, no dependencies; save the page and it still runs.</p>
 </div>
 
 <script>
@@ -562,8 +614,7 @@ function resize(){
   buf.width=RES; buf.height=RES;
   img=bctx.createImageData(RES,RES); data=img.data; zbuf=new Float32Array(RES*RES);
   buildGeo();
-  render();
-  updateRun();
+  render();   // Viz.loop will not render after resize(); leave a correct frame
 }
 
 function render(){
@@ -768,9 +819,35 @@ document.getElementById('styleSeg').addEventListener('click',function(e){var b=e
   [].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',x===b);}); render();});
 
 var stage=document.getElementById('stage');
-function down(x,y){S.drag=true;S.px=x;S.py=y;startLoop();}
-function move(x,y){if(!S.drag)return;S.az+=(x-S.px)*0.01;S.el+=(y-S.py)*0.01;S.el=Math.max(-EL_MAX,Math.min(EL_MAX,S.el));S.px=x;S.py=y;}
-function up(){if(!S.drag)return;S.drag=false;updateRun();}
+// Drag, with an axis decision taken once per gesture.
+//
+// touch-action:pan-y on the stage is supposed to hand vertical swipes back to
+// the page, but the browser only makes that call after the first few
+// touchmoves -- which have already been delivered here. Without a lock, the
+// opening pixels of a page scroll tilt the sphere, and the tilt survives the
+// pointercancel that follows. So: accumulate raw movement until it clears
+// LOCK_PX, decide horizontal-vs-vertical once from the dominant component,
+// and ignore the other axis for the rest of the gesture.
+//
+// Elevation stays reachable through the top/side/bottom view buttons, so
+// locking out vertical drags on a touch scroll costs nothing. NOTE this is
+// reasoned, not device-verified: the box this was written on has no touch
+// input, and iOS Safari is WebKit while the local browser is Blink.
+var LOCK_PX = 6;
+function down(x,y){S.drag=true;S.px=x;S.py=y;S.ax=0;S.ay=0;S.lock='';startLoop();}
+function move(x,y){
+  if(!S.drag)return;
+  var dx=x-S.px, dy=y-S.py;
+  if(!S.lock){
+    S.ax+=Math.abs(dx); S.ay+=Math.abs(dy);
+    if(S.ax>=LOCK_PX||S.ay>=LOCK_PX) S.lock = S.ax>=S.ay ? 'x' : 'y';
+    else { S.px=x; S.py=y; return; }   // below threshold: move nothing yet
+  }
+  if(S.lock==='x') S.az+=dx*0.01;
+  else { S.el+=dy*0.01; S.el=Math.max(-EL_MAX,Math.min(EL_MAX,S.el)); }
+  S.px=x; S.py=y;
+}
+function up(){if(!S.drag)return;S.drag=false;S.lock='';updateRun();}
 stage.addEventListener('mousedown',function(e){down(e.clientX,e.clientY);});
 window.addEventListener('mousemove',function(e){move(e.clientX,e.clientY);});
 window.addEventListener('mouseup',up);
@@ -789,6 +866,13 @@ window.addEventListener('blur',up);
 // resize are all owned by Viz.loop (see tools/_shared.js).
 syncFieldAvail();   // m defaults to 2 so Im starts enabled -- but never assume it
 resize();
+// Start the loop from STATE, not from the observer's first callback. Viz.loop
+// seeds inView=true and only calls update() when the IntersectionObserver
+// fires, so without this the auto-spin depends on that callback arriving: on
+// an engine with no IntersectionObserver the button reads "rotating" and the
+// sphere never moves. updateRun() is also a no-op when S.spin is false (which
+// is what prefers-reduced-motion sets), so it cannot start unwanted motion.
+updateRun();
 Viz.autoHeight();   // report our real height to index.html; no-op standalone
 </script>
 </body>

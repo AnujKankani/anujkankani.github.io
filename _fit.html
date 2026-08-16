@@ -1,0 +1,37 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>html,body{margin:0}#out{position:absolute;top:0;left:1960px;font:11px monospace;white-space:pre}</style></head>
+<body><div id="out">…</div>
+<script>
+var rows=[], V=[[1280,720],[1366,768],[1440,900],[1680,1050],[1920,1080],[2560,1200],[768,1024],[390,844]], i=0;
+function next(){
+  if(i>=V.length){document.getElementById('out').textContent=rows.join('\n');return;}
+  var v=V[i++], f=document.createElement('iframe');
+  f.width=v[0]; f.height=v[1]; f.src='/index.html?'+Math.random();
+  f.style.cssText='border:0;position:absolute;top:0;left:0';
+  f.onload=function(){
+    var d=f.contentDocument, w=f.contentWindow;
+    d.fonts.ready.then(function(){ setTimeout(function(){
+      var D=d.documentElement, W=D.clientWidth;
+      var svgEl=d.querySelector('.hero-fig svg');
+      var r=svgEl.getBoundingClientRect();
+      var vb=svgEl.viewBox.baseVal;
+      var b=svgEl.getBBox();
+      // does any drawn content fall outside the viewBox (i.e. get clipped)?
+      var clipped = (b.x < vb.x-1) || (b.y < vb.y-1) ||
+                    (b.x+b.width > vb.x+vb.width+1) || (b.y+b.height > vb.y+vb.height+1);
+      var tot=d.querySelector('nav').getBoundingClientRect().height+
+              d.querySelector('.hero').getBoundingClientRect().height;
+      rows.push(String(v[0])+'x'+String(v[1]).padEnd(5)+
+        ' fig='+String(Math.round(r.width)).padStart(4)+'x'+String(Math.round(r.height)).padStart(3)+
+        ' edges L='+Math.round(r.left)+' R='+Math.round(W-r.right)+
+        ' vertClip='+(clipped?'YES':'no ')+
+        ' nav+hero='+String(Math.round(tot)).padStart(4)+
+        (tot<=w.innerHeight?' FITS':' OVER '+Math.round(tot-w.innerHeight))+
+        ' hscroll='+(D.scrollWidth>W+1?'YES':'no'));
+      document.body.removeChild(f); next();
+    },700); });
+  };
+  document.body.appendChild(f);
+}
+next();
+</script></body></html>

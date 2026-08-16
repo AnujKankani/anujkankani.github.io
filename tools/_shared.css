@@ -41,6 +41,14 @@ input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:3
 .note{margin-top:16px;font-size:12px;color:var(--muted);line-height:1.6;}
 .note b{color:var(--ink);font-weight:500;}
 
+/* Source + licence line. For an interactive physics explainer, reuse is most
+   of the value to another researcher, so every standalone tool says where the
+   code is. Inline in a sentence, so WCAG 2.5.8's inline-in-text exemption
+   applies and it needs no coarse-pointer sizing of its own. */
+.srcline{margin-top:12px;font-size:11px;color:var(--muted);letter-spacing:.02em;}
+.srcline a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.18);}
+.srcline a:hover{border-bottom-color:currentColor;}
+
 /* ---- touch input ----
    Keyed off pointer:coarse, not a width breakpoint: a small window on a
    laptop still has a mouse, and a large tablet still has fingers.
@@ -67,5 +75,5 @@ button,input[type=range],.seg{-webkit-tap-highlight-color:transparent;}
    body.embed rules for panel heights; see TOOLS.md "embed contract". */
 body.embed{background:transparent;}
 body.embed .tool{padding:0;max-width:none;}
-body.embed .head,body.embed .note{display:none;}
+body.embed .head,body.embed .note,body.embed .srcline{display:none;}
 body.embed .controls{margin-top:14px;padding:0 4px;}

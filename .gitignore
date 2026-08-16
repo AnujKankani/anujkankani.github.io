@@ -31,6 +31,13 @@ papers/
 animations/bg_swatches.py
 animations/bi_swatches.py
 
+# Photo originals: phone shots and full-resolution press files, 1-4 MB each.
+# Same discipline as the video masters -- tools/mkphotos.py emits small 3:4
+# crops into assets/, and those ARE tracked because the site fetches them.
+# Two of the originals here are (c) Institute for Advanced Study; keeping the
+# folder out of git also keeps those out of the repo's permanent history.
+anuj_photos/
+
 # Python
 __pycache__/
 *.pyc

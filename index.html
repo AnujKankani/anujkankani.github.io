@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anuj Kankani — Gravitational-Wave Physics</title>
-<meta name="description" content="PhD student in gravitational and high-energy astrophysics at West Virginia University. Merger–ringdown waveform models, numerical relativity, and relativistic plasmas.">
+<meta name="description" content="PhD student in gravitational and high-energy astrophysics at West Virginia University. Gravitational Waves, Numerical Relativity, and Relativistic Plasmas.">
 <meta name="author" content="Anuj Kankani">
 <link rel="canonical" href="https://anujkankani.github.io/">
 
@@ -14,12 +14,13 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Anuj Kankani">
 <meta property="og:title" content="Anuj Kankani — Gravitational-Wave Physics">
-<meta property="og:description" content="PhD student in gravitational and high-energy astrophysics at West Virginia University. Merger–ringdown waveform models, numerical relativity, and relativistic plasmas.">
+<meta property="og:description" content="PhD student in gravitational and high-energy astrophysics at West Virginia University. Gravitational Waves, Numerical Relativity, and Relativistic Plasmas.">
+<meta name="author" content="Anuj Kankani">
 <meta property="og:url" content="https://anujkankani.github.io/">
 <meta property="og:image" content="https://anujkankani.github.io/assets/og-home.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Anuj Kankani — PhD student in gravitational and high-energy astrophysics, over an inspiral–merger–ringdown chirp.">
+<meta property="og:image:alt" content="Anuj Kankani — PhD student in gravitational and high-energy astrophysics.">
 <!-- X/Twitter falls back to the og:* tags for title, description and image,
      so only the card type has to be declared here. -->
 <meta name="twitter:card" content="summary_large_image">
@@ -116,12 +117,16 @@
      subtraction is scrollbar allowance: 100vw includes the scrollbar, and
      without it a wide viewport can overflow horizontally by ~15px.
 
-     Selector is `.wrap > .bleed`, not `.bleed`: every one of these blocks also
-     carries a component rule with a `margin` SHORTHAND (`.hero-fig{margin:44px
-     0 0}` and friends), declared later in this stylesheet at equal
-     specificity. As a bare `.bleed` the margin-left below lost to those, and
-     the blocks widened to the RIGHT off the edge of the page instead of
-     centring -- 86px of horizontal scroll at 1341px wide. */
+     Selector is `.wrap > .bleed`, not `.bleed`: these blocks also carry a
+     component rule with a `margin` SHORTHAND (`.tool-embed{margin:0;...}`),
+     declared later in this stylesheet at equal specificity. As a bare
+     `.bleed` the margin-left below lost to that, and the blocks widened to
+     the RIGHT off the edge of the page instead of centring -- 86px of
+     horizontal scroll at 1341px wide.
+
+     Currently worn by .exp-grid and the two .tool-embed blocks. The hero
+     figure is NOT one of them: it goes edge-to-edge via 100vw instead, which
+     is a different mechanism -- see .hero-fig below. */
   @media (min-width:1340px){
     .wrap > .bleed{
       --bleed-w:min(calc(var(--maxw-wide) - 56px), calc(100vw - 80px));
@@ -139,6 +144,9 @@
   /* ---------- Nav ---------- */
   nav{
     position:sticky;top:0;z-index:50;background:var(--nav-bg);
+    /* -webkit- prefix first: unprefixed backdrop-filter only shipped in
+       Safari 18, so on iOS 17 and earlier the blur is silently a no-op. */
+    -webkit-backdrop-filter:saturate(140%) blur(10px);
     backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--line);
   }
   .nav-inner{display:flex;align-items:center;justify-content:space-between;height:60px;}
@@ -158,7 +166,15 @@
   .theme-toggle .icon-sun{display:none;}
   :root[data-theme="dark"] .theme-toggle .icon-sun{display:block;}
   :root[data-theme="dark"] .theme-toggle .icon-moon{display:none;}
-  @media(max-width:720px){
+  /* Scrollable nav. The breakpoint is the width the DESKTOP nav actually needs
+     -- measured, not guessed: name 97 + links 690 + toggle 34 + two gaps + the
+     wrap's 56px padding = 924px. It was 720px, which left the whole 721-919px
+     band broken: the links wrapped onto two lines throughout it, and below
+     ~850px the nav also pushed the page into horizontal scroll with the theme
+     toggle off-screen entirely. 768px (iPad portrait) sat squarely inside that.
+     Measure with document.fonts.ready resolved -- fallback metrics are
+     narrower and make the nav look like it fits when it does not. */
+  @media(max-width:920px){
     .nav-inner{gap:12px;}
     .nav-name{flex:0 0 auto;}
     .nav-right{flex:1 1 auto;min-width:0;gap:10px;}
@@ -167,26 +183,308 @@
     .nav-links a{white-space:nowrap;}
   }
 
+  /* Touch targets. index.html had no coarse-pointer block at all, while both
+     tool pages did: nav links measured 21px tall and the theme toggle 34px at
+     390px wide. 21px is under even WCAG 2.5.8's 24px floor (the inline-in-text
+     exemption does not cover a nav), and both are well under the 44px Apple
+     HIG / 48dp Material target. Keyed off `pointer: coarse`, not a width
+     breakpoint -- a narrow desktop window still has a mouse. */
+  @media (pointer: coarse){
+    .nav-links a{padding:12px 0;}          /* 21 -> ~45px */
+    .theme-toggle{width:44px;height:44px;}
+    .tool-cap a{padding:12px 0;}
+    /* The arXiv links under each publication and each explainer are STANDALONE
+       -- their own line, in their own container -- so WCAG 2.5.8's
+       inline-in-text exemption does not cover them. Measured at 390px before
+       this: 16px under the explainers, 21px under the publications, against a
+       24px floor and a 44pt target.
+
+       display:inline-block is required, not cosmetic: vertical padding on an
+       inline element overflows its line box instead of growing it, so padding
+       alone would have left the hit area exactly as small while looking fixed
+       in the CSS. */
+    .exp-item figcaption a,
+    .links a,
+    .soft-link{display:inline-block; padding:12px 0;}   /* 16/21 -> ~44px */
+    /* .cta-row .btn, not .btn: the base rule uses the `padding` SHORTHAND and
+       is declared LATER in this stylesheet. A media query adds no specificity,
+       so a bare `.btn` longhand here loses to it and silently does nothing --
+       measured 41px before and 41px after. Same trap as `.wrap > .bleed`. */
+    .cta-row .btn{padding-top:11px; padding-bottom:11px;}   /* 41 -> ~45px */
+  }
+
   /* ---------- Hero ---------- */
-  .hero{position:relative;padding:76px 0 8px;overflow:hidden;}
-  .hero h1{font-size:clamp(38px,7vw,72px);line-height:1.02;margin:0 0 20px;font-weight:700;}
-  .hero .role{font-family:"IBM Plex Mono",monospace;font-size:14px;color:var(--ink-soft);letter-spacing:.02em;margin:0 0 26px;}
-  .hero .thesis{font-size:clamp(19px,2.3vw,23px);max-width:640px;color:var(--ink);margin:0 0 34px;line-height:1.5;}
+  .hero{position:relative;padding:clamp(20px,3.1vh,44px) 0 6px;overflow:hidden;}
+  .hero h1{font-size:clamp(26px,4.2vw,46px);line-height:1.04;margin:0 0 10px;font-weight:700;}
+  .hero .role{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-soft);letter-spacing:.02em;margin:0 0 12px;}
+  .hero .thesis{font-size:clamp(15px,1.7vw,17px);max-width:560px;color:var(--ink);margin:0 0 16px;line-height:1.42;}
   .hero .thesis em{font-style:italic;color:var(--accent-2);}
   .cta-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+
+  /* Hero slideshow. ABSOLUTELY POSITIONED on purpose: the hero text sets the
+     height of the first screen and that budget (nav + hero <= viewport) was
+     measured without this. In flow it would add ~230px and break the fold at
+     every width. Anchored to the wrap's padding edge, vertically centred on
+     the text block.
+
+     At 900px and narrower the free column is thinner than the frame plus its
+     gutter, so it is removed rather than shrunk -- a 100px-wide photo of a
+     person is not worth the bytes. That is a THIRD independent breakpoint,
+     unrelated to the nav's 920px and the hero figure's 700px; they are not
+     interchangeable. Measured: the copy's ink ends at a fixed ~656px, so the
+     free width is wrap.right - 656, and 172 + 32 gutter needs wrap.right >=
+     860, i.e. a viewport of ~900. */
+  /* Flex row, not absolute positioning. Absolute was the first attempt and it
+     overhung the rule under the hero: the slideshow centred on .wrap, which
+     contains the FIGURE as well as the copy, so it hung ~115px past the
+     divider. A flex row states "centre on the copy" directly instead of
+     encoding it as an offset that needs re-tuning whenever the padding clamp
+     changes.
+
+     The column is `0 1 358px` -- it may SHRINK but never grow. 358 is two
+     172px slots plus a 14px gap, which fits the 424px of free width measured
+     at 1280 and up; at 1024 there is 353px and it shrinks to fit rather than
+     needing another breakpoint. */
+  .hero-top{display:flex;align-items:center;gap:32px;}
+  .hero-copy{flex:1 1 auto;min-width:0;}
+  .hero-slides{flex:0 1 358px;min-width:0;align-self:center;}
+
+  /* Two columns, two rows: pictures on row 1, one credit line on row 2.
+     Every slide is placed in row 1, so they OVERLAP and cross-fade in place --
+     that is what grid gives us here that a stack of absolutely positioned
+     images did not: the row height comes from the items themselves, so no
+     ancestor needs an explicit height and nothing escapes its box.
+
+     Row 2 is a fixed 1.6em whether or not the current scene has a credit, so
+     the pictures above never shift as the slideshow advances. */
+  .hs-grid{
+    display:grid; grid-template-columns:1fr 1fr; grid-template-rows:auto 2.8em;
+    gap:0 14px;
+  }
+  /* Sizing is width + aspect-ratio, never width AND height together: setting
+     both to 100% makes the browser ignore aspect-ratio, and because the row
+     height is auto (it comes from these very items) the result resolved to
+     roughly 3:8 and the pictures ran 490px tall. Give each item one dimension
+     and let the ratio supply the other. */
+  .hs-grid img{
+    grid-row:1; width:100%; height:auto; object-fit:cover; display:block;
+    border-radius:10px; border:1px solid var(--line); background:var(--field);
+    opacity:0;
+  }
+  .hs-grid .p1{grid-column:1; aspect-ratio:2/3;}
+  .hs-grid .p2{grid-column:2; aspect-ratio:2/3;}
+  /* 1.388 is (2 x col + gap) / (3/2 x col) -- the aspect that makes a
+     full-width landscape exactly as tall as the portraits beside it, so the
+     row height never changes between scenes. Near-constant as the column
+     shrinks, so one number covers every width. */
+  .hs-grid .pw{grid-column:1/-1; aspect-ratio:1.388;}
+  /* Credits are scoped to what they credit. A wide slide takes the full
+     width; a pair where only ONE photo is credited takes just that column,
+     because a full-width line under two photographs reads as crediting both.
+     Two lines are reserved either way -- the long IAS credit wraps to two at
+     column width -- so the pictures never shift as scenes change. */
+  .hs-grid .cr{
+    grid-row:2; opacity:0;
+    font-size:9px; line-height:1.35; letter-spacing:.02em;
+    color:var(--ink-soft); text-align:center;
+  }
+  .hs-grid .crw{grid-column:1/-1;}
+  .hs-grid .cr1{grid-column:1;}
+  .hs-grid .cr2{grid-column:2;}
+
+  /* Cross-fade by SCENE. Every item -- pictures and credits alike -- runs the
+     same animation keyed on --s, which is what keeps a credit on screen
+     exactly while its own photo is. Scene length 4.5s, so the cycle is
+     ns x 4.5s = 18s at four scenes. Shorten the scene as scenes are added
+     rather than letting the cycle creep past ~20s, or the later photographs
+     are never seen by anyone who does not linger.
+
+     The KEYFRAME PERCENTAGES are the one part that is not derived from --ns:
+     a scene's window is 100/ns percent of the cycle, 25% at ns=4, and CSS
+     cannot compute a keyframe offset from a variable. Changing the number of
+     SCENES means recomputing the four stops below as
+         0, fade, (100/ns - fade), 100/ns       with fade ~3 at ns=4
+     tools/test.js asserts the last stop matches 100 / --ns. */
+  .figanim .hs-grid > *{
+    animation: slidefade calc(var(--ns) * 4.5s) linear infinite;
+    animation-delay: calc(var(--s) * 4.5s);
+    animation-fill-mode: backwards;
+  }
+  @keyframes slidefade{
+    0%    {opacity:0;}
+    3%    {opacity:1;}
+    22%   {opacity:1;}
+    25%   {opacity:0;}
+    100%  {opacity:0;}
+  }
+
+  /* Scene 0 is painted with no animation at all -- reduced motion, or an
+     engine that will not run the keyframes. Selected by CLASS rather than by
+     nth-of-type: scenes now vary in how many items they hold (one wide photo,
+     or two portraits plus a credit), so counting elements was already wrong
+     and would have drifted silently on the next edit. */
+  .hs-grid > .s0{opacity:1;}
+  .figanim .hs-grid > .s0{opacity:0;}
+
+  @media (prefers-reduced-motion:reduce){
+    .figanim .hs-grid > *{animation:none; opacity:0;}
+    .figanim .hs-grid > .s0{opacity:1;}
+  }
+  /* Below 900px there is no free column beside the copy -- the copy's ink
+     already runs to ~656px -- so the row stacks and the slideshow becomes a
+     band under the text at full width. It used to be display:none here, which
+     meant every photograph was invisible to phone visitors, i.e. most of them.
+
+     Capped at 380px: on a 768px tablet an uncapped band would make the wide
+     slide 513px tall and swallow the screen. At phone widths the cap does
+     nothing and it simply fills the column. */
+  @media (max-width:900px){
+    .hero-top{flex-direction:column; align-items:flex-start; gap:14px;}
+    .hero-copy{width:100%;}
+    .hero-slides{flex:0 0 auto; width:100%; max-width:380px;}
+  }
   .btn{
-    font-family:"Space Grotesk",sans-serif;font-size:14px;font-weight:500;
-    padding:11px 20px;border-radius:999px;border:1px solid var(--ink);
+    font-family:"Space Grotesk",sans-serif;font-size:13px;font-weight:500;
+    padding:9px 16px;border-radius:999px;border:1px solid var(--ink);
     color:var(--ink);background:transparent;transition:all .18s ease;cursor:pointer;
   }
   .btn:hover{background:var(--ink);color:var(--paper);}
   .btn.primary{background:var(--ink);color:var(--paper);}
   .btn.primary:hover{background:var(--accent);border-color:var(--accent);}
 
-  /* Hero figure. The SVG carries its own viewBox, so width:100% + height:auto
-     is all the sizing it needs; a fixed height would distort it. */
-  .hero-fig{margin:44px 0 0;border-top:1px solid var(--line);padding-top:26px;}
-  .hero-fig svg{display:block;width:100%;height:auto;}
+  /* One 17s cycle, shared by the wave, the jet and the particle envelope:
+
+       0-41.5% JET reveal sweeps r 80 -> 740. 740 is the MEASURED extent of
+               everything the reveal has to uncover (668 for the cone, 716 for
+               the outermost escapee at full drift), so the sweep finishes just
+               as the last element appears -- the jet cone itself is complete
+               at ~38% of the cycle (6.4s). It was 1500, which outran the
+               drawing: everything was uncovered by 22% and the rest of the
+               sweep was dead time, so the jet landed BEFORE the wave.
+               The WAVE finishes at 27% (4.6s), so the jet still completes
+               later, at ~1.4x the wave's time. That ratio was ~1.8x until the
+               jet was sped up 30% (EMERGE_FRAC 0.54 -> 0.415) on 2026-08-15;
+               EMERGE_FRAC is the knob if it should move again.
+               Each particle appears as the front reaches it, gated by the
+               shared clip (see .escs below); --esc-delay then starts its
+               drift at that moment.
+       41.5-85% HOLD   jet and wave sit still, fully drawn. Only the particles
+                       keep moving -- about 7.4 seconds of it.
+       85-92%  FADE
+       92-100% reset while invisible.
+
+     The reveal geometry (r 80 -> 740), the 41.5% split and the 17s cycle are
+     duplicated in tools/mkfigure_light.py, which computes the particle delays
+     from them. Tests assert the two agree AND that the delays baked into the
+     SVG below re-derive from them -- both sources can agree while the pasted
+     figure is stale. */
+
+  /* The wave path is emitted hole-first (the generator reverses the point
+     order for exactly this reason), so retreating the dash offset reads as the
+     wave streaming outward rather than draining inward. --len is the path's
+     real length, measured with getTotalLength() in the script below. */
+  .figanim .gw-wave{
+    stroke-dasharray:var(--len) var(--len);
+    stroke-dashoffset:var(--len);
+    animation:railwave 17s linear infinite;
+  }
+  @keyframes railwave{
+    0%   {stroke-dashoffset:var(--len);opacity:0;}
+    3%   {opacity:1;}
+    27%  {stroke-dashoffset:0;opacity:1;}
+    85%  {stroke-dashoffset:0;opacity:1;}
+    92%  {stroke-dashoffset:0;opacity:0;}
+    100% {stroke-dashoffset:var(--len);opacity:0;}
+  }
+
+  /* The jet grows out of the hole: a clip circle centred on the hole widens
+     outward while the group fades in. The circle's static r covers the whole
+     cone, so if the animation never runs the jet is simply drawn in full. */
+  .figanim .jet-reveal{animation:jetgrow 17s linear infinite;}
+  @keyframes jetgrow{
+    0%     {r:80px;}
+    41.5%  {r:740px;}
+    100%   {r:740px;}
+  }
+  .figanim .jet{animation:jetfade 17s linear infinite;}
+  @keyframes jetfade{
+    0%   {opacity:0;}
+    4%   {opacity:1;}
+    85%  {opacity:1;}
+    92%  {opacity:0;}
+    100% {opacity:0;}
+  }
+
+  /* Particles: an outer envelope on the 17s cycle, and inside it each one
+     loops its own 3s drift.
+
+     WHAT KEEPS THEM BEHIND THE JET FRONT is the clip-path on .escs in the
+     SVG, not the delays here. animation-delay applies to an animation's FIRST
+     iteration only, and 3s does not divide 17s, so from the second cycle
+     onward the delays are meaningless -- measured: 3 of 5 particles painted
+     ahead of the front at t=17.3s, all 5 by t=34.4s. .escs now shares the
+     jet's reveal clip, which gates them geometrically on every cycle.
+
+     backwards fill is still required, for the FIRST cycle: without it a
+     particle renders in its base (opaque) state during its delay. */
+  .figanim .escs{animation:escenv 17s linear infinite;}
+  @keyframes escenv{
+    0%   {opacity:1;}
+    85%  {opacity:1;}
+    92%  {opacity:0;}
+    100% {opacity:0;}
+  }
+  .figanim .esc{
+    animation:railesc 3s ease-out infinite;
+    animation-delay:var(--esc-delay,0s);
+    animation-fill-mode:backwards;
+  }
+  @keyframes railesc{
+    0%   {transform:translate(0,0);opacity:0;}
+    18%  {opacity:1;}
+    100% {transform:translate(calc(var(--esc-dx) * 42px), calc(var(--esc-dy) * 42px));opacity:0;}
+  }
+
+  /* An off-screen animation still costs compositor time, so the figure stops
+     once it scrolls out of view. .is-paused is set by the IntersectionObserver
+     at the bottom of this file. The selector has to reach the descendants --
+     play-state does not inherit to elements that carry their own animation. */
+  .figanim.is-paused *{animation-play-state:paused;}
+
+  @media (prefers-reduced-motion:reduce){
+    .figanim .gw-wave,.figanim .esc,.figanim .escs,
+    .figanim .jet,.figanim .jet-reveal{animation:none;}
+    .figanim .gw-wave{stroke-dashoffset:0;}
+    .figanim .jet{opacity:1;}
+  }
+
+  /* Hero figure. The SVG carries its own viewBox, so a width plus height:auto
+     is all the sizing it needs; a fixed height would distort it.
+
+     The box runs FULL BLEED, edge to edge, and still has to fit the first
+     screen alongside the hero text.
+     Both hold because the artwork itself is a wide format: the generator
+     flattens the cone and the wave and crops the viewBox to the drawn content,
+     giving ~4.3:1. Rendered height is width / viewBox-aspect, so no height cap
+     and no cropping are needed -- an earlier version cropped a 2.5:1 drawing
+     with preserveAspectRatio="slice" and threw away ~45% of it.
+
+     The 100vw + negative margin is the standard full-bleed trick. It is safe
+     here only because .hero sets overflow:hidden -- 100vw includes the
+     scrollbar, so without that the page would scroll sideways by ~15px.
+
+     The BOX stays full-bleed so its border-top reads as the rule dividing the
+     hero text from the figure; only the SVG inside is scaled down and centred.
+     Height follows from the viewBox aspect, so the width percentage is the
+     only size knob -- do not add a height here. */
+  .hero-fig{margin:clamp(16px,2.6vh,34px) 0 0;border-top:1px solid var(--line);
+            padding-top:clamp(12px,2vh,22px);
+            width:100vw;margin-left:calc(50% - 50vw);}
+  .hero-fig svg{display:block;width:70%;height:auto;margin:0 auto;}
+  /* The 70% shrink exists to reclaim the desktop gutters; on a phone there are
+     no gutters to reclaim and 70% of 390px renders the figure only ~64px tall,
+     so it goes back to full width below the point where that starts to bite. */
+  @media(max-width:700px){.hero-fig svg{width:100%;}}
 
   /* Waveform signature: DEAD as of 2026-08-14. The .wave-wrap markup was
      replaced by .hero-fig, not commented out, so nothing on the page uses
@@ -249,6 +547,14 @@
   .soft.feature .role-tag{color:var(--amber);border-color:var(--amber);}
   .soft p{font-size:15px;color:var(--ink-soft);margin:8px 0 0;line-height:1.5;}
   .soft.feature p{color:var(--field-soft);}
+  /* Repo link, one per card, on its own line. A CLASS rather than the inline
+     `style="color:var(--amber)"` the first one carried -- inline styles cannot
+     be themed, and the amber only reads correctly on the dark .feature card. */
+  .soft-link{display:inline-block;margin-top:10px;font-family:"IBM Plex Mono",monospace;
+             font-size:12px;letter-spacing:.02em;color:var(--accent);
+             text-decoration:none;border-bottom:1px solid transparent;}
+  .soft-link:hover{border-bottom-color:currentColor;}
+  .soft.feature .soft-link{color:var(--amber);}
   .soft p a,.pub .links a,.contact-links a,.facts dd{overflow-wrap:anywhere;}
 
   /* awards + talks (tail of the Publications section, under .sub-head) */
@@ -297,9 +603,16 @@
   /* paper explainers: a responsive card grid of lazy-loading videos.
      auto-fit + minmax gives 3 across on a wide screen and collapses to 1 on
      a phone without a media query. aspect-ratio reserves the box before the
-     poster decodes, so the grid does not jump on load. */
+     poster decodes, so the grid does not jump on load.
+
+     The track minimum is min(290px,100%), not a bare 290px. A bare minimum
+     is a FLOOR the grid will not go below, so once the column is narrower
+     than it -- 265px of content inside the wrap at a 320px viewport -- the
+     track overflows its container. That was the site's only horizontal
+     scroll at 320px: 5px, exactly 20 + 290 - 305. min() lets the track
+     collapse to the column when the column is the smaller of the two. */
   .exp-intro{max-width:70ch;color:var(--ink-soft);margin:0 0 28px;font-size:16px;}
-  .exp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:30px 26px;}
+  .exp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(290px,100%),1fr));gap:30px 26px;}
   .exp-item{margin:0;}
   .exp-item video{
     width:100%;height:auto;aspect-ratio:16/9;display:block;
@@ -409,8 +722,11 @@
   </div>
 </nav>
 
+
 <header class="hero">
   <div class="wrap">
+   <div class="hero-top">
+    <div class="hero-copy">
     <p class="eyebrow">Gravitational-Wave Theory &amp; Modeling</p>
     <h1>Anuj Kankani</h1>
     <p class="role">PhD Candidate in Physics · West Virginia University · Advisor: Sean T. McWilliams </p>
@@ -419,6 +735,66 @@
       <a class="btn primary" href="#publications">View publications</a>
       <a class="btn" href="CV.pdf">Download CV</a>
     </div>
+    </div><!-- /.hero-copy -->
+
+    <!-- Hero slideshow. Fills the empty column to the right of the name --
+         measured 424px wide by 230px tall of free space at 1280px and up,
+         353px at 1024, and only 97px at 768, which is why it is hidden below
+         900px rather than reflowed. It is absolutely positioned so it costs
+         the page ZERO height: nav + hero has to fit the first screen, and
+         that budget was set without it.
+
+         Photos are generated by tools/mkphotos.py from anuj_photos/ (which is
+         untracked) into assets/, same discipline as the videos: masters out,
+         derivatives in. All four are cropped to the same 3:4 box, because a
+         mid-cross-fade aspect change reads as the layout jumping.
+
+         The cross-fade is pure CSS -- no rAF, no JS beyond the shared pause
+         observer. TO ADD A PHOTO: add it to PHOTOS in tools/mkphotos.py, run
+         it, add an <img> here with the next --i, bump --n, and recompute the
+         @keyframes slidefade percentages -- they are 100/n, which CSS cannot
+         derive from a variable. A test checks that last part.
+
+         NOT INCLUDED: anuj_photo.jpg and anuj_chalk.jpg are (c) Institute for
+         Advanced Study, photographed by Maria O'Leary, and permission has not
+         been granted. They are the two strongest images here and should go in
+         first once it is -- see LICENSE, THIRD-PARTY MATERIAL. -->
+    <div class="hero-slides figanim" style="--ns:4" role="group" aria-label="Photographs of Anuj Kankani">
+      <div class="hs-grid">
+        <!-- Four SCENES, in cycle order. The two landscape photographs lead
+             -- they carry the most information and span the full width -- then
+             the portraits pair off. Which scene an item belongs to is --s; .s0
+             additionally marks scene 0, which is what the no-animation
+             fallback pins (by class, not position, so this list can be
+             reordered freely). -->
+
+        <!-- Scene 0 -->
+        <img class="pw s0" style="--s:0" src="assets/photo-chalk.jpg" width="720" height="519"
+             alt="Anuj Kankani at a blackboard covered in equations with a colleague, who is writing.">
+        <span class="cr crw s0" style="--s:0">Photo: Maria O&rsquo;Leary / Institute for Advanced Study</span>
+
+        <!-- Scene 1 -->
+        <img class="pw" style="--s:1" src="assets/photo-talk.jpg" width="720" height="519"
+             alt="Anuj Kankani presenting at a conference, beside a slide titled Temperature Anisotropies Along the Jet Boundary of M87*.">
+        <span class="cr crw" style="--s:1">Photo: James Beattie</span>
+
+        <!-- Scene 2 -->
+        <img class="p1" style="--s:2" src="assets/photo-portrait.jpg" width="360" height="540"
+             alt="Anuj Kankani at the Institute for Advanced Study, wearing a Prospects in Theoretical Physics conference badge.">
+        <img class="p2" style="--s:2" src="assets/photo-ias.jpg" width="360" height="540"
+             alt="Anuj Kankani with a colleague beside the Einstein statue at the Institute for Advanced Study.">
+        <!-- Column-scoped: only the LEFT photo of this scene is credited, so a
+             full-width line would read as crediting both. -->
+        <span class="cr cr1" style="--s:2">Photo: Maria O&rsquo;Leary / Institute for Advanced Study</span>
+
+        <!-- Scene 3 -->
+        <img class="p1" style="--s:3" src="assets/photo-mountain.jpg" width="360" height="540"
+             alt="Anuj Kankani standing on a rock outcrop against a blue sky.">
+        <img class="p2" style="--s:3" src="assets/photo-ligo.jpg" width="360" height="540"
+             alt="Illustration: a figure seen from behind stands in the rain with arms outstretched along a LIGO beam tube.">
+      </div>
+    </div>
+   </div><!-- /.hero-top -->
 
     <!-- Hero figure. One black hole, bisected: a single gravitational wave
          leaving on the left, a conical accretion flow with particles
@@ -434,8 +810,8 @@
          so, which is where that belongs given the artwork carries no text.
 
          The chirp band this replaced is in git history at 7b35225. -->
-    <div class="hero-fig bleed">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" role="img" aria-label="Illustration: a black hole split down the middle. On the left a gravitational wave leaves along the axis; on the right a conical accretion flow runs onto the hole, with particles accelerated at its boundary and escaping across it."><defs><clipPath id="hL"><rect x="0" y="0" width="595" height="480"/></clipPath><clipPath id="hR"><rect x="605" y="0" width="1200" height="480"/></clipPath></defs><g transform="rotate(0 600 240)"><g clip-path="url(#hL)"><path d="M-30.00 240.00L-29.19 240.00L-28.39 240.00L-27.58 240.00L-26.77 240.00L-25.96 240.00L-25.16 239.99L-24.35 239.99L-23.54 239.98L-22.74 239.98L-21.93 239.97L-21.12 239.96L-20.31 239.95L-19.51 239.93L-18.70 239.92L-17.89 239.90L-17.09 239.88L-16.28 239.86L-15.47 239.83L-14.66 239.80L-13.86 239.77L-13.05 239.74L-12.24 239.71L-11.44 239.67L-10.63 239.62L-9.82 239.58L-9.01 239.53L-8.21 239.48L-7.40 239.43L-6.59 239.37L-5.79 239.31L-4.98 239.25L-4.17 239.18L-3.36 239.11L-2.56 239.03L-1.75 238.96L-0.94 238.88L-0.14 238.79L0.67 238.71L1.48 238.62L2.29 238.53L3.09 238.43L3.90 238.33L4.71 238.23L5.51 238.13L6.32 238.02L7.13 237.91L7.94 237.80L8.74 237.69L9.55 237.57L10.36 237.46L11.16 237.34L11.97 237.22L12.78 237.09L13.59 236.97L14.39 236.84L15.20 236.72L16.01 236.59L16.81 236.46L17.62 236.33L18.43 236.20L19.24 236.07L20.04 235.94L20.85 235.81L21.66 235.68L22.46 235.56L23.27 235.43L24.08 235.30L24.89 235.18L25.69 235.06L26.50 234.94L27.31 234.82L28.11 234.70L28.92 234.59L29.73 234.48L30.54 234.37L31.34 234.27L32.15 234.17L32.96 234.07L33.76 233.98L34.57 233.89L35.38 233.81L36.19 233.74L36.99 233.66L37.80 233.60L38.61 233.54L39.41 233.49L40.22 233.44L41.03 233.40L41.84 233.37L42.64 233.34L43.45 233.33L44.26 233.32L45.06 233.32L45.87 233.32L46.68 233.34L47.49 233.37L48.29 233.40L49.10 233.44L49.91 233.50L50.71 233.56L51.52 233.63L52.33 233.72L53.14 233.81L53.94 233.92L54.75 234.04L55.56 234.16L56.36 234.30L57.17 234.45L57.98 234.61L58.79 234.79L59.59 234.97L60.40 235.17L61.21 235.38L62.01 235.60L62.82 235.84L63.63 236.08L64.44 236.34L65.24 236.61L66.05 236.90L66.86 237.20L67.66 237.50L68.47 237.83L69.28 238.16L70.09 238.51L70.89 238.86L71.70 239.23L72.51 239.62L73.31 240.01L74.12 240.42L74.93 240.84L75.74 241.27L76.54 241.71L77.35 242.16L78.16 242.62L78.96 243.10L79.77 243.58L80.58 244.07L81.39 244.58L82.19 245.09L83.00 245.61L83.81 246.14L84.61 246.68L85.42 247.22L86.23 247.78L87.04 248.34L87.84 248.90L88.65 249.48L89.46 250.05L90.26 250.64L91.07 251.22L91.88 251.81L92.69 252.40L93.49 253.00L94.30 253.60L95.11 254.20L95.91 254.79L96.72 255.39L97.53 255.99L98.34 256.58L99.14 257.18L99.95 257.77L100.76 258.35L101.56 258.93L102.37 259.50L103.18 260.07L103.99 260.63L104.79 261.18L105.60 261.72L106.41 262.26L107.21 262.78L108.02 263.29L108.83 263.78L109.64 264.26L110.44 264.73L111.25 265.18L112.06 265.62L112.86 266.03L113.67 266.43L114.48 266.81L115.29 267.17L116.09 267.51L116.90 267.82L117.71 268.11L118.51 268.38L119.32 268.62L120.13 268.84L120.94 269.02L121.74 269.18L122.55 269.31L123.36 269.42L124.16 269.49L124.97 269.53L125.78 269.53L126.59 269.51L127.39 269.45L128.20 269.35L129.01 269.22L129.81 269.06L130.62 268.86L131.43 268.62L132.24 268.34L133.04 268.02L133.85 267.67L134.66 267.28L135.46 266.84L136.27 266.37L137.08 265.85L137.89 265.30L138.69 264.71L139.50 264.07L140.31 263.39L141.11 262.67L141.92 261.92L142.73 261.12L143.54 260.27L144.34 259.39L145.15 258.47L145.96 257.51L146.76 256.51L147.57 255.47L148.38 254.39L149.19 253.27L149.99 252.12L150.80 250.93L151.61 249.71L152.41 248.45L153.22 247.15L154.03 245.83L154.84 244.47L155.64 243.09L156.45 241.67L157.26 240.23L158.06 238.77L158.87 237.28L159.68 235.77L160.49 234.24L161.29 232.69L162.10 231.12L162.91 229.54L163.71 227.95L164.52 226.35L165.33 224.74L166.14 223.12L166.94 221.51L167.75 219.89L168.56 218.28L169.36 216.67L170.17 215.07L170.98 213.48L171.79 211.90L172.59 210.34L173.40 208.80L174.21 207.28L175.01 205.78L175.82 204.32L176.63 202.88L177.44 201.49L178.24 200.12L179.05 198.80L179.86 197.53L180.66 196.30L181.47 195.12L182.28 194.00L183.09 192.93L183.89 191.92L184.70 190.98L185.51 190.10L186.31 189.29L187.12 188.55L187.93 187.89L188.74 187.31L189.54 186.80L190.35 186.38L191.16 186.05L191.96 185.81L192.77 185.65L193.58 185.59L194.39 185.62L195.19 185.76L196.00 185.99L196.81 186.32L197.61 186.75L198.42 187.28L199.23 187.93L200.04 188.67L200.84 189.52L201.65 190.48L202.46 191.55L203.26 192.72L204.07 194.00L204.88 195.39L205.69 196.88L206.49 198.48L207.30 200.18L208.11 201.98L208.91 203.89L209.72 205.89L210.53 207.99L211.34 210.18L212.14 212.47L212.95 214.84L213.76 217.29L214.56 219.83L215.37 222.44L216.18 225.12L216.99 227.88L217.79 230.69L218.60 233.56L219.41 236.49L220.21 239.45L221.02 242.46L221.83 245.51L222.64 248.58L223.44 251.67L224.25 254.77L225.06 257.88L225.86 260.99L226.67 264.08L227.48 267.16L228.29 270.22L229.09 273.24L229.90 276.22L230.71 279.15L231.51 282.02L232.32 284.83L233.13 287.55L233.94 290.20L234.74 292.75L235.55 295.19L236.36 297.53L237.16 299.75L237.97 301.84L238.78 303.80L239.59 305.61L240.39 307.27L241.20 308.78L242.01 310.11L242.81 311.28L243.62 312.26L244.43 313.06L245.24 313.66L246.04 314.07L246.85 314.28L247.66 314.28L248.46 314.07L249.27 313.64L250.08 313.00L250.89 312.14L251.69 311.06L252.50 309.75L253.31 308.23L254.11 306.48L254.92 304.52L255.73 302.34L256.54 299.94L257.34 297.33L258.15 294.51L258.96 291.49L259.76 288.28L260.57 284.88L261.38 281.30L262.19 277.55L262.99 273.63L263.80 269.56L264.61 265.36L265.41 261.02L266.22 256.56L267.03 252.01L267.84 247.36L268.64 242.64L269.45 237.86L270.26 233.04L271.06 228.19L271.87 223.33L272.68 218.49L273.49 213.67L274.29 208.89L275.10 204.18L275.91 199.55L276.71 195.03L277.52 190.62L278.33 186.36L279.14 182.25L279.94 178.32L280.75 174.59L281.56 171.08L282.36 167.79L283.17 164.76L283.98 161.99L284.79 159.51L285.59 157.32L286.40 155.45L287.21 153.90L288.01 152.69L288.82 151.83L289.63 151.32L290.44 151.19L291.24 151.42L292.05 152.03L292.86 153.03L293.66 154.41L294.47 156.17L295.28 158.32L296.09 160.84L296.89 163.75L297.70 167.02L298.51 170.64L299.31 174.62L300.12 178.93L300.93 183.56L301.74 188.50L302.54 193.72L303.35 199.20L304.16 204.93L304.96 210.87L305.77 217.01L306.58 223.31L307.39 229.75L308.19 236.30L309.00 242.91L309.81 249.58L310.61 256.24L311.42 262.89L312.23 269.47L313.04 275.95L313.84 282.30L314.65 288.49L315.46 294.47L316.26 300.20L317.07 305.66L317.88 310.82L318.69 315.63L319.49 320.06L320.30 324.09L321.11 327.68L321.91 330.81L322.72 333.45L323.53 335.58L324.34 337.18L325.14 338.24L325.95 338.73L326.76 338.64L327.56 337.98L328.37 336.72L329.18 334.88L329.99 332.45L330.79 329.45L331.60 325.87L332.41 321.74L333.21 317.07L334.02 311.88L334.83 306.20L335.64 300.06L336.44 293.49L337.25 286.53L338.06 279.22L338.86 271.61L339.67 263.72L340.48 255.63L341.29 247.38L342.09 239.02L342.90 230.61L343.71 222.21L344.51 213.87L345.32 205.66L346.13 197.63L346.94 189.85L347.74 182.37L348.55 175.26L349.36 168.56L350.16 162.34L350.97 156.65L351.78 151.53L352.59 147.03L353.39 143.20L354.20 140.08L355.01 137.69L355.81 136.07L356.62 135.23L357.43 135.20L358.24 135.99L359.04 137.59L359.85 140.02L360.66 143.25L361.46 147.29L362.27 152.09L363.08 157.63L363.89 163.89L364.69 170.80L365.50 178.33L366.31 186.42L367.11 195.00L367.92 204.01L368.73 213.38L369.54 223.03L370.34 232.87L371.15 242.83L371.96 252.82L372.76 262.74L373.57 272.51L374.38 282.04L375.19 291.23L375.99 300.00L376.80 308.26L377.61 315.93L378.41 322.93L379.22 329.18L380.03 334.62L380.84 339.18L381.64 342.82L382.45 345.47L383.26 347.11L384.06 347.71L384.87 347.25L385.68 345.72L386.49 343.13L387.29 339.48L388.10 334.81L388.91 329.16L389.71 322.56L390.52 315.09L391.33 306.79L392.14 297.77L392.94 288.10L393.75 277.88L394.56 267.22L395.36 256.23L396.17 245.02L396.98 233.72L397.79 222.45L398.59 211.33L399.40 200.51L400.21 190.09L401.01 180.20L401.82 170.97L402.63 162.51L403.44 154.92L404.24 148.30L405.05 142.74L405.86 138.32L406.66 135.10L407.47 133.12L408.28 132.44L409.09 133.06L409.89 134.99L410.70 138.22L411.51 142.72L412.31 148.45L413.12 155.34L413.93 163.32L414.74 172.30L415.54 182.16L416.35 192.78L417.16 204.04L417.96 215.79L418.77 227.88L419.58 240.14L420.39 252.42L421.19 264.55L422.00 276.36L422.81 287.68L423.61 298.36L424.42 308.25L425.23 317.18L426.04 325.04L426.84 331.71L427.65 337.07L428.46 341.04L429.26 343.56L430.07 344.57L430.88 344.06L431.69 342.01L432.49 338.45L433.30 333.42L434.11 326.99L434.91 319.25L435.72 310.30L436.53 300.29L437.34 289.34L438.14 277.64L438.95 265.37L439.76 252.70L440.56 239.85L441.37 227.02L442.18 214.41L442.99 202.23L443.79 190.69L444.60 179.98L445.41 170.28L446.21 161.75L447.02 154.55L447.83 148.81L448.64 144.62L449.44 142.07L450.25 141.20L451.06 142.05L451.86 144.59L452.67 148.80L453.48 154.60L454.29 161.89L455.09 170.55L455.90 180.43L456.71 191.34L457.51 203.10L458.32 215.48L459.13 228.26L459.94 241.19L460.74 254.04L461.55 266.56L462.36 278.51L463.16 289.67L463.97 299.80L464.78 308.73L465.59 316.26L466.39 322.25L467.20 326.59L468.01 329.18L468.81 329.97L469.62 328.95L470.43 326.14L471.24 321.60L472.04 315.43L472.85 307.75L473.66 298.74L474.46 288.58L475.27 277.49L476.08 265.72L476.89 253.51L477.69 241.14L478.50 228.88L479.31 216.99L480.11 205.73L480.92 195.36L481.73 186.11L482.54 178.16L483.34 171.71L484.15 166.88L484.96 163.78L485.76 162.47L486.57 162.96L487.38 165.23L488.19 169.20L488.99 174.78L489.80 181.80L490.61 190.08L491.41 199.41L492.22 209.54L493.03 220.22L493.84 231.16L494.64 242.10L495.45 252.74L496.26 262.83L497.06 272.11L497.87 280.35L498.68 287.35L499.49 292.96L500.29 297.04L501.10 299.51L501.91 300.35L502.71 299.57L503.52 297.22L504.33 293.41L505.14 288.29L505.94 282.04L506.75 274.88L507.56 267.04L508.36 258.79L509.17 250.38L509.98 242.09L510.79 234.17L511.59 226.86L512.40 220.38L513.21 214.91L514.01 210.60L514.82 207.54L515.63 205.78L516.44 205.32L517.24 206.12L518.05 208.06L518.86 211.01L519.66 214.76L520.47 219.09L521.28 223.74L522.09 228.41L522.89 232.80L523.70 236.55L524.51 239.24L525.31 240.00L526.12 240.00L526.93 240.00L527.74 240.00L528.54 240.00L529.35 240.00L530.16 240.00L530.96 240.00L531.77 240.00L532.58 240.00L533.39 240.00L534.19 240.00L535.00 240.00" fill="none" stroke="var(--wave-1)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g><g clip-path="url(#hR)"><path d="M661.00 240.00L675.98 237.16L690.95 234.27L705.92 231.32L720.90 228.32L735.88 225.26L750.85 222.15L765.83 218.99L780.80 215.77L795.77 212.49L810.75 209.16L825.73 205.78L840.70 202.34L855.67 198.84L870.65 195.30L885.62 191.69L900.60 188.04L915.58 184.32L930.55 180.56L945.52 176.73L960.50 172.86L975.48 168.93L990.45 164.94L1005.42 160.90L1020.40 156.81L1035.38 152.66L1050.35 148.45L1065.33 144.19L1080.30 139.88L1095.28 135.51L1110.25 131.09L1125.22 126.61L1140.20 122.08L1155.17 117.49L1170.15 112.85L1185.12 108.16L1200.10 103.41L1215.08 98.60L1230.05 93.74L1245.03 88.83L1260.00 83.86L1260.00 396.14L1245.03 391.17L1230.05 386.26L1215.08 381.40L1200.10 376.59L1185.12 371.84L1170.15 367.15L1155.17 362.51L1140.20 357.92L1125.22 353.39L1110.25 348.91L1095.28 344.49L1080.30 340.12L1065.33 335.81L1050.35 331.55L1035.38 327.34L1020.40 323.19L1005.42 319.10L990.45 315.06L975.48 311.07L960.50 307.14L945.52 303.27L930.55 299.44L915.58 295.68L900.60 291.96L885.62 288.31L870.65 284.70L855.67 281.16L840.70 277.66L825.73 274.22L810.75 270.84L795.77 267.51L780.80 264.23L765.83 261.01L750.85 257.85L735.88 254.74L720.90 251.68L705.92 248.68L690.95 245.73L675.98 242.84L661.00 240.00Z" fill="var(--wave-3)" stroke="var(--ink)" stroke-width="5.0" stroke-linejoin="round"/><path d="M661.00 240.00L680.97 237.68L700.93 235.30L720.90 232.86L740.87 230.36L760.83 227.80L780.80 225.18L800.77 222.50L820.73 219.76L840.70 216.97L860.67 214.11L880.63 211.19L900.60 208.22L920.57 205.18L940.53 202.09L960.50 198.94L980.47 195.72L1000.43 192.45L1020.40 189.12L1040.37 185.73L1060.33 182.28L1080.30 178.77L1100.27 175.20L1120.23 171.57L1140.20 167.88L1160.17 164.13L1180.13 160.32L1200.10 156.46L1220.07 152.53L1240.03 148.55L1260.00 144.50" fill="none" stroke="var(--ink)" stroke-width="2.4" opacity=".38"/><path d="M661.00 240.00L680.97 239.11L700.93 238.19L720.90 237.25L740.87 236.29L760.83 235.31L780.80 234.30L800.77 233.27L820.73 232.22L840.70 231.15L860.67 230.05L880.63 228.93L900.60 227.78L920.57 226.62L940.53 225.43L960.50 224.22L980.47 222.98L1000.43 221.72L1020.40 220.44L1040.37 219.14L1060.33 217.81L1080.30 216.46L1100.27 215.09L1120.23 213.70L1140.20 212.28L1160.17 210.84L1180.13 209.38L1200.10 207.89L1220.07 206.38L1240.03 204.85L1260.00 203.30" fill="none" stroke="var(--ink)" stroke-width="2.4" opacity=".38"/><path d="M661.00 240.00L680.97 240.89L700.93 241.81L720.90 242.75L740.87 243.71L760.83 244.69L780.80 245.70L800.77 246.73L820.73 247.78L840.70 248.85L860.67 249.95L880.63 251.07L900.60 252.22L920.57 253.38L940.53 254.57L960.50 255.78L980.47 257.02L1000.43 258.28L1020.40 259.56L1040.37 260.86L1060.33 262.19L1080.30 263.54L1100.27 264.91L1120.23 266.30L1140.20 267.72L1160.17 269.16L1180.13 270.62L1200.10 272.11L1220.07 273.62L1240.03 275.15L1260.00 276.70" fill="none" stroke="var(--ink)" stroke-width="2.4" opacity=".38"/><path d="M661.00 240.00L680.97 242.32L700.93 244.70L720.90 247.14L740.87 249.64L760.83 252.20L780.80 254.82L800.77 257.50L820.73 260.24L840.70 263.03L860.67 265.89L880.63 268.81L900.60 271.78L920.57 274.82L940.53 277.91L960.50 281.06L980.47 284.28L1000.43 287.55L1020.40 290.88L1040.37 294.27L1060.33 297.72L1080.30 301.23L1100.27 304.80L1120.23 308.43L1140.20 312.12L1160.17 315.87L1180.13 319.68L1200.10 323.54L1220.07 327.47L1240.03 331.45L1260.00 335.50" fill="none" stroke="var(--ink)" stroke-width="2.4" opacity=".38"/><path d="M940.4 148.0Q912.9 187.4 876.4 219.8Q905.6 181.8 928.7 139.0Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="934.5" cy="143.5" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/><path d="M1175.0 70.5Q1145.7 118.3 1105.6 158.7Q1138.1 113.1 1162.8 62.1Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="1168.9" cy="66.3" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/><path d="M890.7 328.9Q861.1 293.6 840.1 251.7Q868.3 288.0 902.4 319.8Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="896.5" cy="324.4" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/><path d="M1088.4 391.4Q1055.8 349.6 1033.2 300.6Q1063.3 344.3 1100.5 382.8Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="1094.5" cy="387.1" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/><path d="M1247.6 448.0Q1213.3 401.2 1190.1 347.0Q1221.0 396.1 1260.0 439.9Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="1253.8" cy="444.0" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/></g><g clip-path="url(#hL)"><circle cx="600" cy="240" r="75" fill="var(--wave-1)" stroke="var(--ink)" stroke-width="5.0"/><circle cx="600" cy="240" r="63" fill="var(--field)"/></g><g clip-path="url(#hR)"><circle cx="600" cy="240" r="75" fill="var(--wave-3)" stroke="var(--ink)" stroke-width="5.0"/><circle cx="600" cy="240" r="63" fill="var(--field)"/></g></g></svg>
+    <div class="hero-fig figanim">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 100 1297 302" role="img" aria-label="Illustration: a black hole split down the middle. On the left a gravitational wave leaves along the axis; on the right a conical accretion flow runs onto the hole, with particles accelerated at its boundary and escaping across it."><defs><clipPath id="hhL"><rect x="0" y="0" width="595" height="480"/></clipPath><clipPath id="hhR"><rect x="605" y="0" width="1200" height="480"/></clipPath><clipPath id="hjet"><circle class="jet-reveal" cx="600" cy="240" r="2000"/></clipPath></defs><g transform="rotate(0 600 240)"><g clip-path="url(#hhL)"><path class="gw-wave" d="M535.00 240.00L534.19 240.00L533.39 240.00L532.58 240.00L531.77 240.00L530.96 240.00L530.16 240.00L529.35 240.00L528.54 240.00L527.74 240.00L526.93 240.00L526.12 240.00L525.31 240.00L524.51 239.50L523.70 237.70L522.89 235.20L522.09 232.27L521.28 229.16L520.47 226.06L519.66 223.17L518.86 220.67L518.05 218.71L517.24 217.41L516.44 216.88L515.63 217.19L514.82 218.36L514.01 220.40L513.21 223.28L512.40 226.92L511.59 231.24L510.79 236.11L509.98 241.39L509.17 246.92L508.36 252.52L507.56 258.03L506.75 263.25L505.94 268.03L505.14 272.19L504.33 275.61L503.52 278.15L502.71 279.71L501.91 280.23L501.10 279.68L500.29 278.02L499.49 275.30L498.68 271.57L497.87 266.90L497.06 261.41L496.26 255.22L495.45 248.50L494.64 241.40L493.84 234.11L493.03 226.81L492.22 219.70L491.41 212.94L490.61 206.72L489.80 201.20L488.99 196.52L488.19 192.80L487.38 190.15L486.57 188.64L485.76 188.31L484.96 189.19L484.15 191.26L483.34 194.47L482.54 198.78L481.73 204.07L480.92 210.24L480.11 217.16L479.31 224.66L478.50 232.59L477.69 240.76L476.89 249.01L476.08 257.15L475.27 265.00L474.46 272.39L473.66 279.16L472.85 285.17L472.04 290.29L471.24 294.40L470.43 297.43L469.62 299.30L468.81 299.98L468.01 299.45L467.20 297.72L466.39 294.83L465.59 290.84L464.78 285.82L463.97 279.87L463.16 273.11L462.36 265.68L461.55 257.71L460.74 249.36L459.94 240.79L459.13 232.17L458.32 223.65L457.51 215.40L456.71 207.56L455.90 200.29L455.09 193.70L454.29 187.93L453.48 183.06L452.67 179.20L451.86 176.39L451.06 174.70L450.25 174.13L449.44 174.71L448.64 176.41L447.83 179.20L447.02 183.03L446.21 187.83L445.41 193.52L444.60 199.99L443.79 207.13L442.99 214.82L442.18 222.94L441.37 231.34L440.56 239.90L439.76 248.47L438.95 256.91L438.14 265.10L437.34 272.90L436.53 280.19L435.72 286.87L434.91 292.83L434.11 298.00L433.30 302.28L432.49 305.63L431.69 308.01L430.88 309.37L430.07 309.72L429.26 309.04L428.46 307.36L427.65 304.71L426.84 301.14L426.04 296.70L425.23 291.46L424.42 285.50L423.61 278.91L422.81 271.79L422.00 264.24L421.19 256.37L420.39 248.28L419.58 240.10L418.77 231.92L417.96 223.86L417.16 216.03L416.35 208.52L415.54 201.44L414.74 194.87L413.93 188.88L413.12 183.56L412.31 178.97L411.51 175.15L410.70 172.15L409.89 169.99L409.09 168.71L408.28 168.29L407.47 168.75L406.66 170.07L405.86 172.21L405.05 175.16L404.24 178.87L403.44 183.28L402.63 188.34L401.82 193.98L401.01 200.14L400.21 206.73L399.40 213.67L398.59 220.89L397.79 228.30L396.98 235.81L396.17 243.35L395.36 250.82L394.56 258.15L393.75 265.26L392.94 272.07L392.14 278.51L391.33 284.53L390.52 290.06L389.71 295.04L388.91 299.44L388.10 303.21L387.29 306.32L386.49 308.75L385.68 310.48L384.87 311.50L384.06 311.81L383.26 311.41L382.45 310.31L381.64 308.54L380.84 306.12L380.03 303.08L379.22 299.46L378.41 295.29L377.61 290.62L376.80 285.51L375.99 280.00L375.19 274.15L374.38 268.02L373.57 261.67L372.76 255.16L371.96 248.54L371.15 241.89L370.34 235.25L369.54 228.68L368.73 222.25L367.92 216.01L367.11 210.00L366.31 204.28L365.50 198.89L364.69 193.87L363.89 189.26L363.08 185.09L362.27 181.39L361.46 178.19L360.66 175.50L359.85 173.35L359.04 171.73L358.24 170.66L357.43 170.13L356.62 170.15L355.81 170.71L355.01 171.79L354.20 173.39L353.39 175.47L352.59 178.02L351.78 181.02L350.97 184.43L350.16 188.23L349.36 192.37L348.55 196.84L347.74 201.58L346.94 206.57L346.13 211.75L345.32 217.10L344.51 222.58L343.71 228.14L342.90 233.74L342.09 239.35L341.29 244.92L340.48 250.42L339.67 255.82L338.86 261.07L338.06 266.15L337.25 271.02L336.44 275.66L335.64 280.04L334.83 284.13L334.02 287.92L333.21 291.38L332.41 294.49L331.60 297.25L330.79 299.63L329.99 301.64L329.18 303.25L328.37 304.48L327.56 305.32L326.76 305.76L325.95 305.82L325.14 305.49L324.34 304.79L323.53 303.72L322.72 302.30L321.91 300.54L321.11 298.45L320.30 296.06L319.49 293.37L318.69 290.42L317.88 287.21L317.07 283.78L316.26 280.14L315.46 276.31L314.65 272.32L313.84 268.20L313.04 263.97L312.23 259.65L311.42 255.26L310.61 250.83L309.81 246.38L309.00 241.94L308.19 237.53L307.39 233.17L306.58 228.88L305.77 224.67L304.96 220.58L304.16 216.62L303.35 212.80L302.54 209.15L301.74 205.67L300.93 202.38L300.12 199.29L299.31 196.41L298.51 193.76L297.70 191.34L296.89 189.16L296.09 187.23L295.28 185.55L294.47 184.11L293.66 182.94L292.86 182.02L292.05 181.36L291.24 180.95L290.44 180.79L289.63 180.88L288.82 181.22L288.01 181.79L287.21 182.60L286.40 183.63L285.59 184.88L284.79 186.34L283.98 188.00L283.17 189.84L282.36 191.86L281.56 194.05L280.75 196.39L279.94 198.88L279.14 201.50L278.33 204.24L277.52 207.08L276.71 210.02L275.91 213.03L275.10 216.12L274.29 219.26L273.49 222.44L272.68 225.66L271.87 228.89L271.06 232.13L270.26 235.36L269.45 238.57L268.64 241.76L267.84 244.91L267.03 248.00L266.22 251.04L265.41 254.01L264.61 256.90L263.80 259.71L262.99 262.42L262.19 265.03L261.38 267.53L260.57 269.92L259.76 272.19L258.96 274.33L258.15 276.34L257.34 278.22L256.54 279.96L255.73 281.56L254.92 283.01L254.11 284.32L253.31 285.49L252.50 286.50L251.69 287.37L250.89 288.09L250.08 288.67L249.27 289.10L248.46 289.38L247.66 289.52L246.85 289.52L246.04 289.38L245.24 289.11L244.43 288.71L243.62 288.17L242.81 287.52L242.01 286.74L241.20 285.85L240.39 284.85L239.59 283.74L238.78 282.53L237.97 281.23L237.16 279.83L236.36 278.35L235.55 276.80L234.74 275.16L233.94 273.46L233.13 271.70L232.32 269.88L231.51 268.01L230.71 266.10L229.90 264.15L229.09 262.16L228.29 260.15L227.48 258.11L226.67 256.06L225.86 253.99L225.06 251.92L224.25 249.85L223.44 247.78L222.64 245.72L221.83 243.67L221.02 241.64L220.21 239.64L219.41 237.66L218.60 235.71L217.79 233.79L216.99 231.92L216.18 230.08L215.37 228.29L214.56 226.55L213.76 224.86L212.95 223.22L212.14 221.64L211.34 220.12L210.53 218.66L209.72 217.26L208.91 215.92L208.11 214.66L207.30 213.45L206.49 212.32L205.69 211.25L204.88 210.26L204.07 209.33L203.26 208.48L202.46 207.70L201.65 206.99L200.84 206.35L200.04 205.78L199.23 205.28L198.42 204.86L197.61 204.50L196.81 204.21L196.00 203.99L195.19 203.84L194.39 203.75L193.58 203.73L192.77 203.77L191.96 203.87L191.16 204.03L190.35 204.26L189.54 204.54L188.74 204.87L187.93 205.26L187.12 205.70L186.31 206.19L185.51 206.73L184.70 207.32L183.89 207.95L183.09 208.62L182.28 209.33L181.47 210.08L180.66 210.87L179.86 211.69L179.05 212.54L178.24 213.42L177.44 214.32L176.63 215.26L175.82 216.21L175.01 217.19L174.21 218.19L173.40 219.20L172.59 220.23L171.79 221.27L170.98 222.32L170.17 223.38L169.36 224.45L168.56 225.52L167.75 226.59L166.94 227.67L166.14 228.75L165.33 229.83L164.52 230.90L163.71 231.97L162.91 233.03L162.10 234.08L161.29 235.12L160.49 236.16L159.68 237.18L158.87 238.19L158.06 239.18L157.26 240.16L156.45 241.12L155.64 242.06L154.84 242.98L154.03 243.89L153.22 244.77L152.41 245.63L151.61 246.47L150.80 247.29L149.99 248.08L149.19 248.85L148.38 249.59L147.57 250.31L146.76 251.01L145.96 251.67L145.15 252.31L144.34 252.93L143.54 253.52L142.73 254.08L141.92 254.61L141.11 255.12L140.31 255.60L139.50 256.05L138.69 256.47L137.89 256.87L137.08 257.24L136.27 257.58L135.46 257.89L134.66 258.18L133.85 258.45L133.04 258.68L132.24 258.89L131.43 259.08L130.62 259.24L129.81 259.37L129.01 259.48L128.20 259.57L127.39 259.63L126.59 259.67L125.78 259.69L124.97 259.68L124.16 259.66L123.36 259.61L122.55 259.54L121.74 259.46L120.94 259.35L120.13 259.22L119.32 259.08L118.51 258.92L117.71 258.74L116.90 258.55L116.09 258.34L115.29 258.11L114.48 257.87L113.67 257.62L112.86 257.36L112.06 257.08L111.25 256.79L110.44 256.49L109.64 256.18L108.83 255.85L108.02 255.52L107.21 255.19L106.41 254.84L105.60 254.48L104.79 254.12L103.99 253.75L103.18 253.38L102.37 253.00L101.56 252.62L100.76 252.23L99.95 251.84L99.14 251.45L98.34 251.06L97.53 250.66L96.72 250.26L95.91 249.86L95.11 249.46L94.30 249.06L93.49 248.67L92.69 248.27L91.88 247.87L91.07 247.48L90.26 247.09L89.46 246.70L88.65 246.32L87.84 245.94L87.04 245.56L86.23 245.18L85.42 244.82L84.61 244.45L83.81 244.09L83.00 243.74L82.19 243.39L81.39 243.05L80.58 242.72L79.77 242.39L78.96 242.06L78.16 241.75L77.35 241.44L76.54 241.14L75.74 240.84L74.93 240.56L74.12 240.28L73.31 240.01L72.51 239.75L71.70 239.49L70.89 239.24L70.09 239.00L69.28 238.77L68.47 238.55L67.66 238.34L66.86 238.13L66.05 237.93L65.24 237.74L64.44 237.56L63.63 237.39L62.82 237.23L62.01 237.07L61.21 236.92L60.40 236.78L59.59 236.65L58.79 236.53L57.98 236.41L57.17 236.30L56.36 236.20L55.56 236.11L54.75 236.02L53.94 235.95L53.14 235.88L52.33 235.81L51.52 235.76L50.71 235.71L49.91 235.66L49.10 235.63L48.29 235.60L47.49 235.58L46.68 235.56L45.87 235.55L45.06 235.54L44.26 235.54L43.45 235.55L42.64 235.56L41.84 235.58L41.03 235.60L40.22 235.63L39.41 235.66L38.61 235.69L37.80 235.73L36.99 235.78L36.19 235.82L35.38 235.87L34.57 235.93L33.76 235.99L32.96 236.05L32.15 236.11L31.34 236.18L30.54 236.25L29.73 236.32L28.92 236.39L28.11 236.47L27.31 236.54L26.50 236.62L25.69 236.70L24.89 236.79L24.08 236.87L23.27 236.95L22.46 237.04L21.66 237.12L20.85 237.21L20.04 237.29L19.24 237.38L18.43 237.47L17.62 237.55L16.81 237.64L16.01 237.73L15.20 237.81L14.39 237.90L13.59 237.98L12.78 238.06L11.97 238.14L11.16 238.22L10.36 238.30L9.55 238.38L8.74 238.46L7.94 238.54L7.13 238.61L6.32 238.68L5.51 238.75L4.71 238.82L3.90 238.89L3.09 238.95L2.29 239.02L1.48 239.08L0.67 239.14L-0.14 239.20L-0.94 239.25L-1.75 239.31L-2.56 239.36L-3.36 239.41L-4.17 239.45L-4.98 239.50L-5.79 239.54L-6.59 239.58L-7.40 239.62L-8.21 239.65L-9.01 239.69L-9.82 239.72L-10.63 239.75L-11.44 239.78L-12.24 239.80L-13.05 239.83L-13.86 239.85L-14.66 239.87L-15.47 239.89L-16.28 239.90L-17.09 239.92L-17.89 239.93L-18.70 239.95L-19.51 239.96L-20.31 239.96L-21.12 239.97L-21.93 239.98L-22.74 239.98L-23.54 239.99L-24.35 239.99L-25.16 240.00L-25.96 240.00L-26.77 240.00L-27.58 240.00L-28.39 240.00L-29.19 240.00L-30.00 240.00" fill="none" stroke="var(--wave-1)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g><g clip-path="url(#hhR)"><g class="jet" clip-path="url(#hjet)"><path d="M661.00 240.00L675.98 238.08L690.95 236.11L705.92 234.11L720.90 232.08L735.88 230.00L750.85 227.89L765.83 225.75L780.80 223.56L795.77 221.34L810.75 219.08L825.73 216.79L840.70 214.45L855.67 212.09L870.65 209.68L885.62 207.23L900.60 204.75L915.58 202.24L930.55 199.68L945.52 197.09L960.50 194.46L975.48 191.79L990.45 189.09L1005.42 186.35L1020.40 183.57L1035.38 180.76L1050.35 177.91L1065.33 175.02L1080.30 172.09L1095.28 169.13L1110.25 166.13L1125.22 163.09L1140.20 160.02L1155.17 156.91L1170.15 153.76L1185.12 150.57L1200.10 147.35L1215.08 144.09L1230.05 140.80L1245.03 137.46L1260.00 134.09L1260.00 345.91L1245.03 342.54L1230.05 339.20L1215.08 335.91L1200.10 332.65L1185.12 329.43L1170.15 326.24L1155.17 323.09L1140.20 319.98L1125.22 316.91L1110.25 313.87L1095.28 310.87L1080.30 307.91L1065.33 304.98L1050.35 302.09L1035.38 299.24L1020.40 296.43L1005.42 293.65L990.45 290.91L975.48 288.21L960.50 285.54L945.52 282.91L930.55 280.32L915.58 277.76L900.60 275.25L885.62 272.77L870.65 270.32L855.67 267.91L840.70 265.55L825.73 263.21L810.75 260.92L795.77 258.66L780.80 256.44L765.83 254.25L750.85 252.11L735.88 250.00L720.90 247.92L705.92 245.89L690.95 243.89L675.98 241.92L661.00 240.00Z" fill="var(--wave-3)" stroke="var(--ink)" stroke-width="5.0" stroke-linejoin="round"/><path d="M661.00 240.00L680.97 238.41L700.93 236.79L720.90 235.12L740.87 233.41L760.83 231.66L780.80 229.87L800.77 228.04L820.73 226.17L840.70 224.26L860.67 222.31L880.63 220.32L900.60 218.29L920.57 216.21L940.53 214.10L960.50 211.94L980.47 209.75L1000.43 207.51L1020.40 205.24L1040.37 202.92L1060.33 200.56L1080.30 198.16L1100.27 195.72L1120.23 193.24L1140.20 190.72L1160.17 188.16L1180.13 185.56L1200.10 182.92L1220.07 180.24L1240.03 177.52L1260.00 174.75" fill="none" stroke="var(--ink)" stroke-width="2.4" opacity=".38"/><path d="M661.00 240.00L680.97 239.39L700.93 238.76L720.90 238.12L740.87 237.46L760.83 236.78L780.80 236.09L800.77 235.39L820.73 234.67L840.70 233.93L860.67 233.18L880.63 232.41L900.60 231.62L920.57 230.82L940.53 230.01L960.50 229.18L980.47 228.33L1000.43 227.47L1020.40 226.59L1040.37 225.69L1060.33 224.78L1080.30 223.86L1100.27 222.92L1120.23 221.96L1140.20 220.99L1160.17 220.00L1180.13 219.00L1200.10 217.98L1220.07 216.94L1240.03 215.89L1260.00 214.83" fill="none" stroke="var(--ink)" stroke-width="2.4" opacity=".38"/><path d="M661.00 240.00L680.97 240.61L700.93 241.24L720.90 241.88L740.87 242.54L760.83 243.22L780.80 243.91L800.77 244.61L820.73 245.33L840.70 246.07L860.67 246.82L880.63 247.59L900.60 248.38L920.57 249.18L940.53 249.99L960.50 250.82L980.47 251.67L1000.43 252.53L1020.40 253.41L1040.37 254.31L1060.33 255.22L1080.30 256.14L1100.27 257.08L1120.23 258.04L1140.20 259.01L1160.17 260.00L1180.13 261.00L1200.10 262.02L1220.07 263.06L1240.03 264.11L1260.00 265.17" fill="none" stroke="var(--ink)" stroke-width="2.4" opacity=".38"/><path d="M661.00 240.00L680.97 241.59L700.93 243.21L720.90 244.88L740.87 246.59L760.83 248.34L780.80 250.13L800.77 251.96L820.73 253.83L840.70 255.74L860.67 257.69L880.63 259.68L900.60 261.71L920.57 263.79L940.53 265.90L960.50 268.06L980.47 270.25L1000.43 272.49L1020.40 274.76L1040.37 277.08L1060.33 279.44L1080.30 281.84L1100.27 284.28L1120.23 286.76L1140.20 289.28L1160.17 291.84L1180.13 294.44L1200.10 297.08L1220.07 299.76L1240.03 302.48L1260.00 305.25" fill="none" stroke="var(--ink)" stroke-width="2.4" opacity=".38"/></g><g class="escs" clip-path="url(#hjet)"><g class="esc" style="--esc-dx:0.666;--esc-dy:-0.746;--esc-delay:2.85s"><path d="M943.4 167.9Q912.9 205.0 874.0 234.6Q906.1 198.9 932.3 158.0Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="937.9" cy="163.0" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/></g><g class="esc" style="--esc-dx:0.638;--esc-dy:-0.770;--esc-delay:5.44s"><path d="M1179.9 111.8Q1146.3 156.7 1102.7 193.3Q1139.2 150.8 1168.5 102.3Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="1174.2" cy="107.0" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/></g><g class="esc" style="--esc-dx:0.670;--esc-dy:0.742;--esc-delay:2.43s"><path d="M894.0 312.9Q861.9 280.0 837.9 239.7Q868.7 273.8 905.0 303.0Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="899.5" cy="308.0" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/></g><g class="esc" style="--esc-dx:0.647;--esc-dy:0.763;--esc-delay:4.62s"><path d="M1093.4 358.4Q1057.2 319.6 1030.5 272.7Q1064.2 313.6 1104.7 348.8Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="1099.0" cy="353.6" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/></g><g class="esc" style="--esc-dx:0.628;--esc-dy:0.778;--esc-delay:6.39s"><path d="M1254.0 399.1Q1215.3 355.8 1187.0 304.1Q1222.4 350.0 1265.6 389.8Z" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><circle cx="1259.8" cy="394.4" r="7.4" fill="var(--wave-2)" stroke="var(--ink)" stroke-width="3"/></g></g></g><g clip-path="url(#hhL)"><circle cx="600" cy="240" r="75" fill="var(--wave-1)" stroke="var(--ink)" stroke-width="5.0"/><circle cx="600" cy="240" r="63" fill="var(--field)"/></g><g clip-path="url(#hhR)"><circle cx="600" cy="240" r="75" fill="var(--wave-3)" stroke="var(--ink)" stroke-width="5.0"/><circle cx="600" cy="240" r="63" fill="var(--field)"/></g></g></svg>
     </div>
   </div>
 </header>
@@ -451,13 +827,13 @@
       </div>
       <dl class="facts">
         <dt>Position</dt>
-        <dd>PhD Candidate, Physics<small>West Virginia University · Expected 2027</small></dd>
+        <dd>PhD Candidate, Physics<small>West Virginia University</small></dd>
         <dt>Advisor</dt>
         <dd>Sean T. McWilliams</dd>
         <dt>Prior</dt>
         <dd>B.S. Physics (Honors), Texas A&amp;M<small>Minors in CS &amp; Astrophysics · 2021</small></dd>
         <dt>Affiliation</dt>
-        <dd>LISA Consortium<small>Waveform &amp; Astrophysics Working Group</small></dd>
+        <dd>West Virginia University</dd>
         <dt>Focus</dt>
         <dd>Waveform modeling · NR · GRPIC</dd>
       </dl>
@@ -476,13 +852,13 @@
       </div>
       <div class="thread">
         <span class="num">02</span>
-        <h3>Tests of Strong-Field Gravity</h3>
-        <p>Using numerical relativity to probe what waveforms can and cannot tell us — testing the boundary-to-bound correspondence, and asking whether the "direct wave" is a meaningful test of black-hole horizon properties.</p>
+        <h3>Numerical Relativity</h3>
+        <p>Using numerical relativity to study black hole scattering.</p>
       </div>
       <div class="thread">
         <span class="num">03</span>
         <h3>Relativistic Plasma Astrophysics</h3>
-        <p>General Relativistic Particle-in-Cell (GRPIC) simulations of the magnetospheres and jets of black holes, including what drives temperature anisotropies in relativistic jets.</p>
+        <p>General Relativistic Particle-in-Cell (GRPIC) simulations to study kinetic plasma effects around black holes</p>
       </div>
     </div>
   </div>
@@ -588,23 +964,23 @@
       </div>
       <div>
         <div class="talk">
-          <div class="t-meta"><b>2026</b> · SCEECS — Plasmas Around Black Holes &amp; Neutron Stars · poster</div>
+          <div class="t-meta"><b>2026</b> · SCEECS — Plasmas Around Black Holes &amp; Neutron Stars</div>
           <p>Driving Temperature Anisotropies in the Jets of Black Holes</p>
         </div>
         <div class="talk">
-          <div class="t-meta"><b>2026</b> · 16th International LISA Symposium · contributed talk</div>
+          <div class="t-meta"><b>2026</b> · 16th International LISA Symposium</div>
           <p>BOB the (Waveform) Builder + Direct Waves</p>
         </div>
         <div class="talk">
-          <div class="t-meta">Center for Gravitational Waves &amp; Cosmology Symposium · contributed talk</div>
+          <div class="t-meta"><b>2026</b> · Center for Gravitational Waves &amp; Cosmology Symposium</div>
           <p>Modeling Extreme Gravity: From Relativistic Plasmas to Gravitational Waves</p>
         </div>
         <div class="talk">
-          <div class="t-meta"><b>2026</b> · APS Global Physics Summit · contributed talk</div>
+          <div class="t-meta"><b>2026</b> · APS Global Physics Summit</div>
           <p>BOB the (Waveform) Builder: Optimizing Analytical Merger Waveforms</p>
         </div>
         <div class="talk">
-          <div class="t-meta"><b>2025</b> · APS Global Physics Summit · contributed talk</div>
+          <div class="t-meta"><b>2025</b> · APS Global Physics Summit</div>
           <p>Merger-Ringdown Modeling of Gravitational Waves Beyond the Dominant Mode</p>
         </div>
       </div>
@@ -621,7 +997,7 @@
 
     <figure class="bob-video">
       <!-- preload="none" + poster: nothing but the 29 KB still is fetched
-           until the visitor actually hits play. The 2.8 MB video is never
+           until the visitor actually hits play. The 915 KB video is never
            downloaded for someone who only scrolls past. -->
       <video
         controls
@@ -658,7 +1034,7 @@
 <!-- ===== PAPER EXPLAINERS =====
      One short animation per paper. Same loading discipline as the BOB video:
      preload="none" + a poster, so a visitor who only scrolls past downloads
-     the ~36 KB still and nothing else.
+     one 35-44 KB still and nothing else.
 
      TO ADD ONE: duplicate a .exp-item, point <source> and poster at the new
      files, and link the arXiv entry. Posters are generated from the render:
@@ -727,19 +1103,23 @@
     <div class="soft-grid">
       <div class="soft feature">
         <h3>gwBOB <span class="role-tag">Primary Developer</span></h3>
-        <p>A user-friendly, open-source Python package implementing the Backwards One Body waveform model, with tools for analysis and comparison against numerical relativity. <a href="https://github.com/AnujKankani/BackwardsOneBody" style="color:var(--amber)">github.com/AnujKankani/BackwardsOneBody ↗</a></p>
-      </div>
-      <div class="soft">
-        <h3>Einstein Toolkit <span class="role-tag">Contributor</span></h3>
-        <p>High-performance computing codebase for numerical relativity.</p>
+        <p>A user-friendly, open-source Python package implementing the Backwards One Body waveform model, with tools for analysis and comparison against numerical relativity.</p>
+        <a class="soft-link" href="https://github.com/AnujKankani/BackwardsOneBody">github.com/AnujKankani/BackwardsOneBody &#8599;</a>
       </div>
       <div class="soft">
         <h3>Entity <span class="role-tag">Contributor</span></h3>
         <p>Kokkos-based General Relativistic Particle-in-Cell code for plasma astrophysics.</p>
+        <a class="soft-link" href="https://github.com/entity-toolkit/entity">github.com/entity-toolkit/entity &#8599;</a>
+      </div>
+      <div class="soft">
+        <h3>Einstein Toolkit <span class="role-tag">Contributor</span></h3>
+        <p>High-performance computing codebase for numerical relativity.</p>
+        <a class="soft-link" href="https://einsteintoolkit.org">einsteintoolkit.org &#8599;</a>
       </div>
       <div class="soft">
         <h3>NRPy <span class="role-tag">Contributor</span></h3>
         <p>Python symbolic code-generation toolkit for relativistic astrophysics.</p>
+        <a class="soft-link" href="https://github.com/nrpy/nrpy">github.com/nrpy/nrpy &#8599;</a>
       </div>
       <div class="soft">
         <h3>LisaWave-JAX <span class="role-tag">Co-Developer</span></h3>
@@ -831,7 +1211,7 @@
   <div class="wrap">
     <p class="eyebrow" style="color:var(--amber)">Contact</p>
     <h2>Hola!</h2>
-    <p class="lead">Hola!</p>
+    <p class="lead">As you can probably tell, most of this website was made with Claude.</p>
     <div class="contact-links">
       <a href="mailto:your.email@mail.wvu.edu">Email</a>
       <a href="https://scholar.google.com/citations?user=YOUR_ID">Google Scholar</a>
@@ -893,6 +1273,40 @@
       window.__applyTheme(next);
       try{ localStorage.setItem('theme',next); }catch(e){}
     });
+  })();
+
+  /* Hero figure animation support. Measures the wave's real path length for
+     the dash animation, and stops the whole thing while the figure is
+     scrolled out of view. CSS-driven; this only sets a property and toggles a
+     class. No rAF loop. */
+  (function(){
+    var figs=[].slice.call(document.querySelectorAll('.figanim'));
+    function measure(){
+      figs.forEach(function(fig){
+        var wave=fig.querySelector('.gw-wave');
+        if(!wave || !wave.getTotalLength) return;
+        try{
+          var L=Math.ceil(wave.getTotalLength());
+          if(L) wave.style.setProperty('--len', L+'px');
+        }catch(e){}
+      });
+    }
+    measure();
+
+
+    // Everything animated in the hero must stop when scrolled past -- golden
+    // rule: never animate off-screen. Observe EVERY .figanim, not just the
+    // figure: the slideshow is a second one, and a single-element observer
+    // silently left it cross-fading forever behind the rest of the page.
+    if('IntersectionObserver' in window){
+      var io=new IntersectionObserver(function(es){
+        es.forEach(function(e){
+          e.target.classList.toggle('is-paused', !e.isIntersecting);
+        });
+      },{threshold:0.01});
+      figs.forEach(function(fig){ io.observe(fig); });
+    }
+
   })();
 
   /* Size each tool iframe to the content it reports. The tools' control rows

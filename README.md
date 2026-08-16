@@ -23,11 +23,13 @@ A server rather than `file://`, because the homepage loads the tools through `<i
 
 ## Development
 
-There is no package manager and nothing to install for the site itself. `tools/` holds development-only tooling that never reaches the browser:
+There is no package manager and nothing to install for the site itself. `tools/` holds development-only tooling that never reaches the browser — a build step, a scaffold for new tools (`_template.html`), a dependency-free test suite, and the asset generators (the hero figure, the hero photographs, the favicon, the social cards):
 
 ```bash
+cp tools/_template.html mytool-visualizer.html   # new tool (the suffix matters)
 python3 tools/build.py           # inline tools/_shared.{css,js} into the tool pages
 python3 tools/build.py --check   # exit 1 if any page is stale
+python3 tools/mkphotos.py        # regenerate the hero photographs
 
 NODE=/path/to/node
 $NODE tools/test.js              # regression suite (physics, UI, rendering, layout)
@@ -41,8 +43,10 @@ The test suite exercises the actual functions inlined in the pages via a `vm` sa
 
 ## Reuse
 
-The physics in these widgets is standard and the implementations are checked against published closed forms, so they may be useful for teaching or for talks. No licence is attached yet — if you'd like to reuse or adapt one, please get in touch.
+The physics in these widgets is standard and the implementations are checked against published closed forms, so they may be useful for teaching or for talks.
+
+The **code** is MIT licensed — see [`LICENSE`](LICENSE), which also sets out what the licence does *not* cover: the site's prose, the explainer videos, the Manim sources, and photographs taken by other people. Each tool page links its own source and the licence at the foot of the page.
 
 ## Notes
 
-The animations under `animations/` are [Manim](https://www.manim.community/) sources for paper explainers. Rendered video is not committed; two of the three still carry placeholder data and are marked as such on screen.
+The animations under `animations/` are [Manim](https://www.manim.community/) sources for paper explainers — four of them. Rendered masters are not committed (`media/` is gitignored); the web derivatives the site actually serves are, under `assets/`. Three of the four still draw placeholder curves and say so on screen with a SCHEMATIC banner; every quoted *number* is from the paper.

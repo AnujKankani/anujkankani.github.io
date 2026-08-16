@@ -46,13 +46,18 @@
        opts.render     () => void   draw one frame  [required]
        opts.observe    Element      element whose visibility gates the
                                     loop [required]
-       opts.resize     () => void   called debounced on window resize
+       opts.resize     () => void   called debounced on window resize; must
+                                    leave a correct frame (the runtime does
+                                    not render again after it)
        opts.fps        number       frames per second; default Viz.FRAME_MS
 
      Returns a handle: { update, start, stop, isRunning(), destroy }.
-     Call handle.update() after any state change that could alter
-     shouldRun(); it re-evaluates and renders a final frame when
-     halting, so the static view stays correct.
+       update()   call after ANY state change that could alter shouldRun();
+                  re-evaluates and renders one final frame when halting, so
+                  the static view stays correct. No-op once destroyed.
+       start()    enforces the visibility gate itself, so the drag-start
+                  shortcut cannot smuggle in an off-screen rAF.
+       destroy()  disconnects the observer and removes both listeners.
      --------------------------------------------------------- */
   Viz.loop = function (opts) {
     if (!opts || typeof opts.render !== 'function') {
@@ -87,8 +92,16 @@
       raf = window.requestAnimationFrame(frame);
     }
 
+    /* start() is part of the public handle, so it has to enforce rule 2 itself
+       -- it used to check only `running || destroyed`, which meant a tool
+       calling it directly (swsh does, on drag start) could kick off a rAF
+       while the frame was scrolled out of view or the tab was hidden. frame()
+       caught it one frame later, so the cost was small, but "never animate
+       off-screen" was not actually guaranteed by the API that advertises this
+       method. Nothing is lost by refusing: the observer calls update() when
+       the element comes back, which starts the loop then. */
     function start() {
-      if (running || destroyed) return;
+      if (running || destroyed || !inView || tabHidden) return;
       running = true; lastT = 0;
       raf = window.requestAnimationFrame(frame);
     }
@@ -99,32 +112,55 @@
       raf = 0;
     }
 
-    /* The one entry point tools should call. */
+    /* The one entry point tools should call. Renders once when halting so the
+       static frame stays correct -- but never after destroy(), or a stray
+       call would paint through a torn-down tool. */
     function update() {
+      if (destroyed) return;
       if (shouldRun()) start();
       else { stop(); render(); }
     }
 
+    /* Every listener below is RETAINED so destroy() can undo it. They used to
+       be anonymous and unreachable: destroy() set a flag and stopped the rAF,
+       but the observer, the visibilitychange handler and the resize handler
+       all stayed live, so a destroyed loop kept calling the tool's render()
+       on every tab switch and every resize, and pinned its whole closure
+       graph. Nothing calls destroy() on this site yet -- the docblock
+       advertises it, so the first caller would have inherited that. */
+    var io = null;
     if ('IntersectionObserver' in window) {
-      new window.IntersectionObserver(function (es) {
+      io = new window.IntersectionObserver(function (es) {
         inView = es[0].isIntersecting;
         update();
-      }, { threshold: 0.02 }).observe(opts.observe);
+      }, { threshold: 0.02 });
+      io.observe(opts.observe);
     }
 
-    document.addEventListener('visibilitychange', function () {
+    function onVisibility() {
       tabHidden = document.hidden;
       update();
-    });
+    }
+    document.addEventListener('visibilitychange', onVisibility);
 
     /* Debounced: mobile browsers fire resize continuously while the
        URL bar collapses during scroll. */
+    var rt = 0, onResize = null;
     if (typeof opts.resize === 'function') {
-      var rt;
-      window.addEventListener('resize', function () {
+      onResize = function () {
         clearTimeout(rt);
-        rt = setTimeout(function () { opts.resize(); update(); }, 150);
-      });
+        rt = setTimeout(function () {
+          opts.resize();
+          /* CONTRACT: opts.resize() must leave a correct frame on screen.
+             Both tools end theirs with render(). This used to call update()
+             here, which renders again whenever the loop is idle -- so every
+             resize drew the same frame twice (three times in swsh, whose
+             resize() also called updateRun()). Re-evaluate the run state
+             without the extra paint. */
+          if (shouldRun()) start(); else stop();
+        }, 150);
+      };
+      window.addEventListener('resize', onResize);
     }
 
     return {
@@ -132,7 +168,14 @@
       start: start,
       stop: stop,
       isRunning: function () { return running; },
-      destroy: function () { destroyed = true; stop(); }
+      destroy: function () {
+        destroyed = true;
+        stop();
+        if (io) io.disconnect();
+        document.removeEventListener('visibilitychange', onVisibility);
+        if (onResize) window.removeEventListener('resize', onResize);
+        clearTimeout(rt);
+      }
     };
   };
 

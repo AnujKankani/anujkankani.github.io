@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  ============================================================================
+  TOOL TEMPLATE — copy this to <slug>-visualizer.html (or -explorer.html) at
+  the repo root and fill it in. The suffix matters; see step 1.
+
+  It exists so a new tool starts compliant instead of starting as a copy of
+  the last one. Copying a sibling is how the DPR caps, palettes and frame caps
+  drifted between the first two tools in the same week; this file is the
+  common ancestor instead.
+
+  WHAT TO DO, in order:
+
+   1.  Copy to the repo ROOT, with a name ending in -visualizer or -explorer:
+             cp tools/_template.html mytool-visualizer.html
+       That suffix is not decoration. build.py finds pages by the globs
+       TOOL_GLOBS = ("*-visualizer.html", "*-explorer.html") at the repo root,
+       so a file named anything else is SKIPPED IN SILENCE -- the VIZ blocks
+       below stay empty, the page loads with no shared CSS or runtime, and
+       `build.py --check` still reports "up to date" because it never looked.
+       If a different name is genuinely wanted, add its glob to TOOL_GLOBS in
+       tools/build.py first.
+   2.  Replace every  TODO:  marker below. Grep for them when you think you
+       are done -- `grep -n 'TODO:' <yourfile>` must come back empty.
+   3.  Run the build to fill the VIZ blocks:  python3 tools/build.py
+       It must name your file in its output. If it does not, re-read step 1.
+       (the blocks below are EMPTY on purpose -- build.py writes them, and
+       leaving them empty means a forgotten build is obvious, not subtle)
+   4.  Generate a social card. og-tool.html maps a short ?tool= key to a page
+       through its `CFG` object, so add an entry there first, then:
+         open http://localhost:8000/tools/og-tool.html?tool=<slug>
+       and follow TOOLS.md "Social preview cards". og:image must be ABSOLUTE.
+   5.  Embed it in index.html -- see TOOLS.md "Adding a tool to the site".
+   6.  Add physics tests to tools/test.js. New physics without a test is not
+       done; see TOOLS.md "Physics tests".
+   7.  Walk the pre-ship checklist at the bottom of TOOLS.md.
+
+  WHAT IS ALREADY WIRED, and must not be removed:
+
+   *  the ?embed=1 script right after <body>, and the body.embed CSS contract
+   *  Viz.loop for the animation lifecycle -- never hand-roll rAF
+   *  Viz.autoHeight() at the end of init, so index.html can size the iframe
+   *  a mobile quality tier keyed off Viz.isMobile
+   *  Viz.reducedMotion honoured by SEEDING INITIAL STATE, never by testing it
+      inside shouldRun() -- the difference is whether the visitor can still
+      press play (see the note above shouldRun)
+   *  fixed-px panel heights in embed mode (a vh height would feed the frame
+      height back into its own measurement)
+   *  a .srcline linking the source and the licence, hidden when embedded
+   *  resize() ends with render(), because the runtime does not render after it
+  ============================================================================
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TODO: tool title</title>
+<meta name="description" content="TODO: one sentence, ~150 chars, says what the visitor can DO here.">
+<meta name="author" content="Anuj Kankani">
+<link rel="canonical" href="https://anujkankani.github.io/TODO-slug.html">
+
+<!-- Social preview. og:image MUST be absolute: scrapers do not resolve
+     relative paths and fail silently, showing a card with no image. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Anuj Kankani">
+<meta property="og:title" content="TODO: card title">
+<meta property="og:description" content="TODO: card description.">
+<meta property="og:url" content="https://anujkankani.github.io/TODO-slug.html">
+<meta property="og:image" content="https://anujkankani.github.io/assets/og-TODO-slug.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="TODO: what the card image shows.">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Tab icon: the site's chirp mark, inlined so the page fetches nothing but
+     the font. Copy the <link rel="icon"> line verbatim from any existing tool
+     page, or regenerate with `node tools/mkfav.js <outdir>`. A favicon.ico
+     would be the first runtime fetch other than the font.
+     Dark-only page, so theme-color is fixed to --bg. -->
+<!-- TODO: paste the data: URI favicon link from swsh-visualizer.html here -->
+<meta name="theme-color" content="#0B1220">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- VIZ:CSS -->
+<!-- /VIZ:CSS -->
+<style>
+  /* ---- tool-specific styles (shared ones are inlined above) ---- */
+  /* Override a shared value only with a comment saying why. The shared
+     defaults are .tool{max-width:860px} and .row .lab{min-width:64px}. */
+
+  .panels{display:grid;grid-template-columns:1fr;gap:14px;}
+  .panel{position:relative;border:1px solid var(--line);border-radius:10px;
+         overflow:hidden;background:var(--panel);}
+
+  /* Standalone height. In embed mode this is overridden with a FIXED px
+     value below -- a vh height there would feed the iframe's own height back
+     into Viz.autoHeight's measurement. */
+  .panel.main{height:60vh;max-height:520px;}
+
+  canvas{display:block;width:100%;height:100%;}
+
+  /* body.embed: the host page supplies the title and caption, so the page's
+     own header and footnote come off and the panels shrink. Check BOTH modes
+     after any layout change -- standalone is a full page, embedded is not. */
+  body.embed .panel.main{height:360px;max-height:none;}
+
+  /* TODO: if this tool has a control that is not a .row slider or a Viz.seg
+     group, give it its own `@media (pointer: coarse)` rule. The shared
+     coarse-pointer block is scoped to .row sliders on purpose. */
+</style>
+</head>
+<body>
+<script>if(location.search.indexOf('embed')>-1)document.body.classList.add('embed');</script>
+<!-- VIZ:JS -->
+<!-- /VIZ:JS -->
+
+<div class="tool">
+  <header class="head">
+    <h1>TODO: tool title</h1>
+    <p class="sub">TODO: one line on what this shows.</p>
+  </header>
+
+  <div class="panels">
+    <div class="panel main"><canvas id="cv"></canvas></div>
+  </div>
+
+  <div class="controls">
+    <div class="row">
+      <span class="lab">TODO</span>
+      <input type="range" id="slX" min="0" max="1" step="0.01" value="0.5">
+      <output id="outX">0.50</output>
+    </div>
+  </div>
+
+  <!-- The .note is where honesty lives: units, the regime this is valid in,
+       and anything approximated. TOOLS.md golden rule 9. -->
+  <p class="note">
+    TODO: geometrized units G = c = M = 1. State the regime and any
+    approximation here, or say plainly that this is illustrative.
+  </p>
+
+  <!-- Source + licence. For an interactive physics explainer, reuse is most
+       of the value to another researcher. .srcline is hidden in embed mode,
+       since the host page's "open full" link already leads here. -->
+  <p class="srcline">Source: <a href="https://github.com/AnujKankani/anujkankani.github.io/blob/main/TODO-slug.html" target="_blank" rel="noopener">TODO-slug.html</a> · <a href="https://github.com/AnujKankani/anujkankani.github.io/blob/main/LICENSE" target="_blank" rel="noopener">MIT licensed</a> — self-contained, no dependencies; save the page and it still runs.</p>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// TODO: physics. Write it as PURE functions of an explicit state --
+//   f(r, mu, L, a, E), not f(r) reading module-level globals.
+// The geodesic tool was written the other way and its tests could only probe
+// it at whatever state the UI happened to be in, so the suite ended up
+// re-deriving the formulas and checking the shipped code with a source regex.
+// Pure signatures let tools/test.js bind to the real functions and sweep them.
+// ---------------------------------------------------------------------------
+
+// UI state, one object. `playing` is seeded from prefers-reduced-motion:
+// respected on load, but still switchable by the visitor afterwards.
+var S = { x: 0.5, playing: !Viz.reducedMotion };
+
+var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+// W and H are CSS pixels. There is deliberately no DPR here: Viz.canvas sets
+// the context transform, so every drawing call below works in CSS pixels and
+// the tool never needs the ratio itself. Keeping a copy is how the geodesic
+// tool ended up sizing its canvases from a DPR captured once at load.
+var W = 0, H = 0, QUALITY = 1;
+
+function resize(){
+  var m = Viz.canvas(cv, ctx);          // DPR-capped; returns CSS pixels
+  W = m.w; H = m.h;
+  // Mobile quality tier. Key it off the DRAWN size, not the window width:
+  // a wide, short panel would otherwise allocate a full-resolution buffer to
+  // display it small. Allocate buffers HERE, never in render().
+  QUALITY = Viz.isMobile(W) ? 0.6 : 1;
+  // TODO: (re)allocate any typed arrays / offscreen buffers here.
+  // Must leave a correct frame: the runtime calls resize() on a debounced
+  // window resize and does NOT render afterwards.
+  render();
+}
+
+function render(){
+  ctx.clearRect(0, 0, W, H);
+  // TODO: draw one frame at quality QUALITY. Allocate nothing -- no `new`, no
+  // array literals (including ones passed straight as arguments, e.g.
+  // ctx.setLineDash([4,5])), no canvas factory calls (createRadialGradient
+  // and friends), no closures. Hoist those to module scope, or cache them
+  // behind an `if (key !== cached) { ... }` guard. Reuse buffers made in
+  // resize(). tools/test.js enforces this and understands the cache idiom.
+}
+
+function tick(dt){
+  // TODO: advance state by dt milliseconds. Omit `tick` from Viz.loop below
+  // if this tool is render-only.
+  void dt;
+}
+
+// "Is anything actually moving?" -- visibility is ANDed in by the runtime, so
+// this must not test it.
+//
+// Reduced motion is seeded into the INITIAL STATE (see init at the bottom),
+// never tested here. Writing `S.playing && !Viz.reducedMotion` looks
+// equivalent and is not: it makes the preference a permanent veto, so a
+// visitor who sets prefers-reduced-motion can press play and have nothing
+// happen. TOOLS.md rule 7 is "start disabled ... the tool must still be fully
+// usable". Both shipped tools seed state and leave shouldRun clean.
+function shouldRun(){ return S.playing; }
+
+var anim = Viz.loop({
+  shouldRun: shouldRun,
+  tick: tick,
+  render: render,
+  observe: cv,            // element whose visibility gates the loop
+  resize: resize
+});
+
+// Call this after ANY state change that could alter shouldRun(). It
+// re-evaluates and renders one final frame when halting, so the static view
+// stays correct. Never call start/stop directly.
+function updateRun(){ anim.update(); }
+
+// ---- controls -------------------------------------------------------------
+var slX = document.getElementById('slX'), outX = document.getElementById('outX');
+slX.addEventListener('input', function(){
+  S.x = parseFloat(this.value);
+  outX.textContent = S.x.toFixed(2);
+  updateRun();                          // may or may not change shouldRun()
+});
+
+// ---- init -----------------------------------------------------------------
+resize();           // ends with render(), so a correct frame is up
+updateRun();        // start if state says so; do NOT rely on the observer's
+                    // first callback alone to get the loop going
+Viz.autoHeight();   // report our real height to index.html; no-op standalone
+</script>
+</body>
+</html>

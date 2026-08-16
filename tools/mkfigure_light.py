@@ -14,9 +14,12 @@ Outputs:
                   see themed().
   light-riso      standalone binary-with-jets figure, flat overlapping inks.
   light-cartoon   the same, thick outlines and flat fills.
+  light-rail      the hero artwork rotated for the scroll rails, plus a themed
+  rail-inline     rail-inline.svg alongside it.
 
-The riso/cartoon pair are not currently placed on the site; they were built as
-alternatives and kept.
+Only light-hero/hero-inline is used by the site. The riso/cartoon pair were
+built as alternatives and kept; the rail pair fed gutter figures that were
+removed on 2026-08-15 (see variant_rail).
 
 Usage:  python3 tools/mkfigure_light.py <outdir>
 """
@@ -332,12 +335,55 @@ HCX, HCY = 600, 240
 HR = 63          # black-hole radius
 HGAP = 5         # half-width of the seam between the two halves
 
+# Hero animation timing. DUPLICATED, not imported: index.html's @keyframes
+# hold the same numbers. The reveal circle grows from REVEAL_R0 to REVEAL_R1
+# over the first EMERGE_FRAC of a CYCLE_S cycle, and each escaping particle is
+# delayed until that front reaches it. Change these and the @keyframes must
+# change with them -- tools/test.js asserts the two copies agree on all three,
+# because drift here fires particles ahead of the jet and nothing else notices.
+# The hero runs full bleed, so its NATURAL aspect has to be wide enough that a
+# full-width figure still fits above the fold. Cropping a 2.5:1 drawing to fit
+# threw away ~45% of its height; flattening the composition instead keeps all
+# of it. These two dominate the vertical extent: the cone's half-angle and the
+# wave's amplitude.
+CONE_HALF_ANGLE = 0.175
+WAVE_AMP = 72.0
 
-def variant_hero():
-    """Hero band: energy leaving on the left, matter arriving on the right."""
+# R1 is the distance at which the reveal has uncovered EVERYTHING, so it must
+# be the artwork's real extent -- measured 2026-08-15 as 668 for the jet cone
+# and 715.6 for the outermost escapee at full drift, hence 740 with margin.
+# It was 1500, which meant the circle outran the drawing: everything was
+# uncovered by 22% of the cycle instead of EMERGE_FRAC, the last ~31% of the
+# "grow" phase was dead time, and the jet finished BEFORE the wave rather than
+# at half its rate. Too small is worse than too large -- anything past R1 is
+# clipped forever -- so tools/test.js bounds it on both sides against the
+# measured extent.
+REVEAL_R0, REVEAL_R1 = 80.0, 740.0
+EMERGE_FRAC, CYCLE_S = 0.415, 17.0
+
+
+def _hero_art(idp=""):
+    """The artwork itself, shared by variant_hero() and variant_rail().
+
+    Returns (defs, body). Both callers hand it to wrap() with different
+    rotation and viewBox, so the rail is the same drawing seen sideways
+    rather than a second copy that can drift. Only the hero is on the site --
+    see variant_rail().
+
+    `idp` prefixes every internal id. Several of these SVGs are inlined into
+    one page, and without it they all define id="hL"/"hR" -- duplicate ids
+    whose url(#...) references resolve to whichever came first.
+    """
     OL = 5.0
-    defs = (f'<clipPath id="hL"><rect x="0" y="0" width="{HCX - HGAP}" height="{HH}"/></clipPath>'
-            f'<clipPath id="hR"><rect x="{HCX + HGAP}" y="0" width="{HW}" height="{HH}"/></clipPath>')
+    L, R, J = f"{idp}hL", f"{idp}hR", f"{idp}jet"
+    defs = (f'<clipPath id="{L}"><rect x="0" y="0" width="{HCX - HGAP}" height="{HH}"/></clipPath>'
+            f'<clipPath id="{R}"><rect x="{HCX + HGAP}" y="0" width="{HW}" height="{HH}"/></clipPath>'
+            # Reveal for the jet: a circle on the hole whose radius the
+            # page's CSS animates outward. The static value here covers the
+            # whole cone, so if the animation never runs -- reduced motion, or
+            # an engine that will not animate `r` -- the jet is simply drawn
+            # in full rather than vanishing.
+            f'<clipPath id="{J}"><circle class="jet-reveal" cx="{HCX}" cy="{HCY}" r="2000"/></clipPath>')
     o = []
 
     # ---- LEFT: a single wave leaving the hole.
@@ -353,7 +399,7 @@ def variant_hero():
     # Letting it peak at the hole -- which is what the physical falloff alone
     # gives -- sent the crests arcing over and under the disc, and the wave
     # read as wrapping around the hole rather than exiting it.
-    o.append('<g clip-path="url(#hL)">')
+    o.append(f'<g clip-path="url(#{L})">')
     X_FAR = -30.0
     X_EXIT = HCX - HR - 12                         # the disc's outer edge
     N = 700
@@ -374,15 +420,19 @@ def variant_hero():
         x = X_FAR + (X_EXIT + 10 - X_FAR) * e
         ee = min(1.0, (x - X_FAR) / (X_EXIT - X_FAR))
         phase = 2 * math.pi * (2.6 * ee + 4.9 * ee ** 3.4)
-        wpts.append((x, HCY - (w_env(ee) / peak) * 108 * math.sin(phase)))
-    o.append(f'<path d="{polyline(wpts)}" fill="none" stroke="{INDIGO}" '
+        wpts.append((x, HCY - (w_env(ee) / peak) * WAVE_AMP * math.sin(phase)))
+    # Points are generated far-edge -> hole, then reversed here so the emitted
+    # path STARTS at the hole. That is what lets the page's dash-offset
+    # animation read as the wave streaming outward rather than draining inward.
+    o.append(f'<path class="gw-wave" d="{polyline(wpts[::-1])}" fill="none" stroke="{INDIGO}" '
              f'stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>')
     o.append('</g>')
 
     # ---- RIGHT: conical accretion flow onto the hole.
-    o.append('<g clip-path="url(#hR)">')
+    o.append(f'<g clip-path="url(#{R})">')
+    o.append(f'<g class="jet" clip-path="url(#{J})">')
     APEX = HCX + HR - 2
-    HALF = 0.255                                   # cone half-angle, radians
+    HALF = CONE_HALF_ANGLE                         # cone half-angle, radians
     REACH = HW + 60 - APEX
 
     def cone_edge(frac):
@@ -409,6 +459,20 @@ def variant_hero():
         o.append(f'<path d="{polyline(sl)}" fill="none" stroke="{INK}" '
                  f'stroke-width="2.4" opacity=".38"/>')
 
+    o.append('</g>')   # /jet
+
+    # Escapees keep their own animation group -- they drift on a short loop of
+    # their own, independent of the jet's -- but they SHARE the reveal clip.
+    #
+    # That clip is the real gate, and it has to be: --esc-delay below can only
+    # hide a particle during its FIRST animation iteration (CSS animation-delay
+    # applies once, not per iteration). The drift loop is short and the jet
+    # cycle is long, so from the second cycle onward the delay means nothing
+    # and every particle is on screen while the front is still at the hole.
+    # Clipping to the same growing circle as the jet gates them exactly, on
+    # every cycle, with no shared constant to drift.
+    o.append(f'<g class="escs" clip-path="url(#{J})">')
+
     # Particles accelerated at the boundary and escaping across it. Each trail
     # starts inside the cone, crosses the edge, and the head sits outside, so
     # the boundary is visibly where the particle changed its mind. Direction is
@@ -419,8 +483,8 @@ def variant_hero():
     # These are the only particles in the figure. Blobs riding inside the cone
     # were tried and cut -- with some going in and some going out the eye had
     # to sort them, and the bulk flow reads well enough from the streamlines.
-    for side, u, out in ((-1, 0.40, 56), (-1, 0.78, 72),
-                         (1, 0.34, 52), (1, 0.66, 66), (1, 0.92, 76)):
+    for ei, (side, u, out) in enumerate(((-1, 0.40, 56), (-1, 0.78, 72),
+                                        (1, 0.34, 52), (1, 0.66, 66), (1, 0.92, 76))):
         f_at = cone_edge(float(side))
         bxy = f_at(u)
         nxt = f_at(min(1.0, u + 0.05))
@@ -433,24 +497,82 @@ def variant_hero():
         d = (dx / dl, dy / dl)
         hx, hy = bxy[0] + d[0] * out, bxy[1] + d[1] * out
         rad = 7.4
-        o.append(f'<path d="{comet(hx, hy, d, out + 40, rad, bow=0.05)}" '
-                 f'fill="{MAGENTA}" stroke="{INK}" stroke-width="3" stroke-linejoin="round"/>')
-        o.append(f'<circle cx="{hx:.1f}" cy="{hy:.1f}" r="{rad:.1f}" '
-                 f'fill="{MAGENTA}" stroke="{INK}" stroke-width="3"/>')
+        # The reveal clip on the group above is what GUARANTEES a particle is
+        # invisible until the front reaches it. This delay is the refinement on
+        # top: it starts each particle's drift at roughly the moment the front
+        # arrives, so it emerges moving rather than popping into view already
+        # mid-flight. Derived from the particle's own radial distance mapped
+        # onto the reveal's growth -- an index-based stagger put them out of
+        # order. tools/test.js re-derives all five from these constants.
+        dist = math.hypot(hx - HCX, hy - HCY)
+        frac = min(1.0, max(0.0, (dist - REVEAL_R0) / (REVEAL_R1 - REVEAL_R0)))
+        o.append(f'<g class="esc" style="--esc-dx:{d[0]:.3f};--esc-dy:{d[1]:.3f};'
+                 f'--esc-delay:{frac * EMERGE_FRAC * CYCLE_S:.2f}s">'
+                 f'<path d="{comet(hx, hy, d, out + 40, rad, bow=0.05)}" '
+                 f'fill="{MAGENTA}" stroke="{INK}" stroke-width="3" stroke-linejoin="round"/>'
+                 f'<circle cx="{hx:.1f}" cy="{hy:.1f}" r="{rad:.1f}" '
+                 f'fill="{MAGENTA}" stroke="{INK}" stroke-width="3"/></g>')
+    o.append('</g>')   # /escs
     o.append('</g>')
 
     # ---- the bisected hole
-    for cid, ring in (("hL", INDIGO), ("hR", AMBER)):
+    for cid, ring in ((L, INDIGO), (R, AMBER)):
         o.append(f'<g clip-path="url(#{cid})">'
                  f'<circle cx="{HCX}" cy="{HCY}" r="{HR + 12}" fill="{ring}" '
                  f'stroke="{INK}" stroke-width="{OL}"/>'
                  f'<circle cx="{HCX}" cy="{HCY}" r="{HR}" fill="{VOID}"/></g>')
 
-    # The viewBox is deliberately taller than the artwork. Content sits at
-    # y 59..452 of the 480, leaving margin above and below; a version cropped
-    # tight to getBBox() was tried and reverted -- the figure sits directly
-    # under a rule and above a section border, and it needs the air.
-    return wrap(defs, "".join(o), tilt=0, w=HW, h=HH, pivot=(HCX, HCY))
+    return defs, "".join(o)
+
+
+def variant_hero():
+    """Hero band: energy leaving on the left, matter arriving on the right."""
+    defs, body = _hero_art("h")
+    # Tight viewBox around the drawn content, measured with getBBox().
+    #
+    # This is what lets the figure run full bleed AND stay above the fold: the
+    # rendered height is width / viewBox-aspect, so the VIEWBOX ratio is what
+    # matters, not the content's. With the nominal 1200x480 box the figure came
+    # out 2.5:1 and had to be cropped ~45% vertically to fit; cropping to the
+    # content instead gives 4.3:1 and nothing is cut off.
+    #
+    # Re-measure these if CONE_HALF_ANGLE or WAVE_AMP change -- they set the
+    # vertical extent, and the numbers below follow from them.
+    VB_X, VB_W = -30.0, 1297.0
+    VB_Y, VB_H = 100.0, 302.0
+    return wrap(defs, body, tilt=0, w=VB_W, h=VB_H, pivot=(HCX, HCY),
+                vb=f"{VB_X:g} {VB_Y:g} {VB_W:g} {VB_H:g}")
+
+
+def variant_rail():
+    """The same artwork stood on end for the scroll rail: jet up, wave down.
+
+    UNUSED as of 2026-08-15. The gutter rails were built, iterated (animated ->
+    static -> dark-mode-only) and then removed; nothing on the site consumes
+    light-rail.svg or rail-inline.svg. Kept, with RAIL_LABEL, as the starting
+    point if they ever come back. See TODO.md -- deleting it is an open call.
+
+    Rotating -90 about the hole's centre maps the cone (which points +x) to
+    point up and the wave (-x) to point down. The footprint swaps, so the
+    viewBox becomes HH wide by HW tall about the same pivot -- no second
+    drawing, no chance of the two versions diverging.
+    """
+    defs, body = _hero_art("r")
+    # Rotating -90 about (HCX, HCY) sends (x, y) -> (HCX + y - HCY, HCY - x + HCX).
+    # So the LONG axis of the rail comes from the artwork's x-extent and the
+    # narrow axis from its y-extent. Using the hero's own 1200x480 box here
+    # clipped both the cone tip and the far end of the wave, because the
+    # artwork deliberately bleeds past that box in x (-30 to HW+60).
+    ART_X0, ART_X1 = -30.0, HW + 60.0          # wave far edge .. cone reach
+    ART_Y0, ART_Y1 = 59.0, 452.0               # measured with getBBox()
+    PAD = 22.0
+    top = HCY - ART_X1 + HCX - PAD             # cone end
+    bot = HCY - ART_X0 + HCX + PAD             # wave end
+    left = HCX + ART_Y0 - HCY - PAD
+    right = HCX + ART_Y1 - HCY + PAD
+    return wrap(defs, body, tilt=-90, pivot=(HCX, HCY),
+                w=right - left, h=bot - top,
+                vb=f"{left:g} {top:g} {right - left:g} {bot - top:g}")
 
 
 # Colours -> the site's CSS custom properties, so one inline SVG serves both
@@ -468,6 +590,10 @@ HERO_LABEL = ("Illustration: a black hole split down the middle. On the left a "
               "gravitational wave leaves along the axis; on the right a conical "
               "accretion flow runs onto the hole, with particles accelerated at "
               "its boundary and escaping across it.")
+
+
+RAIL_LABEL = ("Decorative illustration: a black hole with a gravitational wave "
+              "streaming downward and a conical accretion flow above it.")
 
 
 def themed(svg, label):
@@ -499,16 +625,20 @@ def themed(svg, label):
 def main():
     out = sys.argv[1] if len(sys.argv) > 1 else "."
     os.makedirs(out, exist_ok=True)
-    # variant_line is still defined above but no longer emitted: its hatched
-    # jet read as a scribble and that direction was dropped.
     for name, fn in (("light-riso", variant_riso),
                      ("light-cartoon", variant_cartoon),
-                     ("light-hero", variant_hero)):
+                     ("light-hero", variant_hero),
+                     ("light-rail", variant_rail)):
         p = os.path.join(out, name + ".svg")
         svg = fn()
         with open(p, "w", encoding="utf-8") as f:
             f.write(svg)
         print(f"{p}  {os.path.getsize(p) / 1024:.1f} KB")
+        if name == "light-rail":
+            q = os.path.join(out, "rail-inline.svg")
+            with open(q, "w", encoding="utf-8") as f:
+                f.write(themed(svg, RAIL_LABEL))
+            print(f"{q}  {os.path.getsize(q) / 1024:.1f} KB  (themed, for inlining)")
         if name == "light-hero":
             q = os.path.join(out, "hero-inline.svg")
             with open(q, "w", encoding="utf-8") as f:

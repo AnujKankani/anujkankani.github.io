@@ -2,7 +2,7 @@
 
 Guidelines for adding interactive physics widgets to anujkankani.github.io. Read this before writing a new tool. [CLAUDE.md](CLAUDE.md) covers the site as a whole; this file covers the `*-visualizer.html` / `*-explorer.html` family specifically.
 
-Reference implementations: [swsh-visualizer.html](swsh-visualizer.html) and [geodesic-explorer.html](geodesic-explorer.html). When this document and those files disagree, this document wins — the files predate it and have known drift (see [Known drift](#known-drift)).
+Reference implementations: [swsh-visualizer.html](swsh-visualizer.html) and [geodesic-explorer.html](geodesic-explorer.html). Their old copy-paste drift was reconciled on 2026-08-06 (see [Known drift](#known-drift--resolved)) and both now sit on the shared runtime, so they are worth reading as examples. Where this document and a tool still disagree, treat it as a bug in one of them and check which — `tools/test.js` is the tie-breaker, because it tests the shipped code.
 
 ## The three constraints
 
@@ -19,14 +19,41 @@ Constraint 3 is the binding one and the easiest to violate accidentally. Payload
 Non-negotiable. A tool that breaks one of these doesn't ship.
 
 1. **Resource-lightness is a top priority, not an optimization pass.** It ranks alongside correctness, above features and visual polish. The audience is on phones and laptops, and several tools may be alive on one page. When a feature and the frame budget conflict, the feature loses — cut it, simplify it, or make it opt-in. Rules 2–6 are the specific, checkable consequences of this one; when a situation isn't covered by them, this rule decides.
-2. **Never animate off-screen.** Every rAF loop is gated on `inView` (via `IntersectionObserver`) *and* `!tabHidden` (via `visibilitychange`). A tool that keeps running when scrolled past is a battery bug, and it is the single most likely way to make a multi-tool page unusable.
+2. **Never animate off-screen.** Every rAF loop is gated on `inView` (via `IntersectionObserver`) *and* `!tabHidden` (via `visibilitychange`). A tool that keeps running when scrolled past is a battery bug, and it is the single most likely way to make a multi-tool page unusable. **`Viz.loop` owns this** — a tool does not wire the observers itself and its `shouldRun()` must not test visibility, or it duplicates the runtime's job. `Viz.loop`'s `start()` enforces it too, so calling the handle's `start()` directly is safe.
 3. **Never animate when nothing is changing.** Idle means stopped, not "rendering the same frame at 60 fps." Static state after a control change → one `render()`, then halt.
-4. **Stop through `updateRun()`, never `startLoop()`/`stopLoop()` directly** (outside of drag start). `updateRun()` re-evaluates `shouldRun()` and renders one final frame when halting, so the static view stays correct. Calling the primitives directly is how a loop leaks.
+4. **Change run state through `update()` on the loop handle**, wrapped as `updateRun()` by convention. It re-evaluates `shouldRun()` and renders one final frame when halting, so the static view stays correct. `start()` and `stop()` exist on the handle for the drag case; reaching for them elsewhere is how a loop leaks. Call `updateRun()` after *any* state change that could alter `shouldRun()`.
 5. **Cap the frame rate and the device pixel ratio.** Physics widgets read fine at ~30 fps. Uncapped DPR on a 3× phone screen is a 9× fill-rate bill for no visible gain.
 6. **Allocate nothing in the render loop.** Buffers, typed arrays, and scratch vectors are allocated once in `resize()` or at module scope and reused. No `new`, no array literals, no closures per frame.
 7. **Honor `prefers-reduced-motion`.** Auto-spin, auto-play, and draw-in animations start disabled when it's set. The tool must still be fully usable and show a correct static frame.
 8. **Every deployed `.html` file is self-contained.** Inline `<style>`, inline `<script>`, zero runtime fetches beyond the Google Fonts link. This is what makes each tool independently shareable and iframe-able.
 9. **The physics is correct or the tool doesn't exist.** No fudged constants to make a picture look nicer. If a formula is approximated or a regime is outside its validity, say so in the `.note`. See [Physics rules](#physics-rules).
+
+## Start from the template
+
+```bash
+cp tools/_template.html mytool-visualizer.html    # the suffix matters, see below
+```
+
+`tools/_template.html` carries the VIZ markers, the embed contract, `Viz.loop`
+with stub `shouldRun`/`tick`/`render`, a mobile quality tier, `Viz.autoHeight()`,
+the source/licence line and the full social-preview head. Fill in every `TODO:`
+marker — `grep -n 'TODO:' mytool-visualizer.html` must come back empty, and a
+check in `tools/test.js` fails if a deployed page still carries one.
+
+Its VIZ blocks are **empty on purpose**: `python3 tools/build.py` fills them,
+and leaving them empty means a forgotten build is obvious rather than subtle.
+The template is not matched by build.py's globs, so it never goes stale itself.
+
+**Name the copy `*-visualizer.html` or `*-explorer.html`.** Those are
+`TOOL_GLOBS` in `tools/build.py`, and a page named anything else is skipped
+**in silence** — the VIZ blocks stay empty, the page loads with no shared CSS
+or runtime, and `build.py --check` still reports "up to date" because it never
+looked at the file. If you want another name, add its glob first. After
+building, confirm `build.py` names your file in its output.
+
+Copying a sibling tool instead is how the DPR caps, palettes and frame caps
+drifted between the first two tools in the same week. The template is the
+common ancestor that stops that recurring.
 
 ## Anatomy of a tool
 
@@ -41,10 +68,12 @@ Every tool follows the same skeleton. Copy it; don't reinvent it.
     .stage or .panels                      ← canvas host(s)
     .controls   .row > .lab + .seg/input   ← interaction
     .note                                  ← the physics explainer, hidden when embedded
-  <script>  math → state → render → loop → controls → observers → init
+  <script>  math → state → render → Viz.loop → controls → init
 ```
 
-Script order in the tail matters and is the same in both existing tools: pure math functions first, then state, then render, then the loop, then control wiring, then observers, then a bare init call (`resize()`, `reset()`, …) as the last statement.
+Script order in the tail matters and is the same in both existing tools: pure math functions first, then state, then render, then the `Viz.loop` call, then control wiring, then init (`resize()`, `reset()`, `updateRun()`, `Viz.autoHeight()`) as the last statements. **No observer wiring** — the runtime owns the `IntersectionObserver`, the `visibilitychange` handler and the debounced resize.
+
+Write the physics as **pure functions of an explicit state** — `f(r, mu, L, a, E)`, not `f(r)` reading module-level globals. A closed-over function can only ever be tested at whatever state the UI happens to be in; see [Physics tests](#physics-tests).
 
 ### The embed contract
 
@@ -69,38 +98,48 @@ Two rules keep it honest:
 
 ### The loop
 
-Both existing tools implement this identically. The shape:
+**Do not hand-roll it.** `Viz.loop` in [tools/_shared.js](tools/_shared.js) owns
+`running` / `raf` / `lastT` / `inView` / `tabHidden`, the `IntersectionObserver`,
+the `visibilitychange` handler and the debounced resize. A tool supplies the
+parts that are actually tool-specific:
 
 ```js
-function shouldRun(){ return inView && !tabHidden && /* tool-specific: is anything moving? */; }
-function loop(ts){
-  if(!running) return;
-  if(ts-lastT < FRAME_MS){ raf=requestAnimationFrame(loop); return; }  // fps cap
-  lastT=ts;
-  /* advance state */ render();
-  raf=requestAnimationFrame(loop);
-}
-function startLoop(){ if(running)return; running=true; lastT=0; raf=requestAnimationFrame(loop); }
-function stopLoop(){ running=false; if(raf)cancelAnimationFrame(raf); raf=0; }
-function updateRun(){ if(shouldRun()) startLoop(); else { stopLoop(); render(); } }
+function shouldRun(){ return S.spin || S.drag; }   // "is anything moving?"
+
+var anim = Viz.loop({
+  shouldRun: shouldRun,      // visibility is ANDed in by the runtime
+  tick: function(dt){ /* advance state; omit if render-only */ },
+  render: render,            // required
+  observe: stage,            // element whose visibility gates the loop
+  resize: resize             // debounced; must leave a correct frame
+});
+function updateRun(){ anim.update(); }
 ```
 
-`shouldRun()` is the only part a tool customizes. Examples in the current code:
-- SWSH: `inView && !tabHidden && (S.spin || S.drag)` — runs only while spinning or being dragged.
-- Geodesic: `inView && !tabHidden && !S.paused && !done` — runs until the integration finishes.
+**`shouldRun()` must not test `inView` or `tabHidden`.** The runtime ANDs those
+in itself, so a tool cannot forget them — and repeating them here is the one
+way to get the gating wrong in a direction the tests do not catch. Compare the
+two shipped tools:
 
-Wire the observers the same way every time:
+- SWSH: `S.spin || S.drag` — runs only while spinning or being dragged.
+- Geodesic: `!S.paused && !done` — runs until the integration finishes.
 
-```js
-if('IntersectionObserver' in window){
-  new IntersectionObserver(function(es){inView=es[0].isIntersecting;updateRun();},{threshold:0.02})
-    .observe(/* the canvas host element */);
-}
-document.addEventListener('visibilitychange',function(){tabHidden=document.hidden;updateRun();});
-var rt; window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(resize,150);});
-```
+The handle is `{ update, start, stop, isRunning(), destroy }`. Call
+`update()` after any state change that could alter `shouldRun()`; it renders one
+final frame when halting so the static view stays correct. `start()` honours the
+visibility gate on its own, so the drag-start shortcut is safe. `destroy()`
+disconnects the observer and removes both listeners.
 
-Resize is debounced at 150 ms — mobile browsers fire it continuously during scroll as the URL bar collapses.
+Two contracts that are easy to break silently:
+
+- **`resize()` must leave a correct frame.** The runtime calls it on a debounced
+  window resize and does *not* render afterwards. It used to call `update()`
+  there, which painted the same frame a second time whenever the loop was idle.
+- **A drag that never ends pins the loop.** `shouldRun` in SWSH is
+  `S.spin || S.drag` while `tick` is `if(S.spin && !S.drag)`, so a touch the
+  system cancels leaves the loop running forever on a motionless sphere. Wire
+  the release handler to `touchcancel`, `pointercancel` and window `blur` as
+  well as `mouseup`/`touchend`.
 
 ## Performance budget
 
@@ -128,7 +167,67 @@ Handled in `tools/_shared.css` under `@media (pointer: coarse)` — keyed on the
 Two things to know before adding a control:
 
 - The height bump is scoped to **`.row input[type=range]`** deliberately. A range positioned absolutely with both `top` and `bottom` — the geodesic zoom rail — would be over-constrained by a `height` and collapse to 44px at the top. If you position a slider that way, give it `height:auto` in your own coarse-pointer block.
-- **`touch-action: none` on a drag surface stops the page scrolling past it.** The SWSH stage is ~440px of a ~660px iframe; with `none`, a phone user swiping over the sphere is stuck. It uses `pan-y` on coarse pointers: vertical swipes scroll the page, horizontal drags still rotate. Any large drag target needs the same treatment.
+- **`touch-action: none` on a drag surface stops the page scrolling past it.** The SWSH stage is ~440px of a ~660px iframe; with `none`, a phone user swiping over the sphere is stuck. It uses `pan-y` on coarse pointers: vertical swipes scroll the page, horizontal drags still rotate. Any large drag target needs the same treatment. A tool with **no** drag handlers needs no `touch-action` at all — the geodesic explorer has none, and that is correct, not an omission.
+
+### Verifying touch behaviour
+
+Headless Chrome reports `pointer: fine`, so the coarse-pointer rules never apply and measuring the page tells you nothing about them. Read the block out of the stylesheet and apply it yourself:
+
+```js
+[].slice.call(document.styleSheets).forEach(function (ss) {
+  [].slice.call(ss.cssRules).forEach(function (r) {
+    if (r.type === 4 && /pointer:\s*coarse/.test(r.conditionText || '')) {
+      [].slice.call(r.cssRules).forEach(function (sub) {
+        document.querySelectorAll(sub.selectorText).forEach(function (el) {
+          el.style.cssText += ';' + sub.style.cssText;
+        });
+      });
+    }
+  });
+});
+```
+
+That tests the rule rather than trusting that it exists. Then measure.
+
+**Always wait for `document.fonts.ready` before measuring anything width-related.** Fallback font metrics are narrower than the webfont — a nav measured 60px narrower pre-webfont, which made it look like it fitted at a width where it did not, and would have set a responsive breakpoint too low. This applies to every measurement harness in this document.
+
+**`backdrop-filter` needs the `-webkit-` prefix.** Unprefixed only shipped in Safari 18; on iOS 17 and earlier it is silently a no-op. Ship both declarations.
+
+**iOS Safari cannot be tested from here.** It is WebKit and the local Chrome is Blink, so Android behaviour is genuinely verifiable and iPhone behaviour is not. For iOS, check statically instead: `playsinline` on every `<video>`, the `-webkit-` prefixes, and that no `vh` height survives into embed mode.
+
+## Generated assets
+
+Everything the browser fetches that is not hand-written is **generated by a
+committed script and the output committed alongside it**, so an asset can be
+regenerated rather than redrawn:
+
+| generator | emits | notes |
+|---|---|---|
+| `tools/mkfigure_light.py` | the inline hero SVG | paste `hero-inline.svg` into `index.html` |
+| `tools/mkphotos.py` | `assets/photo-*.jpg` | crops from the untracked `anuj_photos/`; `--check` verifies they are current |
+| `tools/mkfav.js` | the favicon data URI | paste into all three pages |
+| `tools/og-card.html`, `og-tool.html` | `assets/og-*.jpg` | rendered from the live pages |
+
+The originals stay out of git — same rule as the video masters. What ships is
+the derivative, and the recipe that produced it lives next to it in the
+generator, including per-image crop anchors and any zoom.
+
+## Source and licence
+
+The code is MIT licensed ([LICENSE](LICENSE)); the site's prose, the explainer
+videos and the manim sources are not, and the licence says so. Every standalone
+tool ends with a `.srcline` linking its own file and the licence:
+
+```html
+<p class="srcline">Source: <a href="…/blob/main/mytool.html">mytool.html</a> ·
+<a href="…/blob/main/LICENSE">MIT licensed</a> — self-contained, no
+dependencies; save the page and it still runs.</p>
+```
+
+It is hidden under `body.embed` — the host page's "open full ↗" already leads
+to the standalone page, which carries it. The rule lives in `tools/_shared.css`
+so every tool gets it from the build. Being inline in a sentence, WCAG 2.5.8's
+inline-in-text exemption applies and it needs no coarse-pointer sizing.
 
 ## Physics rules
 
@@ -137,7 +236,7 @@ These are research artifacts published under your name. Treat errors here as mor
 - **Geometrized units, `G = c = M = 1`, throughout.** State the convention in the `.note` (e.g. "distances in units of the mass M, horizon at r = 2M").
 - **Label the regime.** Which spacetime, which approximation, what's held fixed. Schwarzschild is not Kerr; equatorial is not generic.
 - **Landmark values must be exact, not eyeballed:** ISCO at r = 6M, photon sphere at r = 3M, horizon at r = 2M, critical impact parameter b = 3√3 M ≈ 5.196M. If a rendered feature lands somewhere else, the integrator is wrong — not the label.
-- **Integrators:** RK4 with a fixed step is the current standard (see [geodesic-explorer.html](geodesic-explorer.html)). Substep per frame (`STEPS` there) rather than taking one huge step, and keep the state vector allocation-free.
+- **Integrators:** RK4 with a fixed step is the current standard (see [geodesic-explorer.html](geodesic-explorer.html)). Take several small substeps per frame rather than one huge step — `step()` there runs 18 for photons and 40 for massive particles — and keep the state vector allocation-free.
 - **Verified math gets a comment saying so**, as `swsh()` does. Changing a function marked verified is a physics change: check it against known closed forms before committing, and say in the commit message what you checked against.
 - **Decorative ≠ physical.** The chirp mark (removed from the homepage 2026-08-14, still used by the favicon and the social card) is hand-tuned illustration, not model output. Never let a decorative curve be mistaken for a result.
 
@@ -228,7 +327,9 @@ Run it to see the current count; it is printed at the end.
 
 **Add a test whenever you add physics.** The suite is mutation-tested — dropping the `(-1)^m` phase, weakening the `-3L²/r⁴` relativistic term, or raising `DPR_CAP` past budget each fail it.
 
-**Known gap:** `Veff`/`accel` in [geodesic-explorer.html](geodesic-explorer.html) close over module-level `mu`/`L`, which the extractor cannot rebind. The landmark tests therefore re-derive those formulas, and a source-regex guard checks the tool's own definitions still match. A numerical mutation to `accel` is caught by that guard, not by the physics assertions. Refactoring these into pure `f(r, mu, L)` functions during the step-4 migration would close it.
+**Closed 2026-08-15 — and worth knowing how it failed.** `Veff`/`accel` used to close over module-level `mu`/`L`/`aSpin`/`Efix`, so the extractor could not rebind them and the suite re-derived the formulas locally, guarding the shipped code with a source regex. The cost was invisible until measured: with `geodesic-explorer.html` **deleted from the tree**, the `Schwarzschild landmarks` suite still reported *"all 14 checks passed"*, and two of those were tautologies (`Math.sqrt(12)**2 === 12`). The physics is now pure `f(r, mu, L, a, E)` with one-arg wrappers, and all four suites bind the shipped functions.
+
+**The lesson generalises: a check that cannot fail is worse than no check**, because it reads as coverage. Two ways to find them — delete the file under test and see what still passes, and mutate the shipped code rather than the test's copy. A `source X matches the expected form` regex is a stopgap for code you cannot call; treat every one as a TODO against the signature.
 
 ## Known drift — resolved
 
@@ -272,17 +373,28 @@ shoot "http://localhost:8000/tools/og-tool.html?tool=geo"   assets/og-geodesic.j
 
 `tools/og-tool.html` loads the **real widget** in a same-origin iframe and
 crops to a measured element rect, so a card can never show a stale render or a
-half-clipped control row. Two things it has to work around, both of which cost
-an afternoon once:
+half-clipped control row. Three things it has to work around, the first two of
+which cost an afternoon once:
 
-- Headless Chrome reports `prefers-reduced-motion: reduce`, so the geodesic
-  tool starts paused and the card showed a motionless particle with no trail.
+- Headless Chrome's `prefers-reduced-motion` **is version-dependent — probe
+  it, never assume it.** When these cards were built it reported `reduce`, so
+  the geodesic tool started paused and the card showed a motionless particle
+  with no trail. Re-measured 2026-08-15 on the Chrome here: default is
+  `no-preference`, and `--force-prefers-reduced-motion` is what forces
+  `reduce`. Both directions matter, so check before blaming your own code.
 - `--virtual-time-budget` advances the clock without ticking rAF — 20 s of
   virtual time fired **6 frames**. So the trail is built by calling the tool's
   own `step()` in a loop and then `render()`, which is exact rather than
   timing-dependent, and reproduces byte-for-byte on re-run.
+- Without an explicit `--window-size`, headless Chrome's viewport is
+  **800×600**. Every capture and every layout measurement here passes one.
 
-The favicon is the chirp mark with the cycle count cut until it survives 16 px (the chirp itself is no longer drawn on the homepage).
+The favicon is the chirp mark with the cycle count cut until it survives
+16 px. **The chirp is no longer drawn on the homepage** — it was replaced by
+the split black-hole figure on 2026-08-14 — so the favicon and `og-home.jpg`
+now advertise a figure the page does not contain. Open item in
+[TODO.md](TODO.md): keep the chirp as the site's mark, or re-shoot the card
+from the new hero.
 Regenerate with `node tools/mkfav.js <outdir>`, then paste the contents of
 `favicon-uri.txt` into the `<link rel="icon">` of all three pages.
 
@@ -290,16 +402,21 @@ Regenerate with `node tools/mkfav.js <outdir>`, then paste the contents of
 
 - [ ] **Resource cost justified** — if the tool is heavier than the two existing ones, say why in the PR/commit, or cut back until it isn't
 - [ ] Works standalone **and** at `?embed=1`
-- [ ] Loop halts when scrolled off-screen and when the tab is backgrounded
+- [ ] Loop halts when scrolled off-screen and when the tab is backgrounded (`start()` enforces this too, so calling it directly is safe)
+- [ ] `resize()` leaves a correct frame — the runtime does not render after it
 - [ ] Idle state does not animate
 - [ ] Frame rate and DPR capped; mobile tier reduces resolution
-- [ ] No allocation in the render loop
+- [ ] No allocation in the render loop — including array literals passed as *arguments* (`setLineDash([4,5])`) and canvas factory calls (`createRadialGradient`), both of which the guard was once blind to. Cache on change; the guard understands an `if (key !== cached) { ... }` block.
 - [ ] `prefers-reduced-motion` respected, static frame correct
 - [ ] Landmark physics values land exactly where labeled
 - [ ] Units and regime stated in the `.note`
 - [ ] Controls have `aria-pressed` / visible readouts; drag works on touch
 - [ ] Readable at 360 px wide
+- [ ] Coarse-pointer rules verified by applying them, not by assuming (see [Touch](#touch))
+- [ ] Measured with `document.fonts.ready` resolved
 - [ ] No new runtime fetches
 - [ ] `description`, Open Graph and favicon tags present; `og:image` **absolute** and the file committed
+- [ ] Source + MIT line present (`.srcline`), and hidden in embed mode
+- [ ] No `TODO:` markers left from the template
 - [ ] `tools/build.py --check` clean and `tools/test.js` passing
 - [ ] New physics has a test in [tools/test.js](tools/test.js)

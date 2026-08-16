@@ -76,6 +76,14 @@
   .note{margin-top:16px;font-size:12px;color:var(--muted);line-height:1.6;}
   .note b{color:var(--ink);font-weight:500;}
 
+  /* Source + licence line. For an interactive physics explainer, reuse is most
+     of the value to another researcher, so every standalone tool says where the
+     code is. Inline in a sentence, so WCAG 2.5.8's inline-in-text exemption
+     applies and it needs no coarse-pointer sizing of its own. */
+  .srcline{margin-top:12px;font-size:11px;color:var(--muted);letter-spacing:.02em;}
+  .srcline a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.18);}
+  .srcline a:hover{border-bottom-color:currentColor;}
+
   /* ---- touch input ----
      Keyed off pointer:coarse, not a width breakpoint: a small window on a
      laptop still has a mouse, and a large tablet still has fingers.
@@ -102,7 +110,7 @@
      body.embed rules for panel heights; see TOOLS.md "embed contract". */
   body.embed{background:transparent;}
   body.embed .tool{padding:0;max-width:none;}
-  body.embed .head,body.embed .note{display:none;}
+  body.embed .head,body.embed .note,body.embed .srcline{display:none;}
   body.embed .controls{margin-top:14px;padding:0 4px;}
 </style>
 <!-- /VIZ:CSS -->
@@ -223,13 +231,18 @@
          opts.render     () => void   draw one frame  [required]
          opts.observe    Element      element whose visibility gates the
                                       loop [required]
-         opts.resize     () => void   called debounced on window resize
+         opts.resize     () => void   called debounced on window resize; must
+                                      leave a correct frame (the runtime does
+                                      not render again after it)
          opts.fps        number       frames per second; default Viz.FRAME_MS
 
        Returns a handle: { update, start, stop, isRunning(), destroy }.
-       Call handle.update() after any state change that could alter
-       shouldRun(); it re-evaluates and renders a final frame when
-       halting, so the static view stays correct.
+         update()   call after ANY state change that could alter shouldRun();
+                    re-evaluates and renders one final frame when halting, so
+                    the static view stays correct. No-op once destroyed.
+         start()    enforces the visibility gate itself, so the drag-start
+                    shortcut cannot smuggle in an off-screen rAF.
+         destroy()  disconnects the observer and removes both listeners.
        --------------------------------------------------------- */
     Viz.loop = function (opts) {
       if (!opts || typeof opts.render !== 'function') {
@@ -264,8 +277,16 @@
         raf = window.requestAnimationFrame(frame);
       }
 
+      /* start() is part of the public handle, so it has to enforce rule 2 itself
+         -- it used to check only `running || destroyed`, which meant a tool
+         calling it directly (swsh does, on drag start) could kick off a rAF
+         while the frame was scrolled out of view or the tab was hidden. frame()
+         caught it one frame later, so the cost was small, but "never animate
+         off-screen" was not actually guaranteed by the API that advertises this
+         method. Nothing is lost by refusing: the observer calls update() when
+         the element comes back, which starts the loop then. */
       function start() {
-        if (running || destroyed) return;
+        if (running || destroyed || !inView || tabHidden) return;
         running = true; lastT = 0;
         raf = window.requestAnimationFrame(frame);
       }
@@ -276,32 +297,55 @@
         raf = 0;
       }
 
-      /* The one entry point tools should call. */
+      /* The one entry point tools should call. Renders once when halting so the
+         static frame stays correct -- but never after destroy(), or a stray
+         call would paint through a torn-down tool. */
       function update() {
+        if (destroyed) return;
         if (shouldRun()) start();
         else { stop(); render(); }
       }
 
+      /* Every listener below is RETAINED so destroy() can undo it. They used to
+         be anonymous and unreachable: destroy() set a flag and stopped the rAF,
+         but the observer, the visibilitychange handler and the resize handler
+         all stayed live, so a destroyed loop kept calling the tool's render()
+         on every tab switch and every resize, and pinned its whole closure
+         graph. Nothing calls destroy() on this site yet -- the docblock
+         advertises it, so the first caller would have inherited that. */
+      var io = null;
       if ('IntersectionObserver' in window) {
-        new window.IntersectionObserver(function (es) {
+        io = new window.IntersectionObserver(function (es) {
           inView = es[0].isIntersecting;
           update();
-        }, { threshold: 0.02 }).observe(opts.observe);
+        }, { threshold: 0.02 });
+        io.observe(opts.observe);
       }
 
-      document.addEventListener('visibilitychange', function () {
+      function onVisibility() {
         tabHidden = document.hidden;
         update();
-      });
+      }
+      document.addEventListener('visibilitychange', onVisibility);
 
       /* Debounced: mobile browsers fire resize continuously while the
          URL bar collapses during scroll. */
+      var rt = 0, onResize = null;
       if (typeof opts.resize === 'function') {
-        var rt;
-        window.addEventListener('resize', function () {
+        onResize = function () {
           clearTimeout(rt);
-          rt = setTimeout(function () { opts.resize(); update(); }, 150);
-        });
+          rt = setTimeout(function () {
+            opts.resize();
+            /* CONTRACT: opts.resize() must leave a correct frame on screen.
+               Both tools end theirs with render(). This used to call update()
+               here, which renders again whenever the loop is idle -- so every
+               resize drew the same frame twice (three times in swsh, whose
+               resize() also called updateRun()). Re-evaluate the run state
+               without the extra paint. */
+            if (shouldRun()) start(); else stop();
+          }, 150);
+        };
+        window.addEventListener('resize', onResize);
       }
 
       return {
@@ -309,7 +353,14 @@
         start: start,
         stop: stop,
         isRunning: function () { return running; },
-        destroy: function () { destroyed = true; stop(); }
+        destroy: function () {
+          destroyed = true;
+          stop();
+          if (io) io.disconnect();
+          document.removeEventListener('visibilitychange', onVisibility);
+          if (onResize) window.removeEventListener('resize', onResize);
+          clearTimeout(rt);
+        }
       };
     };
 
@@ -506,6 +557,7 @@
   </div>
 
   <p class="note">A <b>massive</b> particle starts at rest radially at r₀ — no radial velocity, but still carrying angular momentum — so r₀ is a turning point. Choose <b>prograde</b> (co-rotating with the hole) or <b>retrograde</b>: at nonzero spin the two are physically different orbits. Spinning the hole up pulls the prograde ISCO in from <b>6M</b> toward <b>M</b> and pushes the retrograde one out toward <b>9M</b>, The <b>shaded region</b> marks where no stable circular orbit exists — watch it shrink as you spin the hole up prograde, and swell retrograde. A start there is still a valid geodesic; it simply cannot settle onto a circle. A <b>photon</b> is deflected as it passes, and can whirl near the photon orbit before escaping or being captured. Marked radii are the horizon r₊ = M + √(M² − a²), the photon orbit, and the ISCO — all computed for the current spin and orbit sense. The <b>zoom rail</b> down the right edge of the potential panel rescales only that panel's vertical axis: at the top it frames the barrier and the turning points; drag it down to pull back and watch V plunge toward the horizon.</p>
+  <p class="srcline">Source: <a href="https://github.com/AnujKankani/anujkankani.github.io/blob/main/geodesic-explorer.html" target="_blank" rel="noopener">geodesic-explorer.html</a> · <a href="https://github.com/AnujKankani/anujkankani.github.io/blob/main/LICENSE" target="_blank" rel="noopener">MIT licensed</a> — self-contained, no dependencies; save the page and it still runs.</p>
 </div>
 
 <script>
@@ -526,27 +578,41 @@
 // curve changes when the energy changes -- it is not a fixed background.
 var mu=1, L=4.6, aSpin=0.0, Efix=1.0;   // rest-mass flag, ang. mom., spin, energy
 
-function Delta(r){ return r*r - 2*r + aSpin*aSpin; }
+// ---- the physics, as PURE functions of an explicit state ----------------
+// Written this way so the test suite can bind to these directly and sweep
+// (r, mu, L, a, E) freely. They used to read the module-level mu/L/aSpin/Efix
+// above, which meant a test could only ever probe them at whatever state the
+// UI happened to be in -- so the suite carried its own reimplementation and
+// checked the shipped code with a source regex instead. The one-arg forms
+// below are the wrappers the tool itself calls; they supply current state and
+// nothing else, and a test asserts they forward faithfully.
+
+function deltaOf(r, a){ return r*r - 2*r + a*a; }
 
 // Veff(r) = mu - 2mu/r + (L^2 + a^2(mu - E^2))/r^2 + (-2)(L - aE)^2/r^3
-function Veff(r){
-  var a=aSpin, E=Efix, r2=r*r, r3=r2*r, LaE=L-a*E;
-  return mu - 2*mu/r + (L*L + a*a*(mu - E*E))/r2 - 2*LaE*LaE/r3;
+function veffOf(r, m, Lz, a, E){
+  var r2=r*r, r3=r2*r, LaE=Lz-a*E;
+  return m - 2*m/r + (Lz*Lz + a*a*(m - E*E))/r2 - 2*LaE*LaE/r3;
 }
 
 // accel = d^2r/dtau^2 = (1/2) d/dr (R/r^4) = -(1/2) dVeff/dr
-function accel(r){
-  var a=aSpin, E=Efix, r2=r*r, r3=r2*r, r4=r3*r, LaE=L-a*E;
-  return -mu/r2 + (L*L + a*a*(mu - E*E))/r3 - 3*LaE*LaE/r4;
+function accelOf(r, m, Lz, a, E){
+  var r2=r*r, r3=r2*r, r4=r3*r, LaE=Lz-a*E;
+  return -m/r2 + (Lz*Lz + a*a*(m - E*E))/r3 - 3*LaE*LaE/r4;
 }
 
 // Frame dragging: dphi/dtau = [2 a E / r + (1 - 2/r) L] / Delta
 // At a = 0 this collapses to L/r^2, the Schwarzschild form.
-function dphidtau(r){
-  var d=Delta(r);
+function dphidtauOf(r, Lz, a, E){
+  var d=deltaOf(r, a);
   if(Math.abs(d)<1e-12) d = d<0 ? -1e-12 : 1e-12;   // never divide by zero
-  return (2*aSpin*Efix/r + (1 - 2/r)*L) / d;
+  return (2*a*E/r + (1 - 2/r)*Lz) / d;
 }
+
+// ---- current-state wrappers, used everywhere else in this file ----------
+function Veff(r){ return veffOf(r, mu, L, aSpin, Efix); }
+function accel(r){ return accelOf(r, mu, L, aSpin, Efix); }
+function dphidtau(r){ return dphidtauOf(r, L, aSpin, Efix); }
 
 function deriv(s,o){ o[0]=s[1]; o[1]=accel(s[0]); o[2]=dphidtau(s[0]); }
 
@@ -568,9 +634,20 @@ function rISCO(a, pro){
 // Critical impact parameter: the b of the circular PHOTON orbit at r_ph.
 // A photon there has E = 1, L = b_c, dr/dtau = 0 -- exactly circular, though
 // unstable. Reduces to 3*sqrt(3) at a = 0.
+// b_crit = -(r^3 - 3r^2 + a^2 r + a^2) / (a (r - 1)) at r = r_photon.
+// Two removable singularities, both guarded:
+//   a -> 0   the 1/a blows up; the Schwarzschild value is 3*sqrt(3).
+//   |a| -> 1 the PROGRADE photon orbit reaches r = 1, so (rp - 1) -> 0 and the
+//            numerator vanishes with it -- a genuine 0/0. It happened to
+//            return 2 only because acos(-1) leaves rp at 1.0000000000000004.
+//            The limit is exactly 2 (b_crit -> 2M for the extremal prograde
+//            photon orbit), so return it rather than relying on float noise.
+//            Unreachable through the UI (the spin slider caps at 0.99), but
+//            this is a public function and the next caller may not know that.
 function bCrit(a, pro){
   var rp = rPhoton(Math.abs(a), pro);
   if(Math.abs(a) < 1e-12) return 3*Math.sqrt(3);
+  if(Math.abs(rp - 1) < 1e-9) return 2;
   return -(rp*rp*rp - 3*rp*rp + a*a*rp + a*a)/(a*(rp-1));
 }
 
@@ -599,11 +676,20 @@ var S={type:'massive', r0:24, paused:reducedMotion, guides:true, pro:true,
        activePreset:'circular', yzoom:1};
 var st=[24,0,0], E2=1, Rview=28, outcome='', done=false;
 var trailX=[], trailY=[], TRAIL=2600;
-var H=0.02, STEPS=24;
+var H=0.02;
+
+// Dash patterns and gradients are allocated ONCE. setLineDash takes an array
+// and createRadialGradient returns an object, so writing them inline in a draw
+// call is an allocation every frame -- 4 arrays and 2 gradients per frame here,
+// at 30fps, on a page that runs a second canvas tool alongside this one. The
+// ALLOC guard in tools/test.js could not see either shape; it now can.
+var DASH_GUIDE=[4,5], DASH_E2=[5,4], DASH_OFF=[];
+var _hgCx=NaN,_hgCy=NaN,_hgRh=NaN,_hg=null;   // horizon glow, keyed on geometry
+var _pgCol='',_pg=null;                        // particle glow, drawn at origin
 
 var oc=document.getElementById('orbitCv'), octx=oc.getContext('2d');
 var pc=document.getElementById('potCv'), pctx=pc.getContext('2d');
-var OW=0,OH=0,PW=0,PH=0, DPR=Math.min(window.devicePixelRatio||1,Viz.DPR_CAP);
+var OW=0,OH=0,PW=0,PH=0;
 var anim=null;  // Viz.loop handle, created after render() is defined
 
 function partColor(){ return S.type==='photon'? '#7CD6F2' : '#F2B85A'; }
@@ -619,11 +705,18 @@ function r0Bounds(){
 }
 function clampR0(){
   var sr=document.getElementById('slR'), b=r0Bounds(), lo=b[0], hi=b[1];
-  sr.min = lo.toFixed(2);
-  sr.max = hi.toFixed(2);
+  // Round OUTWARD, not to nearest. toFixed() rounds to nearest, which moved
+  // the bound across the physical limit half the time: at a=0.5, r_ph=2.3473
+  // became a min of 2.35 (so the circular null orbit was no longer selectable,
+  // though the comment below claims it is), and at a=0.7, r_ph=2.0133 became
+  // 2.01 (letting r0 start INSIDE the photon orbit). Ceil the low bound and
+  // floor the high one, so the slider range is always a subset of the legal
+  // range at 2dp.
+  sr.min = (Math.ceil(lo*100)/100).toFixed(2);
+  sr.max = (Math.floor(hi*100)/100).toFixed(2);
   var v = parseFloat(sr.value);
-  if(v < lo) sr.value = lo.toFixed(2);
-  else if(v > hi) sr.value = hi.toFixed(2);
+  if(v < lo) sr.value = sr.min;
+  else if(v > hi) sr.value = sr.max;
   var vr=document.getElementById('valR');
   if(vr) vr.textContent = parseFloat(sr.value).toFixed(2);
 }
@@ -690,10 +783,20 @@ function reset(){
 var TRAIL_DPHI = 0.04;        // ~2.3 deg between drawn vertices
 var trailPhi = 0;             // angle accumulated since the last vertex
 
+// Trimmed in CHUNKS, not one vertex at a time. Array.shift() is an O(n)
+// memmove; past TRAIL this ran up to 40x per frame over two 2600-element
+// arrays. Dropping TRIM_CHUNK at once makes that cost 1/64 as often, and the
+// only visible consequence is that the faded tail runs up to 64 vertices
+// (~2.5%) long before it is trimmed -- invisible at the 0.30 alpha it is
+// drawn with, and the bright head (the last 90) is never affected.
+var TRIM_CHUNK = 64;
 function pushTrail(){
   var x=st[0]*Math.cos(st[2]), y=st[0]*Math.sin(st[2]);
   trailX.push(x); trailY.push(y);
-  if(trailX.length>TRAIL){ trailX.shift(); trailY.shift(); }
+  if(trailX.length > TRAIL + TRIM_CHUNK){
+    trailX.splice(0, trailX.length - TRAIL);
+    trailY.splice(0, trailY.length - TRAIL);
+  }
 }
 
 function step(){
@@ -820,11 +923,15 @@ function potRange(t){
 var _yr=[0,0];
 
 // ---------- rendering ----------
-function sizeCanvas(cv,ctx){ var w=cv.clientWidth,h=cv.clientHeight;
-  cv.width=Math.round(w*DPR);cv.height=Math.round(h*DPR);ctx.setTransform(DPR,0,0,DPR,0,0);return [w,h]; }
+// Viz.canvas re-reads devicePixelRatio on every call and applies the shared
+// cap. This used to be a hand-rolled sizeCanvas() over a DPR captured once at
+// load, which left both backing stores wrong after a browser zoom or a drag to
+// a monitor with a different ratio -- both of which fire resize, so the tool
+// re-laid-out at the stale ratio and stayed soft until reload. That is the
+// exact drift Viz.canvas exists to prevent; swsh already went through it.
 function resize(){
-  var a=sizeCanvas(oc,octx); OW=a[0];OH=a[1];
-  var b=sizeCanvas(pc,pctx); PW=b[0];PH=b[1];
+  var a=Viz.canvas(oc,octx); OW=a.w;OH=a.h;
+  var b=Viz.canvas(pc,pctx); PW=b.w;PH=b.h;
   render();
 }
 
@@ -836,7 +943,7 @@ function drawOrbit(){
   function X(x){return cx+x*sc;} function Y(y){return cy-y*sc;}
   // guides
   if(S.guides){
-    ctx.setLineDash([4,5]); ctx.lineWidth=1;
+    ctx.setLineDash(DASH_GUIDE); ctx.lineWidth=1;
     // Spin is >= 0 and the sense is an explicit UI state, so the markers
     // and the dynamics read the same flag -- they cannot disagree.
     var pro = S.pro, aAbs = aSpin;
@@ -854,16 +961,20 @@ function drawOrbit(){
     }
     ctx.strokeStyle='rgba(169,139,255,.55)'; circle(ctx,cx,cy,rPhoton(aAbs,pro)*sc); ctx.stroke();  // photon orbit
     if(S.type!=='photon'){ ctx.strokeStyle='rgba(239,177,91,.5)'; circle(ctx,cx,cy,rISCO(aAbs,pro)*sc); ctx.stroke(); } // ISCO
-    ctx.setLineDash([]);
+    ctx.setLineDash(DASH_OFF);
   }
   // black hole (horizon). Must follow the spin: r+ = M + sqrt(M^2 - a^2)
   // shrinks to M as |a| -> 1. Drawing a fixed 2M disc at high spin hides the
   // prograde photon orbit (1.56M at a=0.9) and nearly the ISCO (2.32M) --
   // exactly the features the spin slider exists to reveal.
   var rh=rHorizon(aSpin)*sc;
-  var g=ctx.createRadialGradient(cx,cy,rh*0.2,cx,cy,rh*1.7);
-  g.addColorStop(0,'#05070c'); g.addColorStop(0.75,'#05070c'); g.addColorStop(1,'rgba(80,110,170,0)');
-  ctx.fillStyle=g; circle(ctx,cx,cy,rh*1.7); ctx.fill();
+  if(_hgCx!==cx||_hgCy!==cy||_hgRh!==rh){
+    _hg=ctx.createRadialGradient(cx,cy,rh*0.2,cx,cy,rh*1.7);
+    _hg.addColorStop(0,'#05070c'); _hg.addColorStop(0.75,'#05070c');
+    _hg.addColorStop(1,'rgba(80,110,170,0)');
+    _hgCx=cx; _hgCy=cy; _hgRh=rh;
+  }
+  ctx.fillStyle=_hg; circle(ctx,cx,cy,rh*1.7); ctx.fill();
   ctx.fillStyle='#05070c'; ctx.strokeStyle='rgba(120,140,180,.35)'; ctx.lineWidth=1.2;
   circle(ctx,cx,cy,rh); ctx.fill(); ctx.stroke();
   // trail
@@ -879,8 +990,14 @@ function drawOrbit(){
     ctx.globalAlpha=1;
     // particle
     var px=X(trailX[n-1]), py=Y(trailY[n-1]);
-    var pg=ctx.createRadialGradient(px,py,0,px,py,9); pg.addColorStop(0,col); pg.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=pg; circle(ctx,px,py,9); ctx.fill();
+    if(_pgCol!==col){
+      _pg=ctx.createRadialGradient(0,0,0,0,0,9);
+      _pg.addColorStop(0,col); _pg.addColorStop(1,'rgba(0,0,0,0)');
+      _pgCol=col;
+    }
+    ctx.save(); ctx.translate(px,py);
+    ctx.fillStyle=_pg; circle(ctx,0,0,9); ctx.fill();
+    ctx.restore();
     ctx.fillStyle=col; circle(ctx,px,py,3.2); ctx.fill();
   }
   document.getElementById('status').innerHTML = done? ('<b>'+outcome+'</b>') : (S.type==='photon'?'light ray':'orbiting');
@@ -906,8 +1023,8 @@ function drawPot(){
   ctx.fillStyle='rgba(255,255,255,.03)';
   ctx.fillRect(X(rMin),padT,X(rPhoton(aAbsP,proP))-X(rMin),H2-padT-padB);
   // energy line E²
-  ctx.setLineDash([5,4]); ctx.strokeStyle='#E5637E'; ctx.lineWidth=1.3;
-  ctx.beginPath(); ctx.moveTo(padL,Y(E2)); ctx.lineTo(W-padR,Y(E2)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.setLineDash(DASH_E2); ctx.strokeStyle='#E5637E'; ctx.lineWidth=1.3;
+  ctx.beginPath(); ctx.moveTo(padL,Y(E2)); ctx.lineTo(W-padR,Y(E2)); ctx.stroke(); ctx.setLineDash(DASH_OFF);
   // reference verticals
   if(S.guides){
     ctx.strokeStyle='rgba(169,139,255,.4)'; vline(ctx,X(rPhoton(aAbsP,proP)),padT,H2-padB);

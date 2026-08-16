@@ -1,0 +1,62 @@
+MIT License
+
+Copyright (c) 2026 Anuj Kankani
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+NOTE ON SCOPE
+
+This license covers the code in this repository: the interactive tool pages,
+the shared runtime under tools/, the build and test harness, and the figure
+and social-card generators.
+
+It does NOT grant rights to:
+
+  * the site's prose -- biography, research descriptions, publication and
+    talk listings;
+  * the paper explainer videos under assets/*.mp4 and their posters;
+  * the manim sources that render them.
+
+Those remain All Rights Reserved. The interactive physics widgets are the part
+meant to be reused, and they are the part this license is for.
+
+---
+
+THIRD-PARTY MATERIAL
+
+Some photographs of the site owner were taken by other people. Their copyright
+is held by the photographer or by the commissioning institution, not by the
+site owner, so they fall outside BOTH the MIT grant above and the All Rights
+Reserved reservation immediately above it. Nothing in this file grants any
+right to them, and the reservation above does not assert one.
+
+Known holders:
+
+  * Photographs by Maria O'Leary, Institute for Advanced Study.
+    Credit line as displayed: "Photo: Maria O'Leary / Institute for
+    Advanced Study".
+
+  * Photograph by James Beattie.
+    Credit line as displayed: "Photo: James Beattie".
+
+Each such image carries its credit line next to it on the page. Anyone wanting
+to reuse one should approach its copyright holder; this license cannot and does
+not speak for them.

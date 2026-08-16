@@ -8,17 +8,34 @@
 
      physics      closed forms, landmarks, numerical identities
      UI state     presets and sliders driven through loadUI()
+     input        drag handling, including the per-gesture axis lock
      rendering    axis framing, projection, orientation triad
      layout       the embed auto-height contract, load-bearing CSS
      budget       gzipped size and no allocation in the hot path
+     build        that the pages match tools/_shared.* (shells out to
+                  build.py --check; the suite reads _shared.js directly,
+                  so without this it stays green over a stale page)
+     figure       the hero SVG and its CSS animation, including that the
+                  delays baked into the pasted figure re-derive from the
+                  generator's constants
 
-   Where it can, it exercises the ACTUAL functions inlined in the tool
-   pages (via tools/extract.js), not copies -- so a sign error introduced
-   while refactoring a renderer fails here. Where the thing under test is
-   markup or CSS, it matches source text; those checks match against the
-   relevant RULE BODY rather than the whole file, because prose in a
-   nearby comment will otherwise satisfy the pattern (that has now
-   produced two false-passing tests).
+   It exercises the ACTUAL functions inlined in the tool pages (via
+   tools/extract.js), not copies, wherever they can be called -- which
+   since the 2026-08-15 pure-function refactor is everywhere in the
+   geodesic physics. Where the thing under test is markup or CSS it
+   matches source text, and those matches are scoped to the relevant RULE
+   BODY or function, with comments stripped.
+
+   THE RECURRING FAILURE HERE IS A CHECK THAT CANNOT FAIL, and it has
+   taken several forms: a suite that re-derived the formula it was
+   "testing" and passed with the tool file deleted; assertions that were
+   arithmetic on the test's own constants (Math.sqrt(12)**2 === 12); a
+   regex broad enough to match prose in a comment; a predicate counting
+   call sites that also matched the declaration; a touch test using
+   perfectly axis-aligned drags, which passed with the feature deleted.
+   Two habits catch these: MUTATE THE SHIPPED CODE (not the test's copy)
+   and confirm the check goes red, and try deleting the file under test
+   to see what still passes.
 
    Usage:
      node tools/test.js          # run all
@@ -147,16 +164,19 @@ suite('swsh-visualizer :: orthonormality', () => {
 suite('geodesic-explorer :: Schwarzschild landmarks', () => {
   const PI = Math.PI;
 
-  /* Veff and accel depend on module-level mu and L in the tool, which
-     the extractor cannot rebind cleanly. Re-derive here from the same
-     expressions the tool uses and assert the physics they must satisfy;
-     tools/test.js also checks the tool's source still matches. */
-  const Veff = (r, mu, L) => (1 - 2 / r) * (mu + L * L / (r * r));
-  const accel = (r, mu, L) => -mu / (r * r) + L * L / (r * r * r) - 3 * L * L / (r * r * r * r);
+  /* These bind the SHIPPED Kerr functions at a = 0, which is Schwarzschild.
+     They used to be local re-derivations, because Veff/accel closed over
+     module-level mu/L and could not be probed from outside -- so this whole
+     suite asserted the test's own arithmetic and passed with the tool file
+     DELETED (verified: "all 14 checks passed" with geodesic-explorer.html
+     moved out of the tree). The pure forms exist now; use them. */
+  const g = loadTool('geodesic-explorer.html', ['veffOf', 'accelOf', 'rISCO']);
+  const Veff = (r, mu, L) => g.veffOf(r, mu, L, 0, 1);
+  const accel = (r, mu, L) => g.accelOf(r, mu, L, 0, 1);
 
   // ISCO at r=6M: circular orbit needs L^2 = r^2 M/(r-3M) -> L^2=12 at r=6.
   const Lisco = Math.sqrt(12);
-  close('ISCO angular momentum L^2 = 12', Lisco * Lisco, 12, 1e-12);
+  close('shipped rISCO is 6M at a=0', g.rISCO(0, true), 6, 1e-9);
   close('accel vanishes at r=6M for L_isco', accel(6, 1, Lisco), 0, 1e-12);
 
   // L = sqrt(12) is the minimum for a stable circular orbit.
@@ -176,7 +196,8 @@ suite('geodesic-explorer :: Schwarzschild landmarks', () => {
 
   // Critical impact parameter b = 3*sqrt(3) M ~= 5.196.
   const bcrit = 3 * Math.sqrt(3);
-  close('b_crit = 3sqrt(3)', bcrit, 5.196152422706632, 1e-12);
+  close('shipped bCrit is 3sqrt(3) at a=0',
+    loadTool('geodesic-explorer.html', ['bCrit']).bCrit(0, true), bcrit, 1e-9);
   // Peak of the photon effective potential sits at r=3M with V = 1/b_crit^2.
   close('V_photon peak = 1/b_crit^2', Veff(3, 0, 1) / 1, 1 / (bcrit * bcrit), 1e-12);
 
@@ -199,14 +220,15 @@ suite('geodesic-explorer :: Schwarzschild limit still holds', () => {
      the Kerr forms are pinned by the "Kerr dynamics" suite instead.
      What still must hold is that a = 0 reproduces Schwarzschild
      exactly, which is checked here numerically rather than textually. */
-  const g = loadTool('geodesic-explorer.html', ['rHorizon', 'circEL']);
+  const g = loadTool('geodesic-explorer.html',
+    ['rHorizon', 'veffOf', 'accelOf']);
 
-  const VeffK = (r, a, E, L, mu) =>
-    mu - 2 * mu / r + (L * L + a * a * (mu - E * E)) / (r * r)
-    - 2 * (L - a * E) ** 2 / (r ** 3);
-  const accelK = (r, a, E, L, mu) =>
-    -mu / (r * r) + (L * L + a * a * (mu - E * E)) / (r ** 3)
-    - 3 * (L - a * E) ** 2 / (r ** 4);
+  /* The SHIPPED Kerr forms, evaluated at a = 0 and compared against the
+     Schwarzschild closed forms written out longhand below. These were local
+     re-derivations until 2026-08-15, which made two of this suite's three
+     checks compare the test's arithmetic to the test's arithmetic. */
+  const VeffK = (r, a, E, L, mu) => g.veffOf(r, mu, L, a, E);
+  const accelK = (r, a, E, L, mu) => g.accelOf(r, mu, L, a, E);
 
   let worstV = 0, worstA = 0;
   [[1, 4.6], [1, 3.0], [0, 5.2]].forEach(([mu, L]) => {
@@ -281,10 +303,29 @@ suite('shared runtime :: caps, embed contract, touch targets', () => {
 
   const root = path.resolve(__dirname, '..');
   const home = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  ok('host validates message origin', /e\.origin !== location\.origin/.test(home));
+  /* Scope to the LISTENER BODY, not the whole file. These three ran against
+     all of index.html, so a comment anywhere in it that happened to quote
+     `e.origin !== location.origin` would satisfy the check -- the exact trap
+     this file's own header warns about twice, and the one that has bitten the
+     social-preview suite three times. Nothing matched by accident today; the
+     defect was that it could. */
+  const listener = (function(){
+    const i = home.indexOf("addEventListener('message'");
+    if (i < 0) return '';
+    const j = home.indexOf('})();', i);
+    /* Strip comments too. Scoping to the listener is not enough on its own:
+       replacing the origin gate with a comment that MENTIONS it still passed,
+       because the comment lives inside the same block. Match code only. */
+    return (j < 0 ? home.slice(i) : home.slice(i, j))
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\/[^\n]*/g, '');
+  })();
+  ok('found the host message listener', listener.length > 100);
+  ok('host validates message origin',
+    /e\.origin !== location\.origin/.test(listener));
   ok('host matches the sending frame by contentWindow',
-    /contentWindow === e\.source/.test(home));
-  ok('host bounds the height it will accept', /h > 4000/.test(home));
+    /contentWindow === e\.source/.test(listener));
+  ok('host bounds the height it will accept', /h > 4000/.test(listener));
   ['swsh-visualizer.html', 'geodesic-explorer.html'].forEach((f) => {
     ok(`${f} calls Viz.autoHeight()`,
       /Viz\.autoHeight\(\)/.test(fs.readFileSync(path.join(root, f), 'utf8')));
@@ -303,6 +344,29 @@ suite('shared runtime :: caps, embed contract, touch targets', () => {
    Viz.loop lifecycle -- golden rules 2-5 must hold structurally.
    Drives the real runtime with a fake rAF/observer/visibility.
    ================================================================== */
+suite('shared runtime :: shipped pages match tools/_shared.*', () => {
+  /* Every runtime assertion in this file reads tools/_shared.js DIRECTLY, so
+     the whole suite passes while the deployed pages carry a stale inlined
+     copy. Measured: edit _shared.js without rebuilding and you get
+     "all checks passed" from here and "STALE ... exit 1" from build.py. With
+     no CI, the one command run before pushing has to notice.
+
+     Shell out to build.py rather than reimplementing its formatting here: a
+     JS copy of the banner-and-indent transform would be a second source of
+     truth, and the failure mode of getting it subtly wrong is a check that
+     fails on formatting instead of on staleness. python3 is not optional in
+     this repo -- it is the build step and the dev server -- so a missing
+     interpreter is a real failure, not a reason to skip. */
+  const { spawnSync } = require('child_process');
+  const path = require('path');
+  const root = path.resolve(__dirname, '..');
+  const r = spawnSync('python3', [path.join(root, 'tools/build.py'), '--check'],
+    { cwd: root, encoding: 'utf8' });
+  const out = ((r.stdout || '') + (r.stderr || '')).trim().split('\n').pop();
+  ok(`tools/build.py --check is clean (${r.error ? r.error.code : out})`,
+    !r.error && r.status === 0);
+});
+
 suite('shared runtime :: Viz.loop enforces the golden rules', () => {
   const vm = require('vm');
   const fs = require('fs');
@@ -310,21 +374,32 @@ suite('shared runtime :: Viz.loop enforces the golden rules', () => {
   const src = fs.readFileSync(path.join(__dirname, '_shared.js'), 'utf8');
 
   function harness() {
-    let rafQ = [], observerCb = null, visCb = null;
+    let rafQ = [], observerCb = null, visCb = null, resizeCb = null, timers = [];
+    /* Listener bookkeeping: destroy() has to give every one of these back,
+       and the only way to prove it is to count. */
+    const live = { win: 0, doc: 0, observers: 0 };
     const sb = {
       window: {
         matchMedia: () => ({ matches: false }),
         devicePixelRatio: 1, innerWidth: 900,
         requestAnimationFrame: (f) => { rafQ.push(f); return rafQ.length; },
         cancelAnimationFrame: () => { rafQ = []; },
-        addEventListener: () => {},
-        IntersectionObserver: function (cb) { observerCb = cb; return { observe: () => {} }; }
+        addEventListener: (t, cb) => { live.win++; if (t === 'resize') resizeCb = cb; },
+        removeEventListener: () => { live.win--; },
+        IntersectionObserver: function (cb) {
+          observerCb = cb; live.observers++;
+          return { observe: () => {}, disconnect: () => { live.observers--; } };
+        }
       },
       document: {
-        addEventListener: (t, cb) => { if (t === 'visibilitychange') visCb = cb; },
+        addEventListener: (t, cb) => { if (t === 'visibilitychange') visCb = cb; live.doc++; },
+        removeEventListener: () => { live.doc--; },
         hidden: false
       },
-      Math, console, setTimeout: () => {}, clearTimeout: () => {}
+      Math, console,
+      /* Run the debounce synchronously so a test can drive the resize path. */
+      setTimeout: (f) => { timers.push(f); return timers.length; },
+      clearTimeout: () => {}
     };
     sb.window.window = sb.window;
     sb.globalThis = sb;
@@ -337,7 +412,10 @@ suite('shared runtime :: Viz.loop enforces the golden rules', () => {
       scrollOff() { observerCb([{ isIntersecting: false }]); },
       scrollOn() { observerCb([{ isIntersecting: true }]); },
       hideTab() { sb.document.hidden = true; visCb(); },
-      showTab() { sb.document.hidden = false; visCb(); }
+      showTab() { sb.document.hidden = false; visCb(); },
+      live,
+      fireVis() { visCb(); },
+      fireResize() { if (resizeCb) resizeCb(); const q = timers; timers = []; q.forEach((f) => f()); }
     };
   }
 
@@ -381,6 +459,75 @@ suite('shared runtime :: Viz.loop enforces the golden rules', () => {
   try { H.Viz.loop({ observe: {} }); } catch (e) { threw++; }
   try { H.Viz.loop({ render: () => {} }); } catch (e) { threw++; }
   ok('throws without render or observe', threw === 2);
+
+  /* start() is public, so it must enforce rule 2 on its own. It used to check
+     only running/destroyed, letting a tool that calls it directly (swsh, on
+     drag start) begin a rAF while off-screen or backgrounded. */
+  {
+    const V = harness();
+    let painted = 0;
+    const h4 = V.Viz.loop({
+      observe: {}, shouldRun: () => true, render: () => { painted++; }
+    });
+    V.scrollOff();
+    const p0 = painted;
+    h4.start();
+    V.pump(3);
+    ok('start() refuses while off-screen', !h4.isRunning() && painted === p0);
+    V.scrollOn();
+    h4.start(); V.pump(1);
+    ok('start() works again once visible', h4.isRunning());
+    h4.destroy();
+  }
+
+  /* One paint per debounced resize. opts.resize() leaves the frame; the
+     runtime only re-evaluates the run state after it. */
+  {
+    const R = harness();
+    let painted = 0, resized = 0;
+    const h5 = R.Viz.loop({
+      observe: {}, shouldRun: () => false,
+      render: () => { painted++; },
+      resize: () => { resized++; painted++; }
+    });
+    h5.update();
+    const p0 = painted;
+    R.fireResize();
+    ok(`resize paints once, not twice (${painted - p0} paint(s))`,
+      resized === 1 && painted - p0 === 1);
+    h5.destroy();
+  }
+
+  /* destroy() must give back everything the loop took. It used to set a flag
+     and cancel the rAF while leaving the IntersectionObserver, the
+     visibilitychange handler and the resize handler live -- so a destroyed
+     loop kept calling the tool's render() on every tab switch and resize, and
+     held its whole closure graph alive. Nothing on this site calls destroy()
+     yet; the docblock advertises it, so the first caller would have paid. */
+  {
+    const D = harness();
+    let renders = 0;
+    const before = { ...D.live };
+    const h3 = D.Viz.loop({
+      observe: {}, shouldRun: () => true,
+      render: () => { renders++; }, resize: () => {}
+    });
+    ok('loop takes listeners while alive',
+      D.live.observers === before.observers + 1 &&
+      D.live.doc === before.doc + 1 && D.live.win === before.win + 1);
+
+    h3.destroy();
+    ok('destroy() releases observer and both listeners',
+      D.live.observers === before.observers &&
+      D.live.doc === before.doc && D.live.win === before.win);
+
+    const r0 = renders;
+    D.fireVis();
+    h3.update();
+    D.pump(5);
+    ok('a destroyed loop neither renders nor restarts',
+      renders === r0 && !h3.isRunning());
+  }
 });
 
 /* ==================================================================
@@ -443,35 +590,52 @@ suite('geodesic-explorer :: Kerr landmarks', () => {
 
 suite('geodesic-explorer :: Kerr dynamics', () => {
   const g = loadTool('geodesic-explorer.html',
-    ['Veff', 'accel', 'dphidtau', 'Delta', 'energyAtRest', 'circEL',
-     'rISCO', 'rHorizon', 'rPhoton', 'bCrit']);
+    ['Veff', 'accel', 'dphidtau', 'energyAtRest', 'circEL',
+     'rISCO', 'rHorizon', 'rPhoton', 'bCrit',
+     'veffOf', 'accelOf', 'dphidtauOf', 'deltaOf']);
   const src = require('fs').readFileSync(
     require('path').join(__dirname, '..', 'geodesic-explorer.html'), 'utf8');
 
-  /* Local reimplementation, used only to drive an integrator -- the page's
-     own Veff/accel close over module-level state, so they cannot be probed
-     at arbitrary (a, E, L) from outside. The FORM is pinned to the source
-     by the regex guards below, so this cannot silently drift. */
+  /* Binds the SHIPPED functions at an arbitrary state. These used to close
+     over module-level mu/L/aSpin/Efix, so they could only be probed at
+     whatever state the UI was in -- the suite carried a reimplementation and
+     pinned the shipped code with a source regex instead, which tested the
+     text rather than the arithmetic. The page now exposes pure forms and
+     these are they, so every assertion below is against real code. */
   function mk(a, E, L, mu) {
     return {
-      Veff: (r) => mu - 2 * mu / r + (L * L + a * a * (mu - E * E)) / (r * r)
-                   - 2 * (L - a * E) ** 2 / (r ** 3),
-      accel: (r) => -mu / (r * r) + (L * L + a * a * (mu - E * E)) / (r ** 3)
-                    - 3 * (L - a * E) ** 2 / (r ** 4),
-      dphi: (r) => {
-        let d = r * r - 2 * r + a * a;
-        if (Math.abs(d) < 1e-12) d = d < 0 ? -1e-12 : 1e-12;
-        return (2 * a * E / r + (1 - 2 / r) * L) / d;
-      }
+      Veff: (r) => g.veffOf(r, mu, L, a, E),
+      accel: (r) => g.accelOf(r, mu, L, a, E),
+      dphi: (r) => g.dphidtauOf(r, L, a, E)
     };
   }
 
-  ok('source Veff matches the tested Kerr form',
-    /mu - 2\*mu\/r \+ \(L\*L \+ a\*a\*\(mu - E\*E\)\)\/r2 - 2\*LaE\*LaE\/r3/.test(src));
-  ok('source accel matches the tested Kerr form',
-    /-mu\/r2 \+ \(L\*L \+ a\*a\*\(mu - E\*E\)\)\/r3 - 3\*LaE\*LaE\/r4/.test(src));
-  ok('source dphi/dtau includes the frame-dragging term',
-    /\(2\*aSpin\*Efix\/r \+ \(1 - 2\/r\)\*L\) \/ d/.test(src));
+  ok('pure physics forms are exported',
+    typeof g.veffOf === 'function' && typeof g.accelOf === 'function' &&
+    typeof g.dphidtauOf === 'function' && typeof g.deltaOf === 'function');
+
+  /* The one-arg wrappers are the only thing the tool itself calls, so the
+     assertions above are worth nothing unless the wrappers really do forward
+     the CURRENT module state. Drive the live UI to several states and compare
+     both paths -- this is the seam the refactor introduced, and the only way
+     the shipped tool could now disagree with what is tested. */
+  {
+    const ui = loadUI('geodesic-explorer.html');
+    const sb = ui.sb;
+    let worstW = 0;
+    [[0, 4.6, 1, 1], [0.9, 4.6, 1, 0.97], [0.35, 5.2, 0, 1], [0.99, 3.1, 1, 0.94]]
+      .forEach(([a, Lz, m, E]) => {
+        sb.aSpin = a; sb.L = Lz; sb.mu = m; sb.Efix = E;
+        for (let r = 2.2; r < 40; r += 0.37) {
+          worstW = Math.max(worstW,
+            Math.abs(sb.Veff(r) - sb.veffOf(r, m, Lz, a, E)),
+            Math.abs(sb.accel(r) - sb.accelOf(r, m, Lz, a, E)),
+            Math.abs(sb.dphidtau(r) - sb.dphidtauOf(r, Lz, a, E)));
+        }
+      });
+    ok(`wrappers forward live module state (max dev ${worstW.toExponential(1)})`,
+      worstW === 0);
+  }
 
   /* accel must be exactly -(1/2) dVeff/dr, for any spin. */
   let worstD = 0;
@@ -619,11 +783,36 @@ suite('geodesic-explorer :: Kerr dynamics', () => {
   }
   ok('both ISCO branches lie inside the fixed r0 range at every spin',
     iscoVisible);
-  ok('clampR0 sets BOTH bounds and pulls the value into range',
-    /sr\.min = lo\.toFixed\(2\)/.test(src) &&
-    /sr\.max = hi\.toFixed\(2\)/.test(src) &&
-    /if\(v < lo\) sr\.value = lo\.toFixed\(2\);/.test(src) &&
-    /else if\(v > hi\) sr\.value = hi\.toFixed\(2\);/.test(src));
+  /* Behavioural, not textual. This was four regexes pinned to the exact
+     source of clampR0, so it broke the moment the rounding was corrected and
+     told us nothing about whether the bounds were right. What matters is that
+     the slider range is always a SUBSET of the legal range: toFixed() rounds
+     to nearest, which pushed the low bound below r_ph at some spins (letting
+     r0 start inside the photon orbit) and above it at others (making the
+     circular null orbit unselectable, which a comment claimed it was). */
+  {
+    const ui = loadUI('geodesic-explorer.html');
+    const sb2 = ui.sb;
+    let worstLo = 0, worstHi = 0, illegal = 0;
+    ['massive', 'photon'].forEach((type) => {
+      for (let a = 0; a <= 0.99; a += 0.03) {
+        sb2.S.type = type;
+        sb2.aSpin = a; sb2._els.slA.value = String(a);
+        sb2.clampR0();
+        const b = sb2.r0Bounds();
+        const lo = parseFloat(sb2._els.slR.min), hi = parseFloat(sb2._els.slR.max);
+        if (lo < b[0] - 1e-12 || hi > b[1] + 1e-12) illegal++;
+        worstLo = Math.max(worstLo, lo - b[0]);
+        worstHi = Math.max(worstHi, b[1] - hi);
+      }
+    });
+    ok(`clampR0 keeps the slider range inside the legal range (${illegal} violations)`,
+      illegal === 0);
+    /* ...and rounds outward by less than one slider step, so nothing usable
+       is given away. */
+    ok(`clampR0 rounds outward by under 0.01 (lo +${worstLo.toFixed(4)}, hi -${worstHi.toFixed(4)})`,
+      worstLo < 0.01 + 1e-9 && worstHi < 0.01 + 1e-9);
+  }
   /* The effective-potential panel spans r = 0 .. 2*r_ISCO, so its scale
      tracks the ISCO with spin rather than the orbit viewport. The CURVE is
      still clipped to the horizon: Veff -> -infinity as r -> 0, so sampling
@@ -1045,9 +1234,12 @@ suite('geodesic-explorer :: claims match behaviour', () => {
   const src = fs.readFileSync(
     path.join(__dirname, '..', 'geodesic-explorer.html'), 'utf8');
 
-  const Veff = (r, mu, L) => (1 - 2 / r) * (mu + L * L / (r * r));
-  const accel = (r, mu, L) =>
-    -mu / (r * r) + L * L / (r ** 3) - 3 * L * L / (r ** 4);
+  /* Bound to the shipped functions at a = 0. This suite checks that the
+     tool's on-screen CLAIMS are true of the tool's own physics, so it has to
+     ask the tool, not a copy of it. */
+  const gc = loadTool('geodesic-explorer.html', ['veffOf', 'accelOf']);
+  const Veff = (r, mu, L) => gc.veffOf(r, mu, L, 0, 1);
+  const accel = (r, mu, L) => gc.accelOf(r, mu, L, 0, 1);
 
   /* The r > Rview*2.2 cutoff is a VIEWPORT test. A massive particle
      released from rest has E^2 = Veff(r0) < 1 and is therefore bound,
@@ -1195,8 +1387,45 @@ suite('swsh-visualizer :: geometry and nodes', () => {
       /function syncFieldAvail\(\)/.test(src) &&
       /im\.disabled=off/.test(src) &&
       /if\(off && S\.field==='im'\) setField\('re'\)/.test(src));
-    ok('syncFieldAvail runs on both paths that change m',
-      (src.match(/syncFieldAvail\(\)/g) || []).length >= 4);
+    /* Count CALL SITES only. `function syncFieldAvail(){` contains the literal
+       "syncFieldAvail()", so the declaration matched too and this quietly
+       required one fewer call than its threshold named. */
+    /* Axis lock: a gesture picks one axis and keeps it. touch-action:pan-y only
+     hands a vertical swipe back to the page after the first few touchmoves
+     have already been delivered, so without this the opening pixels of a page
+     scroll tilt the sphere and the tilt survives the pointercancel. Driven
+     through the real handlers rather than asserted on source text. */
+  {
+    const ui = loadUI('swsh-visualizer.html');
+    const s2 = ui.sb;
+    function gesture(steps){
+      s2.down(100, 100);
+      steps.forEach(([x, y]) => s2.move(x, y));
+      const out = { az: s2.S.az, el: s2.S.el };
+      s2.up();
+      return out;
+    }
+    /* DOMINANTLY vertical, not purely: a pure drag has zero movement on the
+       other axis, so it passes with or without a lock and proves nothing.
+       (First version of this check did exactly that and survived deleting the
+       feature.) Real scroll gestures always carry some sideways drift, and
+       that drift is what used to tilt the sphere. */
+    s2.S.az = 0; s2.S.el = 0;
+    const vert = gesture([[104, 112], [110, 130], [118, 160]]);
+    ok(`a mostly-vertical drag leaves azimuth untouched (az ${vert.az.toFixed(3)})`,
+      Math.abs(vert.az) < 1e-12 && Math.abs(vert.el) > 0);
+    s2.S.az = 0; s2.S.el = 0;
+    const horiz = gesture([[112, 104], [140, 110], [180, 118]]);
+    ok(`a mostly-horizontal drag leaves elevation untouched (el ${horiz.el.toFixed(3)})`,
+      Math.abs(horiz.el) < 1e-12 && Math.abs(horiz.az) > 0);
+    s2.S.az = 0; s2.S.el = 0;
+    const tiny = gesture([[102, 101]]);
+    ok('a sub-threshold nudge moves nothing',
+      Math.abs(tiny.az) < 1e-12 && Math.abs(tiny.el) < 1e-12);
+  }
+
+  ok('syncFieldAvail runs on both paths that change m',
+      (src.match(/(?<!function\s)syncFieldAvail\(\)/g) || []).length >= 3);
   }
 
   /* A gesture the system steals leaves S.drag stuck true; shouldRun is
@@ -1471,8 +1700,40 @@ suite('golden rule 1 :: resource budget', () => {
      closure, 3 object literals and a sort comparator EVERY FRAME with axes on
      by default. Array/object literals and the closure-taking iteration methods
      allocate just as surely, so they count too. */
-  const ALLOC = /new\s+(Float32Array|Float64Array|Uint8ClampedArray|Uint8Array|Array)\b|\.(map|filter|concat|slice)\s*\(|=\s*\[[^\]]|return\s*\[[^\]]/;
-  const GUARDED = /if\s*\([^)]*(?:!\w+|\.length\s*<|===\s*null|==\s*null)[^)]*\)/;
+  /* The last two alternatives were added 2026-08-15. The guard matched only
+     array literals bound to a name, so it was blind to the two shapes that
+     were actually allocating in the geodesic render loop: an array literal
+     passed straight as an ARGUMENT (`ctx.setLineDash([4,5])`, 4 per frame) and
+     a canvas object returned by a factory call (`ctx.createRadialGradient(...)`
+     plus its addColorStops, 2 per frame). Both now match. */
+  const ALLOC = /new\s+(Float32Array|Float64Array|Uint8ClampedArray|Uint8Array|Array)\b|\.(map|filter|concat|slice)\s*\(|=\s*\[[^\]]|return\s*\[[^\]]|\(\s*\[[^\]]|create(?:Radial|Linear|Conic)Gradient\s*\(|createPattern\s*\(|createImageData\s*\(/;
+  /* An allocation on the hot path is fine when it only runs on CHANGE -- a
+     gradient rebuilt when the geometry moves, a buffer reallocated when the
+     canvas resizes. Two spellings of that:
+       same line   `if (!buf) buf = new Float32Array(n);`
+       cache block `if (cx !== _cx) { _g = ctx.createRadialGradient(...); ... }`
+     The second is the common one and the original guard could not see it,
+     because it only ever looked at the offending line itself. So track brace
+     depth and treat a block opened by a cache-guard `if` as guarded
+     throughout. Getting this wrong in the permissive direction is how the
+     geodesic gradients hid for months -- keep the condition patterns narrow. */
+  const GUARD_COND = /(?:!\w+|\.length\s*<|===\s*null|==\s*null|!==|!=[^=])/;
+  const GUARDED = new RegExp('if\\s*\\([^)]*' + GUARD_COND.source + '[^)]*\\)');
+  function guardedLines(body) {
+    const lines = body.split('\n');
+    const safe = new Array(lines.length).fill(false);
+    let depth = 0, until = -1;
+    lines.forEach((line, i) => {
+      if (until >= 0 && depth > until) safe[i] = true;
+      if (GUARDED.test(line)) {
+        safe[i] = true;
+        if (/\{\s*$/.test(line) && until < 0) until = depth;
+      }
+      depth += (line.match(/\{/g) || []).length - (line.match(/\}/g) || []).length;
+      if (until >= 0 && depth <= until) until = -1;
+    });
+    return safe;
+  }
 
   /* drawAxes and potRange are called from render()/drawPot() on every frame,
      so they are as hot as the functions that call them. */
@@ -1484,8 +1745,9 @@ suite('golden rule 1 :: resource budget', () => {
     HOT.forEach((name) => {
       const b = bodyOf(src, name);
       if (!b) return;
-      b.split('\n').forEach((line) => {
-        if (ALLOC.test(line) && !GUARDED.test(line)) {
+      const safe = guardedLines(b);
+      b.split('\n').forEach((line, i) => {
+        if (ALLOC.test(line) && !safe[i]) {
           offenders.push(name + '(): ' + line.trim().slice(0, 60));
         }
       });
@@ -1500,7 +1762,17 @@ suite('every page :: social preview and favicon', () => {
   const path = require('path');
   const root = path.join(__dirname, '..');
   const SITE = 'https://anujkankani.github.io/';
-  const pages = ['index.html', 'swsh-visualizer.html', 'geodesic-explorer.html'];
+  /* DISCOVERED, not listed. This was a hardcoded array of three, so a tool
+     built from tools/_template.html -- the documented way to start one --
+     would pick up the budget and TODO-marker checks (both of which discover)
+     but none of these: og:image being absolute, the card file existing, the
+     canonical, the favicon staying a data: URI. Those are exactly the things
+     TOOLS.md says fail SILENTLY, so such a page ships looking fine and shares
+     as a bare URL. */
+  const pages = ['index.html'].concat(
+    fs.readdirSync(root).filter((f) => /-(visualizer|explorer)\.html$/.test(f)));
+  ok(`social checks cover every deployed page (${pages.length})`,
+    pages.length >= 3 && pages[0] === 'index.html');
 
   pages.forEach((f) => {
     const src = fs.readFileSync(path.join(root, f), 'utf8');
@@ -1567,6 +1839,246 @@ suite('every page :: social preview and favicon', () => {
   });
 });
 
+suite('index.html :: software links', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const root = path.resolve(__dirname, '..');
+  const src = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const sec = (function(){
+    const i = src.indexOf('<section id="software"');
+    return i < 0 ? '' : src.slice(i, src.indexOf('</section>', i));
+  })();
+
+  ok('software section present', sec.length > 400);
+
+  const cards = [...sec.matchAll(/<div class="soft[^"]*">([\s\S]*?)<\/div>/g)].map((m) => m[1]);
+  ok(`found the software cards (${cards.length})`, cards.length >= 5);
+
+  /* Every card links its repo except LisaWave-JAX, which is unreleased. If a
+     card gains a link it should be a real one -- an empty or placeholder href
+     on a page aimed at hiring committees is worse than no link. */
+  const named = (c) => (c.match(/<h3>([^<]*)/) || ['', '?'])[1].trim();
+  const missing = cards.filter((c) => !/class="soft-link"/.test(c)).map(named);
+  ok(`only LisaWave-JAX is unlinked (${missing.join(', ') || 'none'})`,
+    missing.length === 1 && /LisaWave/i.test(missing[0]));
+
+  /* Most point at a GitHub repo; the Einstein Toolkit points at its project
+     site instead, because that is where the toolkit is actually documented and
+     downloaded from -- its GitHub org is only part of the picture. Assert the
+     shape (absolute https, no trailing slash, real host) rather than pinning
+     the hosts, so a future entry can point wherever it should. */
+  const hrefs = [...sec.matchAll(/class="soft-link" href="([^"]+)"/g)].map((m) => m[1]);
+  ok(`every card link is an absolute https URL (${hrefs.length})`,
+    hrefs.length === cards.length - 1 &&
+    hrefs.every((h) => /^https:\/\/[\w.-]+\.[a-z]{2,}(\/[\w.-]+)*$/.test(h)));
+  ok('no placeholder hrefs', !/class="soft-link" href="(#|)"/.test(sec));
+
+  /* The visible text should be the URL it goes to, so a reader can see where
+     a link leads before clicking and a wrong href is obvious on the page. */
+  const pairs = [...sec.matchAll(/class="soft-link" href="([^"]+)">([^<]*)</g)];
+  ok('link text matches its href',
+    pairs.length > 0 && pairs.every(([, h, t]) =>
+      h.replace(/^https:\/\//, '') === t.replace(/\s*&#8599;\s*$/, '').trim()));
+
+  /* The first card carried style="color:var(--amber)" inline, which cannot be
+     themed and only reads on the dark feature card. */
+  ok('repo links are styled by class, not inline style',
+    !/<a[^>]*class="soft-link"[^>]*style=/.test(sec));
+});
+
+suite('index.html :: touch targets', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const root = path.resolve(__dirname, '..');
+  const src = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const css = (src.match(/<style>([\s\S]*?)<\/style>/) || ['', ''])[1];
+  const coarse = (css.match(/@media \(pointer: coarse\)\{([\s\S]*?)\n  \}/) || ['', ''])[1]
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+
+  ok('a coarse-pointer block exists', coarse.length > 40);
+
+  /* Measured at 390px with the coarse rules applied by hand (headless reports
+     pointer:fine): the arXiv links under the publications were 21px and under
+     the explainers 16px, against WCAG 2.5.8's 24px floor and a 44pt target.
+     They are standalone links on their own line, so the inline-in-text
+     exemption does not cover them. */
+  ok('standalone arXiv links are sized for touch',
+    /\.exp-item figcaption a/.test(coarse) && /\.links a/.test(coarse));
+  /* Vertical padding on an INLINE element overflows its line box instead of
+     growing it, so these need inline-block or the padding is decorative. */
+  /* Matched against the RULE the selectors share, not against a fixed
+     selector list -- the list grew when the software repo links were added and
+     a pinned list failed on an innocent edit. */
+  ok('those links are inline-block, so the padding actually grows the box',
+    /\.links a[^{]*\{[^}]*display:inline-block/.test(coarse));
+  ok('the software repo links are sized for touch too',
+    /\.soft-link/.test(coarse));
+
+  /* .btn's base rule uses the `padding` SHORTHAND and is declared LATER in the
+     sheet. A media query adds no specificity, so a bare `.btn` longhand here
+     loses to it silently -- the same trap as `.wrap > .bleed`. */
+  ok('the hero CTA rule outranks the later padding shorthand',
+    /\.cta-row \.btn\{/.test(coarse) && !/^\s*\.btn\{/m.test(coarse));
+
+  ok('nav links and the theme toggle are covered',
+    /\.nav-links a/.test(coarse) && /\.theme-toggle/.test(coarse));
+});
+
+suite('index.html :: hero slideshow', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const root = path.resolve(__dirname, '..');
+  const src = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const block = (function(){
+    const i = src.indexOf('<div class="hero-slides');
+    const j = src.indexOf('</div><!-- /.hero-top -->', i);
+    return i < 0 ? '' : src.slice(i, j < 0 ? i + 6000 : j);
+  })();
+  const css = (src.match(/<style>([\s\S]*?)<\/style>/) || ['', ''])[1];
+  /* Declaration checks run against a COMMENT-FREE copy. These rules are
+     heavily commented and several comments quote the declaration being
+     asserted, so matching raw CSS passes with the declaration deleted. The
+     first version of the containing-block check fell for exactly that. */
+  const cssCode = css.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  ok('slideshow block present', block.length > 400);
+
+  const imgs = [...block.matchAll(/<img\s[^>]*>/g)].map((m) => m[0]);
+  const creds = [...block.matchAll(/<span class="cr[^"]*"[^>]*>([^<]*)<\/span>/g)];
+  const ns = Number((block.match(/--ns:(\d+)/) || [])[1]);
+  const sceneOf = (t) => Number((t.match(/--s:(\d+)/) || [])[1]);
+  const imgScenes = imgs.map(sceneOf);
+
+  ok(`--ns matches the number of scenes (${ns} vs ${new Set(imgScenes).size})`,
+    ns > 1 && new Set(imgScenes).size === ns);
+  ok(`every scene 0..ns-1 is used (${[...new Set(imgScenes)].sort().join(',')})`,
+    [...new Set(imgScenes)].sort((a, b) => a - b).every((v, k) => v === k));
+
+  /* No scene may hold two images in the SAME column: they would overlap in
+     one grid cell and only the last would ever be seen. */
+  {
+    const colOf = (t) => (/class="p1"/.test(t) ? 1 : /class="p2"/.test(t) ? 2 : 0);
+    const seen = new Set(); let clash = 0;
+    imgs.forEach((t) => {
+      const key = sceneOf(t) + ':' + colOf(t);
+      if (seen.has(key)) clash++;
+      seen.add(key);
+    });
+    ok('no two images share a scene and column', clash === 0);
+    /* A full-width slide cannot share its scene with anything, or it covers
+       the other picture entirely. */
+    const wide = imgs.filter((t) => /class="p(w|c)"/.test(t)).map(sceneOf);
+    ok('full-width slides have their scene to themselves',
+      wide.every((sc) => imgScenes.filter((x) => x === sc).length === 1));
+  }
+
+  /* THE non-obvious contract. A scene's visible window is 100/ns percent of
+     the cycle, and CSS cannot compute a keyframe offset from a variable, so
+     the last stop of @keyframes slidefade is hand-written and silently wrong
+     the moment a scene is added. Wrong here does not look broken -- it looks
+     like one photo lingering under the next. */
+  const kf = (cssCode.match(/@keyframes slidefade\{([\s\S]*?)\n  \}/) || ['', ''])[1];
+  const stops = [...kf.matchAll(/([\d.]+)%/g)].map((m) => Number(m[1]));
+  const lastVisible = stops.filter((v) => v < 100).sort((a, b) => b - a)[0];
+  ok(`scene window matches 100/ns (${lastVisible}% vs ${(100 / ns).toFixed(1)}%)`,
+    Number.isFinite(lastVisible) && Math.abs(lastVisible - 100 / ns) < 0.51);
+
+  /* The no-animation fallback pins scene 0 BY CLASS. Every item whose --s is
+     0 must carry .s0, and nothing else may: an item marked .s0 but animated
+     to a different scene would sit permanently on top of the others under
+     reduced motion. Position-based selection was the earlier approach and it
+     broke the moment scenes stopped holding the same number of items. */
+  {
+    const all = [...block.matchAll(/<(?:img|span)\s[^>]*>/g)].map((m) => m[0])
+      .filter((t) => /--s:\d/.test(t));
+    const marked = all.filter((t) => /class="[^"]*\bs0\b/.test(t));
+    const inScene0 = all.filter((t) => sceneOf(t) === 0);
+    ok(`.s0 marks exactly the scene-0 items (${marked.length} of ${inScene0.length})`,
+      marked.length === inScene0.length &&
+      marked.every((t) => sceneOf(t) === 0));
+  }
+
+  let total = 0; const missing = [];
+  imgs.forEach((t) => {
+    const a = (t.match(/src="([^"]+)"/) || [])[1];
+    const f = path.join(root, a || '');
+    if (!a || !fs.existsSync(f)) { missing.push(a || '?'); return; }
+    total += fs.statSync(f).size;
+  });
+  ok(`every slide file exists (${imgs.length} checked)`, missing.length === 0, missing.join(', '));
+  /* This is the heaviest thing the page fetches on load -- the videos below
+     are lazy, these are not. Ten times the gzipped HTML is already generous;
+     the lever is QUALITY in tools/mkphotos.py, not this number. */
+  ok(`slideshow payload within budget (${(total / 1024).toFixed(0)} KB of 300)`,
+    total < 300 * 1024);
+
+  /* The wide slide must actually BE wide -- a portrait file in the spanning
+     slot gets stretched by object-fit to a 1.56 box. */
+  {
+    const wideSrc = (imgs.find((t) => /class="pw"/.test(t)) || '').match(/width="(\d+)" height="(\d+)"/);
+    ok(`the spanning slide is a landscape crop (${wideSrc ? wideSrc[1] + 'x' + wideSrc[2] : 'n/a'})`,
+      !!wideSrc && Number(wideSrc[1]) / Number(wideSrc[2]) > 1.3);
+  }
+
+  ok('every slide has alt text', imgs.every((t) => /alt="[^"]{20,}"/.test(t)));
+  ok('the illustrated slide declares itself an illustration',
+    !/photo-ligo/.test(block) || /photo-ligo[\s\S]{0,300}alt="Illustration:/.test(block));
+
+  /* Credits ride the same animation as the pictures, so a credit is on screen
+     exactly while its own photo is. Separate timings would put the wrong name
+     under the wrong picture -- worse than no credit. */
+  ok('credits share the scene animation',
+    /\.figanim \.hs-grid > \*\{[^}]*animation: slidefade/.test(cssCode));
+  ok(`every credit maps to a real scene (${creds.map((c) => sceneOf(c[0])).join(',') || 'none'})`,
+    creds.every((c) => imgScenes.includes(sceneOf(c[0]))));
+  ok('every credit names a photographer',
+    creds.every((c) => c[1].trim().length > 10));
+  /* The photographs that need crediting are credited -- asserted from the
+     filenames, not from trusting markup order. */
+  {
+    const need = imgs.filter((t) => /photo-(portrait|chalk|talk)\.jpg/.test(t)).map(sceneOf);
+    const have = creds.map((c) => sceneOf(c[0]));
+    ok(`credited photographs all carry a credit (scenes ${[...new Set(need)].join(',')})`,
+      need.every((sc) => have.includes(sc)));
+  }
+  ok('credit row reserves its height whether or not a credit shows',
+    /\.hs-grid\{[^}]*grid-template-rows:auto [\d.]+em/.test(cssCode));
+
+  /* Setting width AND height to 100% makes the browser ignore aspect-ratio,
+     and with an auto row height the pictures resolved to ~3:8 and ran 490px
+     tall. One dimension plus a ratio, never both dimensions. */
+  ok('slides size by one dimension plus aspect-ratio',
+    /\.hs-grid img\{[^}]*height:auto/.test(cssCode) &&
+    !/\.hs-grid img\{[^}]*height:100%/.test(cssCode));
+
+  ok('slides carry .figanim so the shared observer pauses them',
+    /class="hero-slides figanim"|class="figanim hero-slides"/.test(block));
+  ok('the pause observer watches every .figanim, not just the figure',
+    /querySelectorAll\('\.figanim'\)/.test(src) &&
+    /figs\.forEach\(function\(fig\)\{ io\.observe\(fig\); \}\)/.test(src));
+
+  {
+    const rm = (cssCode.match(/@media \(prefers-reduced-motion:reduce\)\{([\s\S]*?)\n  \}/g) || [])
+      .filter((b) => /hs-grid/.test(b)).join('');
+    ok('reduced motion pins scene 0 rather than an empty frame',
+      /animation:none/.test(rm) && /\.hs-grid > \.s0\{opacity:1/.test(rm));
+    /* No check that scene 0 HAS a credit: whether it does depends on who took
+       that photograph. The .s0 assertion above already covers credits, since
+       it walks every item carrying --s -- so if scene 0 does have one, it is
+       marked and therefore pinned. */
+  }
+  /* Below 900px the row stacks instead of the slideshow being hidden. It WAS
+     display:none, which made every photograph invisible on phones -- where
+     most visitors are. Assert the stack, and that the band is capped so a
+     tablet does not get a 500px-tall slide. */
+  {
+    const mq = (cssCode.match(/@media \(max-width:900px\)\{([\s\S]*?)\n  \}/) || ['', ''])[1];
+    ok('narrow viewports stack the hero row rather than dropping the photos',
+      /flex-direction:column/.test(mq) && !/\.hero-slides\{display:none/.test(mq));
+    ok('the stacked band is width-capped', /max-width:\d+px/.test(mq));
+  }
+});
+
 suite('index.html :: hero figure', () => {
   const fs = require('fs');
   const path = require('path');
@@ -1607,17 +2119,38 @@ suite('index.html :: hero figure', () => {
      once already, so only the shape of the attribute is pinned here. */
   const vb = fig.match(/viewBox="(-?[\d.]+) (-?[\d.]+) ([\d.]+) ([\d.]+)"/);
   ok('figure has a viewBox', !!vb);
-  /* The box is INTENTIONALLY taller than the drawn content: the figure sits
-     between two rules and needs the air. What must hold is that it stays a
-     wide band -- a near-square hero would push the whole page down. */
+  /* The viewBox is cropped to the drawn content, and its ratio is what sets
+     the rendered height (height = width / aspect). It must stay WIDE: the
+     figure runs full bleed, so a squarer box makes it tall enough to push the
+     hero past the fold. 4.29:1 currently; anything under ~4 stops fitting a
+     1280x720 screen. */
   const ar = vb ? Number(vb[3]) / Number(vb[4]) : 0;
-  ok(`figure stays a wide band (aspect ${ar.toFixed(2)}:1)`, ar >= 2 && ar <= 4);
+  ok(`figure is a wide band (aspect ${ar.toFixed(2)}:1)`, ar >= 4 && ar <= 6);
   ok('figure has no fixed width/height', !/<svg[^>]*\swidth="\d/.test(fig));
 
   const css = src.slice(0, src.indexOf('</style>'));
-  ok('hero-fig svg is fluid width', /\.hero-fig svg\{[^}]*width:100%/.test(css));
-  ok('hero-fig svg height is auto',
-    /\.hero-fig svg\{[^}]*height:auto/.test(css));
+  /* Full bleed, with a budgeted height so the hero still fits the first
+     screen. Filling a wide short box without distorting needs slice; without
+     it the drawing scales down and floats in an empty band. */
+  ok('hero figure runs full bleed',
+    /\.hero-fig\{[\s\S]{0,300}width:100vw;margin-left:calc\(50% - 50vw\)/.test(css));
+  ok('hero svg keeps its aspect ratio',
+    /\.hero-fig svg\{[\s\S]{0,120}height:auto/.test(css));
+  /* Nothing may be cropped: no slice, and the viewBox must contain the art. */
+  ok('hero svg does not crop the artwork',
+    !/preserveAspectRatio="[^"]*slice"/.test(fig));
+  ok('generator and page agree on the cropped viewBox', (function(){
+    const g = fs.readFileSync(path.join(root, 'tools/mkfigure_light.py'), 'utf8');
+    const m = g.match(/VB_X, VB_W = ([-\d.]+), ([\d.]+)[\s\S]{0,80}VB_Y, VB_H = ([-\d.]+), ([\d.]+)/);
+    if (!m || !vb) return false;
+    return Math.abs(Number(m[1]) - Number(vb[1])) < 1 &&
+           Math.abs(Number(m[2]) - Number(vb[3])) < 1 &&
+           Math.abs(Number(m[3]) - Number(vb[2])) < 1 &&
+           Math.abs(Number(m[4]) - Number(vb[4])) < 1;
+  })());
+  /* 100vw includes the scrollbar, so full bleed only avoids a sideways scroll
+     because .hero clips it. */
+  ok('.hero clips the full-bleed child', /\.hero\{[^}]*overflow:hidden/.test(css));
 
 
   /* The breakout must keep the child combinator. Every bled block also carries
@@ -1633,6 +2166,224 @@ suite('index.html :: hero figure', () => {
      100vw overflows horizontally on desktop. */
   ok('breakout leaves scrollbar allowance',
     !!bleed && /100vw\s*-\s*\d+px/.test(bleed[1]));
+
+  /* The scrollable-nav breakpoint must cover the width the desktop nav needs.
+     At 720px it did not: the links wrapped onto two lines across the whole
+     721-919px band, and below ~850px the nav also pushed the page into
+     horizontal scroll with the theme toggle off-screen. iPad portrait (768px)
+     sat inside that. Measured requirement is 924px, so the breakpoint has to
+     be at least ~920. */
+  const navbp = css.match(/@media\(max-width:(\d+)px\)\{\s*\.nav-inner/);
+  ok('scrollable-nav breakpoint exists', !!navbp);
+  ok(`nav breakpoint covers the desktop nav's 924px requirement (${navbp ? navbp[1] : '?'}px)`,
+    !!navbp && Number(navbp[1]) >= 900);
+  /* The mobile treatment is what prevents the wrap; both halves must be there. */
+  const navblk = navbp
+    ? css.slice(css.indexOf(navbp[0]), css.indexOf(navbp[0]) + 700) : '';
+  ok('mobile nav keeps links on one line', /white-space:nowrap/.test(navblk));
+  ok('mobile nav scrolls horizontally instead of overflowing',
+    /overflow-x:auto/.test(navblk));
+
+  /* The artwork's own invariants, checked on the hero (the only copy now --
+     the gutter rails were removed). */
+  ok('figure ids are unique', (function(){
+    const ids = src.match(/id="[a-z]{1,2}(?:hL|hR|jet)"/g) || [];
+    return new Set(ids).size === ids.length;
+  })());
+  /* The static r is the no-animation fallback (reduced motion, or an engine
+     that will not animate `r`): it must cover the whole drawing, or the jet
+     is silently cropped rather than merely un-animated. `r="\d{3,}"` was the
+     old predicate and accepted r="100", which crops badly -- so measure the
+     drawn extent instead of trusting a digit count. */
+  {
+    const sr = fig.match(/class="jet-reveal"[^>]*\br="([\d.]+)"/);
+    const jetG = fig.slice(fig.indexOf('<g class="jet"'));
+    const coords = [...jetG.matchAll(/([\d.]+)\s+([\d.]+)/g)]
+      .map((m) => Math.hypot(Number(m[1]) - 600, Number(m[2]) - 240));
+    const reach = coords.length ? Math.max(...coords) : Infinity;
+    ok(`static reveal radius covers the drawn jet (r=${sr && sr[1]} vs reach ${reach.toFixed(0)})`,
+      !!sr && Number(sr[1]) >= reach);
+  }
+  ok('particle delays rise with distance from the hole', (function(){
+    const ds = (fig.match(/--esc-delay:([\d.]+)s/g) || [])
+      .map((x) => parseFloat(x.split(':')[1]));
+    return ds.length >= 4 && Math.max(...ds) > Math.min(...ds) + 0.5;
+  })());
+  /* THE gate, and it has to be geometric. --esc-delay alone cannot do this
+     job: CSS animation-delay applies to an animation's FIRST iteration only,
+     and the particle drift loop (3s) does not divide the jet cycle (17s), so
+     from the second cycle onward the delays are meaningless. Measured before
+     the fix: 3 of 5 particles painted ahead of the front at t=17.3s, and 5 of
+     5 by t=34.4s. Sharing the reveal clip gates them on every cycle with no
+     constant to drift. */
+  ok('particles share the jet reveal clip, so none can paint ahead of the front',
+    /<g class="escs" clip-path="url\(#\w*jet\)"/.test(fig));
+  ok('generator emits the escapee group inside the reveal clip',
+    /<g class="escs" clip-path="url\(#\{J\}\)"/.test(
+      fs.readFileSync(path.join(root, 'tools/mkfigure_light.py'), 'utf8')));
+
+  ok('particles hidden during their delay (backwards fill)',
+    /\.figanim \.esc\{[\s\S]{0,240}animation-fill-mode:backwards/.test(css));
+  ok('animations pause while the figure is off-screen',
+    /\.figanim\.is-paused \*\{animation-play-state:paused/.test(css));
+  ok('figures honour prefers-reduced-motion',
+    /prefers-reduced-motion:reduce\)\{[\s\S]{0,200}\.figanim[\s\S]{0,140}animation:none/.test(css));
+
+  /* An auto-fit track minimum is a FLOOR the grid will not collapse below,
+     so a bare minmax(290px,1fr) overflows any container narrower than 290px.
+     That was the site's only horizontal scroll at 320px. min(...,100%) lets
+     the track yield to the column. Mutation: drop the min() and 320px
+     overflows by 5px again. */
+  ok('explainer grid track minimum can collapse below its ideal',
+    /\.exp-grid\{[^}]*minmax\(min\(\d+px,\s*100%\)/.test(css));
+
+  /* tools/_template.html ships TODO: markers as fill-in prompts. A page
+     copied from it and shipped with one still in place is an unfinished
+     page, so no deployed file may contain the marker. */
+  {
+    const fs2 = require('fs'), path2 = require('path');
+    const deployed = fs2.readdirSync(path2.join(__dirname, '..'))
+      .filter((f) => f.endsWith('.html') && !f.startsWith('_'));
+    const dirty = deployed.filter((f) =>
+      fs2.readFileSync(path2.join(__dirname, '..', f), 'utf8').includes('TODO:'));
+    ok(`no deployed page carries a template TODO marker (${deployed.length} checked)`,
+      dirty.length === 0, dirty.join(', '));
+  }
+
+  /* The gutter rails were removed; nothing should reference them. */
+  ok('no scroll-rail markup, CSS or JS remains',
+    /* `is-hidden` is scoped to .figanim / the class toggle: a bare substring
+       test would also fail on any future unrelated utility class of that
+       name, which is a check that breaks on innocent edits. */
+    !/scroll-rail/.test(src) && !/--rail-shift/.test(src) &&
+    !/\.figanim[^{]*\.is-hidden|\.is-hidden[^{]*\.figanim|classList\.(?:toggle|add)\('is-hidden'/.test(src));
+
+  /* The timing is duplicated: the CSS animates the reveal, and the generator
+     uses the same numbers to place each particle's delay. If they drift, the
+     particles stop lining up with the jet front -- so assert they agree
+     rather than pinning either one to a literal. */
+  const genSrc = fs.readFileSync(path.join(root, 'tools/mkfigure_light.py'), 'utf8');
+  const gm = genSrc.match(/EMERGE_FRAC,\s*CYCLE_S\s*=\s*([\d.]+),\s*([\d.]+)/);
+  const cssDur = css.match(/animation:jetgrow ([\d.]+)s/);
+  /* The percentage at which the reveal REACHES ITS MAXIMUM. Derived from the
+     keyframes rather than matched against a literal radius -- an earlier
+     version hardcoded `r:1500px` here and silently stopped matching the
+     moment the radius was retuned, taking two checks down with it. */
+  const jetStops = [...css.matchAll(
+    /@keyframes jetgrow\{([\s\S]*?)\n  \}/g)].flatMap((b) =>
+      [...b[1].matchAll(/([\d.]+)%\s*\{r:([\d.]+)px;\}/g)]
+        .map((m) => ({ pct: Number(m[1]), r: Number(m[2]) })));
+  const rMax = jetStops.length ? Math.max(...jetStops.map((x) => x.r)) : NaN;
+  /* Shaped like a regex match ([0] whole, [1] capture) so the consumers
+     below keep reading cssPct[1]. */
+  const cssPct = jetStops.length
+    ? ['', String(Math.min(...jetStops.filter((x) => x.r === rMax).map((x) => x.pct)))]
+    : null;
+  ok('generator and CSS declare the shared timing', !!gm && !!cssDur && !!cssPct);
+  ok(`generator and CSS agree on the cycle (${gm && gm[2]}s vs ${cssDur && cssDur[1]}s)`,
+    !!gm && !!cssDur && Math.abs(Number(gm[2]) - Number(cssDur[1])) < 0.01);
+  ok(`generator and CSS agree on the emerge fraction (${gm && gm[1]})`,
+    !!gm && !!cssPct && Math.abs(Number(gm[1]) - Number(cssPct[1]) / 100) < 0.01);
+  /* The reveal RADII are duplicated the same way: the generator divides each
+     particle's distance by (R1 - R0) to place its delay, and jetgrow sweeps r
+     across the same span. Drift here fires particles ahead of the jet front. */
+  const gr = genSrc.match(/REVEAL_R0,\s*REVEAL_R1\s*=\s*([\d.]+),\s*([\d.]+)/);
+  const cssR = css.match(/@keyframes jetgrow\{\s*0%\s*\{r:([\d.]+)px;\}[\s\S]*?\{r:([\d.]+)px;\}/);
+  ok(`generator and CSS agree on the reveal radii (${gr && gr[1]}-${gr && gr[2]} vs ${cssR && cssR[1]}-${cssR && cssR[2]})`,
+    !!gr && !!cssR &&
+    Math.abs(Number(gr[1]) - Number(cssR[1])) < 0.01 &&
+    Math.abs(Number(gr[2]) - Number(cssR[2])) < 0.01);
+
+  /* The three checks above compare the generator's constants to the CSS.
+     Neither side is the ARTEFACT: index.html carries a paste of the generator's
+     output, and its baked --esc-delay values can be stale while both sources
+     agree perfectly. Four realistic drifts passed green before this check --
+     bumping CYCLE_S in generator AND keyframes without regenerating, and
+     hand-editing the delays among them. So re-derive every delay from the
+     particle's own coordinates in the pasted SVG, using the shared constants,
+     and compare with what is actually written there. */
+  {
+    const hc = genSrc.match(/HCX,\s*HCY\s*=\s*(\d+),\s*(\d+)/);
+    const CX = hc ? Number(hc[1]) : NaN, CY = hc ? Number(hc[2]) : NaN;
+    const R0 = gr ? Number(gr[1]) : NaN, R1 = gr ? Number(gr[2]) : NaN;
+    const EM = gm ? Number(gm[1]) : NaN, CYC = gm ? Number(gm[2]) : NaN;
+    /* Each .esc group ends with the head circle; that is the point the delay
+       is derived from in the generator. */
+    const parts = [...fig.matchAll(
+      /--esc-delay:([\d.]+)s"[\s\S]*?<circle cx="([\d.-]+)" cy="([\d.-]+)"/g)];
+    let worst = 0;
+    parts.forEach((m) => {
+      const d = Math.hypot(Number(m[2]) - CX, Number(m[3]) - CY);
+      const frac = Math.min(1, Math.max(0, (d - R0) / (R1 - R0)));
+      worst = Math.max(worst, Math.abs(frac * EM * CYC - Number(m[1])));
+    });
+    ok(`baked --esc-delay values re-derive from the shared constants (${parts.length} particles, worst ${worst.toFixed(3)}s)`,
+      parts.length >= 4 && hc && gr && gm && worst < 0.011);
+  }
+
+  /* The hold phase: jet and wave sit still while only particles move. */
+  const jf = css.match(/@keyframes jetfade\{([\s\S]*?)\n  \}/);
+  const stops = jf
+    ? [...jf[1].matchAll(/([\d.]+)%\s*\{opacity:([\d.]+);\}/g)]
+        .map((m) => ({ pct: Number(m[1]), op: Number(m[2]) }))
+    : [];
+  const holdEnd = Math.max(...stops.filter((x) => x.op === 1).map((x) => x.pct), 0);
+  const jetDone = cssPct ? Number(cssPct[1]) : 0;
+  ok('cycle holds after the jet completes, before fading',
+    stops.length >= 4 && holdEnd > jetDone + 10,
+    `jet done ${jetDone}%, hold ends ${holdEnd}%`);
+  const waveDone = css.match(/@keyframes railwave\{[\s\S]*?([\d.]+)%\s*\{stroke-dashoffset:0/);
+  /* The jet must finish emerging AFTER the wave, with clear separation.
+     Compare the moment each is actually FINISHED ON SCREEN, not the keyframe
+     percentages: the reveal is a circle sweeping past fixed artwork, so if its
+     radius overshoots the drawing it finishes early no matter what the
+     keyframe says. That is what happened with R1=1500 -- keyframe 54%, real
+     22.4%, i.e. the jet beat the wave.
+
+     The MARGIN is a design choice and has moved: the jet ran at ~1.8x the
+     wave's completion time (EMERGE_FRAC 0.54) until 2026-08-15, when the jet
+     was sped up 30% by request, putting it at ~1.4x. The threshold below is
+     deliberately looser than either, so it catches the ordering being lost or
+     inverted -- the actual bug -- without failing every time the pacing is
+     retuned. If you want a specific ratio enforced, pin EMERGE_FRAC instead;
+     that is the knob, and the generator/CSS agreement check already guards
+     it. */
+  const jetRealPct = (function(){
+    const jetG = fig.slice(fig.indexOf('<g class="jet"'));
+    const reach = Math.max(...[...jetG.matchAll(/([\d.]+)\s+([\d.]+)/g)]
+      .map((m) => Math.hypot(Number(m[1]) - 600, Number(m[2]) - 240)));
+    const r0 = Math.min(...jetStops.map((x) => x.r));
+    return Math.min(1, (reach - r0) / (rMax - r0)) * jetDone;
+  })();
+  ok(`jet finishes later than the wave on screen (wave ${waveDone && waveDone[1]}%, jet ${jetRealPct.toFixed(1)}% of cycle, ratio ${(jetRealPct / Number((waveDone || [0, 1])[1])).toFixed(2)}x)`,
+    !!waveDone && jetRealPct > Number(waveDone[1]) * 1.25);
+
+  /* The reveal maximum is bounded on BOTH sides, and the two failures are
+     completely different. Too large and the circle outruns the artwork, so
+     the emergence finishes early and the tail of the sweep is dead time
+     (R1 was 1500 against a 716 extent: done at 22% of the cycle, not 54%).
+     Too small and anything past it is clipped FOREVER -- an escapee that
+     never appears. So measure what actually has to be uncovered, including
+     each particle at full drift, and require R1 to sit just above it. */
+  {
+    const DRIFT = Number((css.match(/translate\(calc\(var\(--esc-dx\) \* (\d+)px/) || [])[1]);
+    const CXc = 600, CYc = 240;
+    let reach = 0;
+    const jetG2 = fig.slice(fig.indexOf('<g class="jet"'), fig.indexOf('<g class="escs"'));
+    [...jetG2.matchAll(/([\d.]+)\s+([\d.]+)/g)].forEach((m) => {
+      reach = Math.max(reach, Math.hypot(Number(m[1]) - CXc, Number(m[2]) - CYc));
+    });
+    [...fig.matchAll(/--esc-dx:([-\d.]+);--esc-dy:([-\d.]+);[^"]*">([\s\S]*?)<\/g>/g)]
+      .forEach((g) => {
+        [...g[3].matchAll(/([-\d.]+)[ ,]([-\d.]+)/g)].forEach((m) => {
+          reach = Math.max(reach, Math.hypot(
+            Number(m[1]) + Number(g[1]) * DRIFT - CXc,
+            Number(m[2]) + Number(g[2]) * DRIFT - CYc));
+        });
+      });
+    ok(`reveal maximum brackets the drawn extent (r=${rMax} vs reach ${reach.toFixed(0)}, drift ${DRIFT}px)`,
+      Number.isFinite(DRIFT) && rMax >= reach && rMax <= reach * 1.25);
+  }
 
   /* The old chirp generator must stay commented: with its SVG gone,
      getElementById('chirpPath') is null and the next line throws, taking out
