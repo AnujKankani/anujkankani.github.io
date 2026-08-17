@@ -238,7 +238,7 @@ These are research artifacts published under your name. Treat errors here as mor
 - **Landmark values must be exact, not eyeballed:** ISCO at r = 6M, photon sphere at r = 3M, horizon at r = 2M, critical impact parameter b = 3√3 M ≈ 5.196M. If a rendered feature lands somewhere else, the integrator is wrong — not the label.
 - **Integrators:** RK4 with a fixed step is the current standard (see [geodesic-explorer.html](geodesic-explorer.html)). Take several small substeps per frame rather than one huge step — `step()` there runs 18 for photons and 40 for massive particles — and keep the state vector allocation-free.
 - **Verified math gets a comment saying so**, as `swsh()` does. Changing a function marked verified is a physics change: check it against known closed forms before committing, and say in the commit message what you checked against.
-- **Decorative ≠ physical.** The chirp mark (removed from the homepage 2026-08-14, still used by the favicon and the social card) is hand-tuned illustration, not model output. Never let a decorative curve be mistaken for a result.
+- **Decorative ≠ physical.** The chirp mark (removed from the homepage 2026-08-14, and from `og-home.jpg` on 2026-08-17 — the favicon is now its last use) is hand-tuned illustration, not model output. Never let a decorative curve be mistaken for a result.
 
 ## Accessibility and interaction
 
@@ -315,7 +315,7 @@ where `WEBSITE_NODE=/home/anuj/anaconda3/envs/website_env/bin/node` (conda env `
 
 `tools/extract.js` pulls the inline `<script>` bodies out of a tool page and evaluates them in a `vm` sandbox with minimal DOM stubs, so the tests exercise **the actual functions inlined in the page**, not copies. A sign error introduced while refactoring a renderer fails here.
 
-Coverage runs wider than physics now — the recurring lesson has been that the bugs live in the layer *between* the physics and the screen, so the suite grew to cover that layer too. Nineteen suites:
+Coverage runs wider than physics now — the recurring lesson has been that the bugs live in the layer *between* the physics and the screen, so the suite grew to cover that layer too. Twenty suites:
 
 - **Physics** — `₋₂Y_lm` closed forms for (2,±2), (2,0), the `e^{imφ}` azimuthal law, Condon–Shortley phase, orthonormality across ℓ, nodal-circle and azimuthal-lobe counts; Schwarzschild landmarks (ISCO r=6M and L²=12, photon sphere r=3M, b_crit=3√3M, horizon Veff=0, Newtonian limit); Kerr landmarks and dynamics, with `accel = −½ dVeff/dr` and the a→0 Schwarzschild reduction checked numerically.
 - **UI state** — presets drive the real controls through `loadUI`, and on-screen claims are checked against actual behaviour.
@@ -371,6 +371,27 @@ shoot "http://localhost:8000/tools/og-tool.html?tool=swsh"  assets/og-swsh.jpg
 shoot "http://localhost:8000/tools/og-tool.html?tool=geo"   assets/og-geodesic.jpg
 ```
 
+Two notes on that recipe. The screenshot path above is outside the repo; Chrome
+will write **into** the repo over UNC instead, which keeps the whole workflow
+inside it:
+
+```bash
+UNC='\\wsl.localhost\Ubuntu\home\anuj\website\anujkankani.github.io\assets'
+"$CHROME" --headless --disable-gpu --hide-scrollbars \
+  --screenshot="$UNC\\_ogtmp.png" --window-size=1200,630 \
+  --virtual-time-budget=9000 "http://localhost:8000/tools/og-card.html"
+ffmpeg -y -v error -i assets/_ogtmp.png -q:v 3 assets/og-home.jpg
+```
+
+`assets/_*.png` is gitignored so the intermediate never ships.
+
+And `tools/og-card.html` now **inlines a copy of the hero figure**, lifted
+verbatim out of `index.html` rather than redrawn — it relies on the card
+defining `--ink`, `--field` and `--wave-1..3`, which it does at dark-theme
+values. That copy does not update itself: **regenerating the hero figure means
+re-pasting it into the card as well**, or the card drifts exactly the way the
+chirp version did.
+
 `tools/og-tool.html` loads the **real widget** in a same-origin iframe and
 crops to a measured element rect, so a card can never show a stale render or a
 half-clipped control row. Three things it has to work around, the first two of
@@ -391,9 +412,10 @@ which cost an afternoon once:
 
 The favicon is the chirp mark with the cycle count cut until it survives
 16 px. **The chirp is no longer drawn on the homepage** — it was replaced by
-the split black-hole figure on 2026-08-14 — so the favicon and `og-home.jpg`
-now advertise a figure the page does not contain. Still undecided: keep the
-chirp as the site's mark, or re-shoot the card from the new hero.
+the split black-hole figure on 2026-08-14, and `og-home.jpg` was re-shot from
+that figure on 2026-08-17. The favicon is now the **only** place the chirp
+survives, so the tab mark and the page disagree. Still undecided: keep the
+chirp as the site's mark, or regenerate the favicon from the hero figure too.
 Regenerate with `node tools/mkfav.js <outdir>`, then paste the contents of
 `favicon-uri.txt` into the `<link rel="icon">` of all three pages.
 

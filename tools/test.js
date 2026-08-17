@@ -2438,7 +2438,8 @@ suite('index.html :: hero figure', () => {
   ok('heading weight is a variable, not a literal',
     /h1,h2,h3\{[^}]*font-weight:var\(--fw-head\)/.test(css));
 
-  const NAV_NEED = 1008;  // measured at 1400px with document.fonts.ready resolved
+  const NAV_NEED = 964;   // measured at 1400px with document.fonts.ready resolved,
+                          // desktop layout forced (the mobile block neutralised)
   ok(`nav breakpoint covers the desktop nav's ${NAV_NEED}px requirement (${navbp ? navbp[1] : '?'}px)`,
     !!navbp && toggles === 3 && Number(navbp[1]) >= NAV_NEED - 1);
   /* The mobile treatment is what prevents the wrap; both halves must be there. */

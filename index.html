@@ -27,8 +27,9 @@
 
 <!-- Tab icon: the site's chirp mark, simplified until it survives 16px.
      Inlined as a data URI so the page still fetches nothing but the font.
-     The chirp is no longer drawn on the page itself -- this and the
-     og-home.jpg card are the only places it still appears. -->
+     The chirp is no longer drawn on the page itself, and og-home.jpg was
+     regenerated from the hero figure on 2026-08-17, so this favicon is now
+     the ONLY place the chirp survives. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='0'%3E%3Cstop%20offset='0'%20stop-color='%237C83F0'/%3E%3Cstop%20offset='.55'%20stop-color='%23E070B4'/%3E%3Cstop%20offset='1'%20stop-color='%23F0B457'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%230E141F'/%3E%3Cpath%20d='M3.2%2016.0L3.5%2016.0L3.7%2016.0L4.0%2016.0L4.3%2016.0L4.5%2016.0L4.8%2016.0L5.1%2015.9L5.3%2015.9L5.6%2015.8L5.9%2015.8L6.1%2015.7L6.4%2015.7L6.7%2015.6L6.9%2015.5L7.2%2015.5L7.5%2015.4L7.7%2015.3L8.0%2015.2L8.3%2015.1L8.5%2015.1L8.8%2015.0L9.1%2015.0L9.3%2014.9L9.6%2014.9L9.9%2015.0L10.1%2015.0L10.4%2015.1L10.7%2015.2L10.9%2015.3L11.2%2015.5L11.5%2015.8L11.7%2016.0L12.0%2016.3L12.3%2016.7L12.5%2017.1L12.8%2017.5L13.1%2017.9L13.3%2018.3L13.6%2018.7L13.9%2019.2L14.1%2019.5L14.4%2019.9L14.7%2020.1L14.9%2020.3L15.2%2020.3L15.5%2020.2L15.7%2019.9L16.0%2019.5L16.3%2018.9L16.5%2018.1L16.8%2017.2L17.1%2016.1L17.3%2014.8L17.6%2013.5L17.9%2012.2L18.1%2011.0L18.4%209.9L18.7%209.1L18.9%208.5L19.2%208.4L19.5%208.7L19.7%209.6L20.0%2011.0L20.3%2012.9L20.5%2015.2L20.8%2017.7L21.1%2020.3L21.3%2022.1L21.6%2022.8L21.9%2022.8L22.1%2022.2L22.4%2021.0L22.7%2019.5L22.9%2017.9L23.2%2016.4L23.5%2015.1L23.7%2014.2L24.0%2013.7L24.3%2013.6L24.5%2013.8L24.8%2014.4L25.1%2015.1L25.3%2015.8L25.6%2016.4L25.9%2016.8L26.1%2017.0L26.4%2017.0L26.7%2016.8L26.9%2016.4L27.2%2016.0L27.5%2015.7L27.7%2015.5L28.0%2015.5L28.3%2015.6L28.5%2015.8L28.8%2016.0'%20fill='none'%20stroke='url(%23g)'%20stroke-width='2.7'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E">
 
 <!-- Tints the browser chrome on mobile. A media-query pair would disagree with
@@ -40,8 +41,9 @@
      answering a question) build an ENTITY for a person rather than just
      indexing text that mentions a name. sameAs is the load-bearing part:
      it is how two identities are decided to be the same researcher, so a
-     placeholder identifier there is worse than an absence. ORCID and
-     Google Scholar go into sameAs as soon as the real ones exist. -->
+     placeholder identifier there is worse than an absence. The real ORCID,
+     INSPIRE-HEP, GitHub and arXiv identifiers are all in sameAs below;
+     INSPIRE replaced Google Scholar on 2026-08-17. -->
 <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -340,18 +342,22 @@
   :root[data-theme="dark"] .theme-toggle .icon-sun{display:block;}
   :root[data-theme="dark"] .theme-toggle .icon-moon{display:none;}
   /* Scrollable nav. The breakpoint is the width the DESKTOP nav actually needs
-     -- measured, not guessed: name 98 + links 690 + THREE 34px controls +
+     -- measured, not guessed: name 98 + links 674 + THREE 34px controls +
      their 8px cluster gaps + a 20px gap + the wrap's 56px padding, which
-     measures out at 1008px, so the media query takes over at 1007.
+     measures out at 964px, so the media query takes over at 963.
        It was 720px, which left the whole 721-919px band broken: the links
      wrapped onto two lines throughout it, and below ~850px the nav also pushed
      the page into horizontal scroll with the theme toggle off-screen entirely.
      768px (iPad portrait) sat squarely inside that. It was then 920px, correct
      for a nav with ONE toggle; adding the type toggle pushed the requirement
      up 42px and re-broke the 921-965px band the same way, and the newspaper
-     link pushed it again. That third control first measured 1020px -- past
-     iPad landscape's 1024 by four pixels -- which is why .nav-tools tightens
-     the gap BETWEEN the icons to 8px while leaving 20px to the links.
+     link pushed it again, to 1008. That third control first measured 1020px
+     -- past iPad landscape's 1024 by four pixels -- which is why .nav-tools
+     tightens the gap BETWEEN the icons to 8px while leaving 20px to the links.
+       It then came back DOWN to 964 when the dead "Research" entry was
+     relabelled "Awards": two characters off one link is 16px off the strip.
+     The number tracks the bar's contents in both directions, so re-measure
+     after any nav edit, including a pure rename.
        Two traps when re-measuring, both of which have produced a wrong number
      here: measure with document.fonts.ready resolved, because fallback metrics
      are narrower and make the nav look like it fits when it does not; and do
@@ -359,7 +365,7 @@
      60px and cannot grow -- watch the height of an individual link instead.
      Measure by loading the page in an iframe of the target width from a
      scratch harness and reading getBoundingClientRect() inside it. */
-  @media(max-width:1007px){
+  @media(max-width:963px){
     .nav-inner{gap:12px;}
     .nav-name{flex:0 0 auto;}
     .nav-right{flex:1 1 auto;min-width:0;gap:10px;}
@@ -423,7 +429,7 @@
      At 900px and narrower the free column is thinner than the frame plus its
      gutter, so it is removed rather than shrunk -- a 100px-wide photo of a
      person is not worth the bytes. That is a THIRD independent breakpoint,
-     unrelated to the nav's 920px and the hero figure's 700px; they are not
+     unrelated to the nav's 1007px and the hero figure's 700px; they are not
      interchangeable. Measured: the copy's ink ends at a fixed ~656px, so the
      free width is wrap.right - 656, and 172 + 32 gutter needs wrap.right >=
      860, i.e. a viewport of ~900. */
@@ -940,7 +946,7 @@
     <div class="nav-right">
       <div class="nav-links">
         <a href="#about">About me</a>
-        <a href="#research">Research</a>
+        <a href="#awards">Awards</a>
         <a href="#publications">Publications</a>
         <a href="#software">Software</a>
         <a href="#bob">BOB</a>

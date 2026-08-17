@@ -5,8 +5,15 @@
 The CV is set as the front page of a late-19th-century broadsheet: ornate
 blackletter nameplate, folio line, stacked headline decks, hairline column
 rules, a drop cap, narrow justified columns, and a standing rail of "office"
-matter. Page One is the full front-page performance; Pages Two and Three are
-quieter "inside pages" carrying the long lists in the same idiom but plainer.
+matter. It runs to **four pages**: Page One is the front-page performance;
+Page Two is the complete publication record; Page Three is a **section front**
+for Software & Code — its own flag, banner, decks and lead story, the way an
+inside section of a paper opened; Page Four carries the engagements as news
+stories, then the paper's own address and colophon.
+
+The inside pages did not start that way. They were lists in a period font,
+which reads as a CV on tinted paper however it is typeset. What fixed them was
+hierarchy — a lead, secondaries, and boxed standing matter — not more ornament.
 
 ## The four decisions that carry it
 
@@ -18,19 +25,26 @@ quieter "inside pages" carrying the long lists in the same idiom but plainer.
    costume here: the headline *is* the paper title, and his titles are
    declarative sentences that read as headlines unaltered.
 
-2. **Published and submitted work are in different registers, not just
-   different lists.** The three refereed papers are Page One news: **bold**
-   Bodoni caps, in the main well, under a section rule reading PUBLISHED AND
-   REFEREED. The four submitted papers are Page Two *announcements*: enclosed
-   in a hairline box labelled ANNOUNCEMENTS, set in Bodoni **regular**, each
-   carrying a boxed `SUBMITTED — UNDER REVIEW` tag, and preceded by a standing
-   note that says in plain English that they have not completed refereeing.
-   Four separate signals; a reader cannot conflate the two groups.
+2. **Standing — refereed or not — is carried on every entry, wherever it
+   appears.** Page One leads with the three papers on the direct wave and the
+   BOB model, which are all *submitted*: the section is headed LATEST
+   DISPATCHES, each kicker reads UNDER REVIEW, each citation line reads
+   "Submitted to <journal>" and each footer tag reads "Not yet refereed".
+   Three independent signals, because a front page must not be readable as
+   claiming three journal papers. Page Two then prints **all seven** under THE
+   COMPLETE RECORD, tagged `REFEREED — IN PRINT` or `SUBMITTED — UNDER
+   REVIEW`, with the three dispatches repeated and marked "Page One" so the
+   column can be read alone.
+
+   The earlier arrangement was the reverse — refereed on the front, submitted
+   boxed as announcements on Page Two. When the front page changed, the
+   *framing* had to move with the papers: leaving the old PUBLISHED AND
+   REFEREED rule above submitted work would have made the front page lie.
 
 3. **The rail is where a paper prints its own address — so that is where the
    contact block goes.** Column four is a boxed masthead (name, department,
-   email, site, ORCID, GitHub, Scholar), then Terms of Study (education),
-   then Honours Conferred. It is repeated at the foot of Page Three as
+   email, site, ORCID, GitHub, INSPIRE-HEP), then Terms of Study (education),
+   then Honours Conferred. It is repeated at the foot of Page Four as
    TERMS OF CORRESPONDENCE, which is both period-correct and practically
    useful on the last page of a CV.
 
@@ -97,7 +111,7 @@ The newspaper form invites fabrication, so the checks were explicit:
 - The masthead is invented and signals the field (*ringdown*); it imitates no
   real publication, and there is no ISSN. The dateline is today's real date.
   Volume number, price line and ornaments are costume, and the **colophon on
-  Page Three says so explicitly**, along with the statement that the document
+  Page Four says so explicitly**, along with the statement that the document
   is a CV and not a newspaper.
 - **Verified by extraction, not by eye**: `pdftotext cv.pdf` was checked
   against 101 discrete facts from `CONTENT.md` — every email, URL, ORCID,
@@ -114,18 +128,16 @@ rasters, which is the point.
 
 ## What I'd change with more time
 
-- **Story 2 on Page One runs a few lines longer** than its neighbours because
-  "Testing the Boundary-to-Bound Correspondence with Numerical Relativity"
-  wraps to five lines of Bodoni caps. A real compositor would have set that
-  one headline a point smaller. The column rules still end level, so it reads
-  as intentional, but it isn't.
-- **Software sits on Page Three**, below the fold of the fold. It is his most
-  distinctive asset and deck 2 of the banner does name all five roles, but a
-  version that promoted the software into the Page One well — perhaps in place
-  of the third (undergraduate) refereed paper — would sell the profile harder.
-- The 2:1 split of engagements into two columns of six is arbitrary; grouping
-  by year with year-heads spanning both columns would be more period and
-  easier to scan.
+- The front-page stories are set from titles of very different lengths, so the
+  three columns fill unevenly. A real compositor would have set the longest
+  headline a point smaller rather than letting the column rules carry it.
+- **Page Four's archive box is pinned to the foot** with `margin-top:auto`,
+  which fills the page but leaves a band of air above it. It reads as standing
+  matter, but a real page would have carried another item there.
+- The two earlier entries here are now **done**: software was promoted out of
+  the back pages into its own section front on Page Three, and the engagements
+  were regrouped by year — first as briefs under year standing heads, then as a
+  lead story with two dated secondaries and a boxed archive.
 
 ## Honest read on how this would land
 
@@ -138,7 +150,7 @@ member who enjoys it will remember this CV out of two hundred.
 But it asks to be enjoyed, and thirty seconds is not much time to decide
 whether a candidate is being charming or unserious. Reading it top-to-bottom,
 the facts are all there and findable — "does he have Phys. Rev. D papers?" is
-answered by two headlines in the bottom-left of Page One in about three
+answered on Page Two, where all seven are tagged by standing, in about three
 seconds — so it does not fail on function. The risk is entirely tonal, and it
 is real: for a theory postdoc search this may read as a candidate spending
 effort on the wrong thing. My honest recommendation is that this is a superb
@@ -148,11 +160,12 @@ memorable at the cost of being safe.
 
 ## Files
 
-`cv.html` · `cv.pdf` (3pp) · `page-1..3.png` (110dpi) ·
-`greyscale-1..3.png` (desaturated proof) · `NOTES.md`
+Three files ship: `cv.html` · `cv.pdf` (4pp) · `NOTES.md`. Everything else in
+this directory — page rasters, greyscale proofs, zoom crops, the font and
+hyphenation probes, `_shy.py` and the `.part` intermediates — is gitignored by
+an allowlist in `.gitignore`, because each design left a different mess and a
+pattern list silently misses the next one. Regenerate the rasters with:
 
-Working files kept per the no-deletion rule: `probe.html/.pdf/-1.png` (the
-font-embedding probe), `hyphprobe.html/.pdf/-1.png` (the hyphenation probe),
-`_shy.py` (the soft-hyphen pass), `zoom-*.png` (print-resolution crops),
-`_head.part` / `_p23.part` / `_tail.part` / `_txt*.txt` / `_final.txt`
-(intermediates).
+```bash
+pdftoppm -png -r 110 cv/design-10-newspaper/cv.pdf cv/design-10-newspaper/page
+```

@@ -1,7 +1,8 @@
 // Generates the site favicon: the chirp mark, simplified until it survives
 // 16px. The chirp is no longer drawn on the homepage (replaced by the split
-// black-hole figure); this favicon and the og-home.jpg card are the only
-// places it still appears.
+// black-hole figure), and og-home.jpg was regenerated from that figure on
+// 2026-08-17 -- so this favicon is the only place the chirp still appears.
+// If the mark is ever retired, this generator goes with it.
 const fs = require('fs');
 const OUT = process.argv[2];
 
