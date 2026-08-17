@@ -219,13 +219,22 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
 }
 .standing-note b{ font-style:normal; font-variant:small-caps;
                   letter-spacing:.05em; }
-.ann-grid{ display:flex; flex-wrap:wrap; }
-.ann{ flex:0 0 50%; padding:5.5pt 12pt; break-inside:avoid; text-align:center; }
-.ann:nth-child(odd){ padding-left:0; border-right:.5pt solid var(--hair); }
-.ann:nth-child(even){ padding-right:0; }
-.ann:nth-child(1),.ann:nth-child(2){ padding-top:0; }
-/* every row after the first takes a rule, however many entries there are */
-.ann:nth-child(n+3){ border-top:.5pt solid var(--hair); }
+/* A grid, so the newest paper can take the full measure as the lead notice
+   and the rest pair off beneath it. Seven identical boxes had no hierarchy at
+   all -- which is what made this page read as a list rather than a page. */
+.ann-grid{ display:grid; grid-template-columns:1fr 1fr; }
+.ann{ padding:5.5pt 12pt; break-inside:avoid; text-align:center; }
+.ann:nth-child(odd){ padding-left:0; }
+.ann:nth-child(even){ padding-right:0; border-left:.5pt solid var(--hair); }
+.ann:nth-child(n+2){ border-top:.5pt solid var(--hair); }
+.ann-lead{
+  grid-column:1 / -1; padding:0 0 8pt; border-left:0;
+  box-shadow:inset 0 -2.2pt 0 -1.6pt var(--hair);   /* thick-thin under the lead */
+}
+.ann-lead h3{ font-size:15.5pt; line-height:1.04; text-transform:uppercase;
+              letter-spacing:.02em; }
+.ann-lead .a-d1{ font-size:10.4pt; }
+.ann-lead .a-rule{ width:52pt; }
 .ann-tag{
   display:inline-block; border:.7pt solid var(--hair); padding:1.4pt 6pt 1.8pt;
   font-family:'Engravers MT',serif; font-size:6.4pt; letter-spacing:.13em;
@@ -242,50 +251,154 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
 .ann .a-d3{ font-size:8.1pt; font-variant:small-caps; letter-spacing:.04em;
             margin-top:2.5pt; }
 
-/* ─── software: trade notices ─────────────────────────────────────── */
-.works{ display:flex; margin-top:14pt; }
-.works .col{ flex:1 1 0; padding:0 10pt; }
-.works .col:first-child{ padding-left:0; }
-.works .col:last-child{ padding-right:0; }
-.works .col + .col{ border-left:.5pt solid var(--hair); }
-.work{ break-inside:avoid; margin-bottom:19pt; }
-.work:last-child{ margin-bottom:0; }
-.work h4{ font-family:'Bodoni MT',serif; font-weight:bold; font-size:14.5pt;
-          letter-spacing:.02em; line-height:1.05; }
-.work .role{ font-variant:small-caps; font-weight:bold; font-size:9.2pt;
-             letter-spacing:.05em; margin-top:2pt; }
-.work .url a{ color:inherit; text-decoration:none; }
-.work .url{ font-size:8.3pt; font-style:italic; overflow-wrap:anywhere;
-            margin-top:1pt; }
-.work p{ font-size:9.2pt; line-height:1.34; text-align:justify;
-         hyphens:auto; -webkit-hyphens:auto; margin-top:5pt;
-         border-top:.5pt solid var(--hair); padding-top:5pt; }
+/* ─── section front ────────────────────────────────────────────────
+   A newspaper's inside sections opened the way the paper did: a section flag
+   in place of the nameplate, then a banner, decks and a lead story. Without
+   that, an inside page is just a list on tinted paper -- which is exactly how
+   this one read before. */
+.secflag{ text-align:center; margin-top:2pt; }
+.sf-rule{ border-top:2.4pt solid var(--hair); border-bottom:.6pt solid var(--hair);
+          height:3pt; margin-bottom:5pt; }
+.sf-rule2{ border-top:.6pt solid var(--hair); border-bottom:2.4pt solid var(--hair);
+           height:3pt; margin-top:5pt; }
+.sf-name{
+  font-family:'Engravers MT',serif; font-size:19pt; letter-spacing:.2em;
+  line-height:1.1;
+}
+.sf-sub{ font-style:italic; font-size:8.4pt; margin-top:3pt; color:var(--soft); }
+.sw-banner{ font-size:23pt; margin-top:9pt; }
+/* The lead story runs the same three justified columns as the front page's,
+   with the same drop cap, so the two read as one paper. */
+.sw-lead{
+  column-count:3; column-gap:12pt; column-rule:.5pt solid var(--hair);
+  text-align:justify; hyphens:auto; -webkit-hyphens:auto;
+  font-size:8.6pt; line-height:1.26;
+  margin-top:8pt; padding-top:7pt; border-top:.5pt solid var(--hair);
+}
+.sw-lead p{ text-indent:9pt; }
+.sw-lead p:first-of-type{ text-indent:0; }
+.sw-lead p:first-of-type::first-letter{
+  float:left; font-family:'Bodoni MT',serif; font-weight:bold;
+  font-size:28pt; line-height:.8; padding:1pt 2.5pt 0 0;
+}
+.ital{ font-style:italic; }
+a.ital{ color:inherit; text-decoration:none; }
 
-/* ─── engagements ─────────────────────────────────────────────────── */
-.eng{ display:flex; margin-top:7pt; }
-.eng .col{ flex:1 1 0; padding:0 11pt; }
-.eng .col:first-child{ padding-left:0; }
-.eng .col:last-child{ padding-right:0; }
-.eng .col + .col{ border-left:.5pt solid var(--hair); }
-.ent{ display:flex; gap:7pt; padding:5pt 0; break-inside:avoid;
-      border-bottom:.4pt dotted #555; }
-.ent:first-child{ padding-top:0; }
-.ent:last-child{ border-bottom:0; }
-.ent .y{ flex:0 0 30pt; font-family:'Bodoni MT',serif; font-weight:bold;
-         font-size:10pt; text-align:right; padding-top:.5pt; }
-.ent .b{ flex:1 1 auto; }
-.ent .m{ font-variant:small-caps; font-weight:bold; font-size:9.2pt;
-         letter-spacing:.035em; line-height:1.16; }
-.ent .k{ font-family:'Engravers MT',serif; font-size:6.2pt;
-         letter-spacing:.12em; margin-top:1pt; }
-.ent .t{ font-size:8.6pt; line-height:1.22; font-style:italic; margin-top:.5pt; }
+/* ─── software: trade notices ───────────────────────────────────────
+   Set as the trade advertisements a broadsheet ran in its business columns:
+   each project is a boxed notice with a fleuron, a display name, a hairline
+   under it, the role as a standing line, and the repository as the "address"
+   at the foot. The old treatment was a bare two-column list, which read as a
+   web page dropped into a newspaper.
 
-/* ─── civic notices ───────────────────────────────────────────────── */
-.civic{ display:flex; margin-top:10pt; }
-.civic .col{ flex:1 1 0; padding:0 11pt; }
-.civic .col:first-child{ padding-left:0; }
-.civic .col:last-child{ padding-right:0; }
-.civic .col + .col{ border-left:.5pt solid var(--hair); }
+   The lead notice spans both columns, the way the largest advertiser bought
+   the double-column space -- and it happens to be the one project that is
+   his rather than contributed to, so the hierarchy is true as well as
+   period. */
+.works{ display:grid; grid-template-columns:1fr 1fr; gap:10pt; margin-top:12pt; }
+.ad{
+  border:.6pt solid var(--hair);
+  padding:7pt 10pt 8pt;
+  text-align:center;
+  break-inside:avoid;
+  display:flex; flex-direction:column;
+}
+/* Doubled rule at the head of each notice: the thick-over-thin pairing is the
+   period's most recognisable border, and one box-shadow inset costs nothing. */
+.ad{ box-shadow:inset 0 2.6pt 0 -1.9pt var(--hair); }
+.ad-lead{ grid-column:1 / -1; padding:9pt 16pt 10pt; }
+.ad-orn{ line-height:0; margin-bottom:4.5pt; }
+.ad h4{
+  font-family:'Bodoni MT',serif; font-weight:bold;
+  font-size:13pt; line-height:1.02; letter-spacing:.02em;
+}
+.ad-lead h4{ font-size:17pt; text-transform:uppercase; letter-spacing:.04em; }
+.ad-rule{ width:30pt; border-top:.5pt solid var(--hair); margin:4pt auto 3.5pt; }
+.ad-lead .ad-rule{ width:46pt; }
+.ad .role{
+  font-family:'Engravers MT',serif; font-size:6.6pt;
+  letter-spacing:.14em; line-height:1.2;
+}
+.ad p{
+  font-size:8.6pt; line-height:1.3; margin-top:5pt;
+  text-align:justify; hyphens:auto; -webkit-hyphens:auto;
+  flex:1 1 auto;
+}
+.ad-lead p{
+  text-align:center; font-size:9.2pt; line-height:1.34;
+  max-width:4.6in; margin-left:auto; margin-right:auto;
+}
+/* The repository sits at the foot like a shop address, over its own rule, and
+   is pinned to the bottom so the boxes in a row agree however long the notice
+   above it runs. */
+.ad .addr{
+  margin-top:6pt; padding-top:4pt; border-top:.5pt solid var(--hair);
+  font-size:7.8pt; font-style:italic; letter-spacing:.01em;
+  overflow-wrap:anywhere;
+}
+.ad .addr a{ color:inherit; text-decoration:none; }
+
+/* ─── engagements: a section page, not a list ──────────────────────
+   Twelve dated entries set as one uniform run read as a CV however they were
+   typeset. Broken into stories they read as a page: a lead on the newest
+   year, two secondaries beside each other, and a ruled archive box for the
+   two oldest. Every headline states only what the entries state -- counts,
+   formats and the subjects already named in the titles. */
+.engwrap{ display:flex; flex-direction:column; flex:1 1 auto; }
+.eng-banner{ font-size:26pt; margin-top:9pt; }
+.eng-lead{
+  column-count:3; column-gap:12pt; column-rule:.5pt solid var(--hair);
+  text-align:justify; hyphens:auto; -webkit-hyphens:auto;
+  font-size:9.9pt; line-height:1.42;
+  margin-top:10pt; padding-top:8pt; border-top:.5pt solid var(--hair);
+}
+.eng-lead p{ margin-bottom:9pt; break-inside:avoid; }
+
+.engsplit{ display:grid; grid-template-columns:1fr 1fr; gap:0 16pt;
+           margin-top:12pt; padding-top:9pt;
+           border-top:2.2pt solid var(--hair); }
+.engsplit .engstory + .engstory{ padding-left:16pt;
+           border-left:.5pt solid var(--hair); margin-left:-16pt; }
+.eng-kick{ font-family:'Engravers MT',serif; font-size:6.8pt;
+           letter-spacing:.16em; text-align:center; }
+h3.eng-head{ font-family:'Bodoni MT',serif; font-weight:bold; font-size:19pt;
+             text-align:center; line-height:1.02; letter-spacing:.04em;
+             margin-top:2pt; }
+.eng-drule{ width:38pt; border-top:.5pt solid var(--hair); margin:4pt auto 4pt; }
+.eng-deck{ font-style:italic; font-size:9.1pt; line-height:1.28;
+           text-align:center; margin-bottom:8pt; }
+.eng-body{ text-align:justify; hyphens:auto; -webkit-hyphens:auto;
+           font-size:10.1pt; line-height:1.44; }
+.eng-body p{ margin-bottom:10pt; break-inside:avoid; }
+
+/* The archive: a ruled box, the way a paper boxed its standing matter. */
+.engarch{ margin-top:auto; border:.7pt solid var(--hair);
+          box-shadow:inset 0 2.6pt 0 -1.9pt var(--hair);
+          padding:8pt 14pt 9pt; }
+.arch-label{ font-family:'Engravers MT',serif; font-size:8.2pt;
+             letter-spacing:.17em; text-align:center; padding-bottom:5pt;
+             border-bottom:.5pt solid var(--hair); margin-bottom:7pt; }
+.arch-body{ column-count:2; column-gap:16pt;
+            column-rule:.5pt solid var(--hair); font-size:9pt; }
+.arch-body p:last-child{ margin-bottom:0; }
+
+.bm{ font-variant:small-caps; font-weight:bold; letter-spacing:.035em; }
+.bk{ font-family:'Engravers MT',serif; font-size:7pt; letter-spacing:.11em; }
+.bt{ font-style:italic; }
+
+/* ─── civic notices: run-in items ──────────────────────────────────
+   Same move as the engagements: a paper set civic and society notices as
+   run-in paragraphs with the subject in small caps and an em-dash, divided
+   by fleurons -- not as headed blocks in two boxes. */
+.civ{
+  column-count:2; column-gap:15pt; column-rule:.5pt solid var(--hair);
+  text-align:justify; hyphens:auto; -webkit-hyphens:auto;
+  font-size:8.9pt; line-height:1.32; margin-top:10pt;
+}
+.civ p{ margin:0; break-inside:avoid; }
+.cn{ font-variant:small-caps; font-weight:bold; letter-spacing:.04em; }
+.civ-orn{ text-align:center; line-height:0; margin:5.5pt 0; break-inside:avoid; }
+
 /* A period column of notices closed with a "more to come" standing line.
    Same vocabulary as the enclosure's other standing note, one step quieter. */
 .inprep{
@@ -310,6 +423,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
              hyphens:auto; -webkit-hyphens:auto; column-count:2;
              column-gap:16pt; column-rule:.4pt solid var(--hair); }
 .colophon .ital{ font-style:italic; }
+a.ital{ color:inherit; text-decoration:none; }
 
 .orn{ text-align:center; margin:11pt 0 9pt; flex:0 0 auto; }
 
@@ -392,7 +506,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
 
         <p>He is the pri­mary devel­oper of gwBOB, an open-source Python pack­age imple­ment­ing the Back­wards One Body wave­form model, con­trib­utes to the Ein­stein Tool­kit, to Entity and to NRPy, and co-devel­ops LisaWave-JAX. All five are on Page Three.</p>
 
-        <p>He is a mem­ber of the LISA Con­sor­tium, in its wave­form and astro­phys­ics work­ing group. His engage­ments are on Page Three; his ser­vice and out­reach, on Page Four.</p>
+        <p>He is a mem­ber of the LISA Con­sor­tium, in its wave­form and astro­phys­ics work­ing group. His ser­vice and out­reach are on Page Three; his engage­ments, on Page Four.</p>
       </div>
 
       <!-- REFEREED PUBLICATIONS -->
@@ -492,9 +606,9 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
     <div class="ih">Inside This Issue</div>
     <div class="row">
       <div class="cell"><b>The Record</b><i>All seven papers,<br>with their standing</i><b>Page Two</b></div>
-      <div class="cell"><b>Engagements</b><i>Twelve meetings,<br>talks and posters</i><b>Page Three</b></div>
+      <div class="cell"><b>Engagements</b><i>Twelve meetings,<br>talks and posters</i><b>Page Four</b></div>
       <div class="cell"><b>Software &amp; Code</b><i>Five open-source<br>projects and roles</i><b>Page Three</b></div>
-      <div class="cell"><b>Civic Notices</b><i>Consortium, service<br>and outreach</i><b>Page Four</b></div>
+      <div class="cell"><b>Civic Notices</b><i>Consortium, service<br>and outreach</i><b>Page Three</b></div>
       <div class="cell"><b>Standing Matter</b><i>Office, study and<br>honours conferred</i><b>Column Four</b></div>
     </div>
   </div>
@@ -523,7 +637,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
 
     <div class="ann-grid">
 
-      <div class="ann">
+      <div class="ann ann-lead">
         <div class="ann-tag">Submitted &mdash; Under Review</div>
         <h3>The Direct Wave is Not a Meaningful Test of Horizon Properties</h3>
         <div class="a-rule"></div>
@@ -607,143 +721,88 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
   </div>
   <div class="underhair"></div>
 
-  <div class="sechead blk">
-    <div class="r"></div>
-    <h2>Engagements and Appearances</h2>
-    <div class="r"></div>
-  </div>
-  <div class="secsub blk">Twelve meetings and workshops — nine talks, two posters, one attended.</div>
-
-  <div class="eng grow">
-    <div class="col">
-
-      <div class="ent"><div class="y">2026</div><div class="b">
-        <div class="m">Plasmas Around Black Holes and Neutron Stars (SCEECS)</div>
-        <div class="k">Poster</div>
-        <div class="t">“Driving Temperature Anisotropies in the Jets of Black Holes”</div>
-      </div></div>
-
-      <div class="ent"><div class="y">2026</div><div class="b">
-        <div class="m">16th International LISA Symposium</div>
-        <div class="k">Contributed Talk</div>
-        <div class="t">“BOB the (Waveform) Builder + Direct Waves”</div>
-      </div></div>
-
-      <div class="ent"><div class="y">2026</div><div class="b">
-        <div class="m">APS Global Physics Summit</div>
-        <div class="k">Contributed Talk</div>
-        <div class="t">“BOB the (Waveform) Builder: Optimizing Analytical Black-Hole Binary Merger Waveforms”</div>
-      </div></div>
-
-      <div class="ent"><div class="y">2026</div><div class="b">
-        <div class="m">Center for Gravitational Waves and Cosmology Symposium</div>
-        <div class="k">Contributed Talk</div>
-        <div class="t">“Modeling Extreme Gravity: From Relativistic Plasmas to Gravitational Waves”</div>
-      </div></div>
-
-      <div class="ent"><div class="y">2025</div><div class="b">
-        <div class="m">Prospects in Theoretical Physics — Gravitational Waves from Theory to Observation</div>
-        <div class="k">Attended</div>
-      </div></div>
-
-      <div class="ent"><div class="y">2025</div><div class="b">
-        <div class="m">APS Global Physics Summit</div>
-        <div class="k">Contributed Talk</div>
-        <div class="t">“Merger-Ringdown Modeling of Gravitational Waves Beyond the Dominant Mode”</div>
-      </div></div>
-
-    </div>
-    <div class="col">
-
-      <div class="ent"><div class="y">2025</div><div class="b">
-        <div class="m">AAS Winter Meeting</div>
-        <div class="k">Contributed Talk</div>
-        <div class="t">“Understanding the Origins of Black Hole Superkicks”</div>
-      </div></div>
-
-      <div class="ent"><div class="y">2024</div><div class="b">
-        <div class="m">North American Einstein Toolkit Workshop</div>
-        <div class="k">Thirty-Minute Talk</div>
-        <div class="t">“Understanding the Origins of Black Hole Superkicks”</div>
-      </div></div>
-
-      <div class="ent"><div class="y">2024</div><div class="b">
-        <div class="m">Penn State Neighborhood Workshop</div>
-        <div class="k">Contributed Talk</div>
-        <div class="t">“Understanding the Origins of Black Hole Superkicks”</div>
-      </div></div>
-
-      <div class="ent"><div class="y">2024</div><div class="b">
-        <div class="m">APS April Meeting</div>
-        <div class="k">Contributed Talk</div>
-        <div class="t">“Testing the Boundary to Bound States Dictionary with Numerical Relativity”</div>
-      </div></div>
-
-      <div class="ent"><div class="y">2023</div><div class="b">
-        <div class="m">AAS Winter Meeting</div>
-        <div class="k">Poster</div>
-        <div class="t">“Effect of Baryons on the Dynamical-Friction Timescale of Merging Dark Matter Halos”</div>
-      </div></div>
-
-      <div class="ent"><div class="y">2022</div><div class="b">
-        <div class="m">APS April Meeting</div>
-        <div class="k">Contributed Talk</div>
-        <div class="t">“Effect of Baryons on the Dynamical-Friction Timescale of Merging Dark Matter Halos”</div>
-      </div></div>
-
-    </div>
+  <!-- SECTION FRONT — the section flag, set like a smaller nameplate -->
+  <div class="secflag">
+    <div class="sf-rule"></div>
+    <div class="sf-name">Software &amp; Code</div>
+    <div class="sf-sub">Five open-source projects &nbsp;&middot;&nbsp; Primary developer of one, co-developer of another, contributor to three</div>
+    <div class="sf-rule2"></div>
   </div>
 
-  <div class="sechead blk">
+  <h1 class="banner sw-banner">Kankani Develops gwBOB, an Open-Source Waveform Package</h1>
+  <div class="deckrule"></div>
+  <div class="deck1">Primary Developer of the Python Imple­men­ta­tion of the Backwards One Body Model</div>
+  <div class="deckrule"></div>
+  <div class="deck2">Contributor to the Einstein Toolkit, to Entity and to NRPy &mdash; Co-Developer of LisaWave-JAX</div>
+
+  <div class="sw-lead">
+    <p>Kankani is the pri­mary devel­oper of gwBOB, an open-source Python pack­age imple­ment­ing the Back­wards One Body wave­form model.</p>
+    <p>It ships tools for anal­y­sis and for com­par­i­son against numer­i­cal rel­a­tiv­ity, and is pub­lished at <a class="ital" href="https://github.com/AnujKankani/BackwardsOneBody">github.com/AnujKankani/BackwardsOneBody</a>.</p>
+    <p>A paper describ­ing the pack­age is sub­mit­ted to the <span class="ital">Journal of Open Source Soft­ware</span>, and appears in the record on Page Two.</p>
+    <p>Along­side it he con­tributes to three fur­ther codes and co-devel­ops a fourth, set out below.</p>
+  </div>
+
+  <div class="sechead blk" style="margin-top:11pt;">
     <div class="r"></div>
-    <h2>Software and Code</h2>
+    <h2>Other Codes and Roles</h2>
     <div class="r"></div>
   </div>
-  <div class="secsub blk">Five open-source projects — primary developer of one, co-developer of another, contributor to three.</div>
 
   <div class="works blk">
-    <div class="col">
-      <div class="work">
-        <h4>gwBOB</h4>
-        <div class="role">Primary Developer</div>
-        <div class="url"><a href="https://github.com/AnujKankani/BackwardsOneBody">github.com/AnujKankani/BackwardsOneBody</a></div>
-        <p>Open-source, user-friendly Python pack­age imple­ment­ing the Back­wards One Body wave­form model, with tools for anal­y­sis and NR com­par­i­son.</p>
-      </div>
-      <div class="work">
-        <h4>LisaWave-JAX</h4>
-        <div class="role">Co-developer — in development</div>
-        <p>JAX-based LISA data-anal­y­sis tools for mas­sive black holes and galac­tic bina­ries.</p>
-      </div>
-      <div class="work">
-        <h4>Entity</h4>
-        <div class="role">Contributor</div>
-        <div class="url"><a href="https://entity-toolkit.github.io/wiki">entity-toolkit.github.io/wiki</a></div>
-        <p>Kokkos-based Gen­eral Rel­a­tiv­is­tic Par­ti­cle-in-Cell code for plasma astro­phys­ics.</p>
-      </div>
+    <div class="ad">
+      <div class="ad-orn"><svg width="34" height="9" viewBox="0 0 34 9" aria-hidden="true"><path d="M0 4.5 H12 M22 4.5 H34" stroke="#000" stroke-width=".7"/><path d="M17 .8 l3.2 3.7 -3.2 3.7 -3.2 -3.7 z" fill="#000"/></svg></div>
+      <h4>Einstein Toolkit</h4>
+      <div class="ad-rule"></div>
+      <div class="role">Contributor</div>
+      <p>Open-source high-per­for­mance-com­put­ing code­base for numer­i­cal rel­a­tiv­ity.</p>
+      <div class="addr"><a href="https://einsteintoolkit.org">einsteintoolkit.org</a></div>
     </div>
-    <div class="col">
-      <div class="work">
-        <h4>Einstein Toolkit</h4>
-        <div class="role">Contributor</div>
-        <div class="url"><a href="https://einsteintoolkit.org">einsteintoolkit.org</a></div>
-        <p>Open-source high-per­for­mance-com­put­ing code­base for numer­i­cal rel­a­tiv­ity.</p>
-      </div>
-      <div class="work">
-        <h4>NRPy</h4>
-        <div class="role">Contributor</div>
-        <div class="url"><a href="https://github.com/nrpy/nrpy">github.com/nrpy/nrpy</a></div>
-        <p>Python-based sym­bolic code-gen­er­a­tion tool­kit for rel­a­tiv­is­tic astro­phys­ics.</p>
-      </div>
+    <div class="ad">
+      <div class="ad-orn"><svg width="34" height="9" viewBox="0 0 34 9" aria-hidden="true"><path d="M0 4.5 H12 M22 4.5 H34" stroke="#000" stroke-width=".7"/><path d="M17 .8 l3.2 3.7 -3.2 3.7 -3.2 -3.7 z" fill="#000"/></svg></div>
+      <h4>Entity</h4>
+      <div class="ad-rule"></div>
+      <div class="role">Contributor</div>
+      <p>Kokkos-based Gen­eral Rel­a­tiv­is­tic Par­ti­cle-in-Cell code for plasma astro­phys­ics.</p>
+      <div class="addr"><a href="https://entity-toolkit.github.io/wiki">entity-toolkit.github.io/wiki</a></div>
+    </div>
+    <div class="ad">
+      <div class="ad-orn"><svg width="34" height="9" viewBox="0 0 34 9" aria-hidden="true"><path d="M0 4.5 H12 M22 4.5 H34" stroke="#000" stroke-width=".7"/><path d="M17 .8 l3.2 3.7 -3.2 3.7 -3.2 -3.7 z" fill="#000"/></svg></div>
+      <h4>NRPy</h4>
+      <div class="ad-rule"></div>
+      <div class="role">Contributor</div>
+      <p>Python-based sym­bolic code-gen­er­a­tion tool­kit for rel­a­tiv­is­tic astro­phys­ics.</p>
+      <div class="addr"><a href="https://github.com/nrpy/nrpy">github.com/nrpy/nrpy</a></div>
+    </div>
+    <div class="ad">
+      <div class="ad-orn"><svg width="34" height="9" viewBox="0 0 34 9" aria-hidden="true"><path d="M0 4.5 H12 M22 4.5 H34" stroke="#000" stroke-width=".7"/><path d="M17 .8 l3.2 3.7 -3.2 3.7 -3.2 -3.7 z" fill="#000"/></svg></div>
+      <h4>LisaWave-JAX</h4>
+      <div class="ad-rule"></div>
+      <div class="role">Co-developer &mdash; in development</div>
+      <p>JAX-based LISA data-anal­y­sis tools for mas­sive black holes and galac­tic bina­ries.</p>
     </div>
   </div>
 
-  <div class="orn">
-    <svg width="170" height="10" viewBox="0 0 170 10" aria-hidden="true">
-      <path d="M0 5 H70 M100 5 H170" stroke="#000" stroke-width=".8"/>
-      <path d="M78 5 l7 -4.5 7 4.5 -7 4.5 z" fill="#000"/>
-      <circle cx="73.5" cy="5" r="1.6" fill="#000"/>
-      <circle cx="96.5" cy="5" r="1.6" fill="#000"/>
-    </svg>
+
+
+  <div class="orn"><svg width="170" height="10" viewBox="0 0 170 10" aria-hidden="true"><path d="M0 5 H70 M100 5 H170" stroke="#000" stroke-width=".8"/><path d="M78 5 l7 -4.5 7 4.5 -7 4.5 z" fill="#000"/><circle cx="73.5" cy="5" r="1.6" fill="#000"/><circle cx="96.5" cy="5" r="1.6" fill="#000"/></svg></div>
+
+  <div class="sechead blk">
+    <div class="r"></div>
+    <h2>Civic Notices</h2>
+    <div class="r"></div>
+  </div>
+  <div class="secsub blk">Consortium membership, departmental service, outreach and community work.</div>
+
+  <div class="civ grow">
+    <p><span class="cn">LISA Consortium.</span>&mdash;Mem­ber of the wave­form and astro­phys­ics work­ing group.</p>
+    <div class="civ-orn"><svg width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M0 4 H10 M20 4 H30" stroke="#000" stroke-width=".6"/><path d="M15 .9 l2.8 3.1 -2.8 3.1 -2.8 -3.1 z" fill="#000"/></svg></div>
+    <p><span class="cn">Astronomy Journal Club — Organizer.</span>&mdash;Orga­nized and led the depart­ment’s weekly journal club, facil­i­tat­ing dis­cus­sions on recent research in astron­omy and astro­phys­ics.</p>
+    <div class="civ-orn"><svg width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M0 4 H10 M20 4 H30" stroke="#000" stroke-width=".6"/><path d="M15 .9 l2.8 3.1 -2.8 3.1 -2.8 -3.1 z" fill="#000"/></svg></div>
+    <p><span class="cn">Community Service — 200 Hours.</span>&mdash;Two hun­dred hours of com­mu­nity ser­vice com­pleted as a grad­u­ate stu­dent, focused on envi­ron­men­tal res­to­ra­tion and STEM out­reach.</p>
+    <div class="civ-orn"><svg width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M0 4 H10 M20 4 H30" stroke="#000" stroke-width=".6"/><path d="M15 .9 l2.8 3.1 -2.8 3.1 -2.8 -3.1 z" fill="#000"/></svg></div>
+    <p><span class="cn">Physics and Astronomy Graduate Student Organization.</span>&mdash;Reg­u­larly involved in STEM out­reach such as Phys­ics Demo Day and the pump­kin drop con­test.</p>
+    <div class="civ-orn"><svg width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M0 4 H10 M20 4 H30" stroke="#000" stroke-width=".6"/><path d="M15 .9 l2.8 3.1 -2.8 3.1 -2.8 -3.1 z" fill="#000"/></svg></div>
+    <p><span class="cn">Physics Outreach.</span>&mdash;Talks to middle- and high-school groups about black holes and grav­i­ta­tional waves; regular vol­un­teer at phys­ics out­reach events such as Phys­ics Demo Day; writes arti­cles on astro­phys­ics for local orga­ni­za­tions.</p>
   </div>
 
 </div>
@@ -760,36 +819,59 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
 
   <div class="sechead blk">
     <div class="r"></div>
-    <h2>Civic Notices</h2>
+    <h2>Engagements and Appearances</h2>
     <div class="r"></div>
   </div>
-  <div class="secsub blk">Consortium membership, departmental service, outreach and community work.</div>
+  <div class="secsub blk">Twelve meetings and workshops — nine talks, two posters, one attended.</div>
 
-  <div class="civic grow">
-    <div class="col">
-      <div class="notice">
-        <h4>LISA Consortium</h4>
-        <p>Mem­ber of the wave­form and astro­phys­ics work­ing group.</p>
+  <div class="engwrap">
+
+    <!-- LEAD STORY -->
+    <h1 class="banner eng-banner">Four Meetings in 2026</h1>
+    <div class="deckrule"></div>
+    <div class="deck1">Con­tributed Talks on the BOB Model and on Direct Waves &mdash; a Poster on Tem­per­a­ture Anisotropies in the Jets of Black Holes</div>
+    <div class="eng-lead">
+      <p><span class="bm">Plasmas Around Black Holes and Neutron Stars (SCEECS)</span>. <span class="bk">Poster</span>: <span class="bt">“Driving Temperature Anisotropies in the Jets of Black Holes”</span></p>
+      <p><span class="bm">16th International LISA Symposium</span>. <span class="bk">Contributed Talk</span>: <span class="bt">“BOB the (Waveform) Builder + Direct Waves”</span></p>
+      <p><span class="bm">APS Global Physics Summit</span>. <span class="bk">Contributed Talk</span>: <span class="bt">“BOB the (Waveform) Builder: Optimizing Analytical Black-Hole Binary Merger Waveforms”</span></p>
+      <p><span class="bm">Center for Gravitational Waves and Cosmology Symposium</span>. <span class="bk">Contributed Talk</span>: <span class="bt">“Modeling Extreme Gravity: From Relativistic Plasmas to Gravitational Waves”</span></p>
+    </div>
+
+    <!-- TWO SECONDARY STORIES -->
+    <div class="engsplit">
+      <div class="engstory">
+        <div class="eng-kick">Three Engagements</div>
+        <h3 class="eng-head">2025</h3>
+        <div class="eng-drule"></div>
+        <div class="eng-deck">Merger-ringdown modeling beyond the dominant mode; superkicks at the winter meeting; one workshop attended</div>
+        <div class="eng-body">
+      <p><span class="bm">Prospects in Theoretical Physics — Gravitational Waves from Theory to Observation</span>. <span class="bk">Attended</span>.</p>
+      <p><span class="bm">APS Global Physics Summit</span>. <span class="bk">Contributed Talk</span>: <span class="bt">“Merger-Ringdown Modeling of Gravitational Waves Beyond the Dominant Mode”</span></p>
+      <p><span class="bm">AAS Winter Meeting</span>. <span class="bk">Contributed Talk</span>: <span class="bt">“Understanding the Origins of Black Hole Superkicks”</span></p>
+        </div>
       </div>
-      <div class="notice">
-        <h4>Astronomy Journal Club — Organizer</h4>
-        <p>Orga­nized and led the depart­ment’s weekly journal club, facil­i­tat­ing dis­cus­sions on recent research in astron­omy and astro­phys­ics.</p>
-      </div>
-      <div class="notice">
-        <h4>Community Service — 200 Hours</h4>
-        <p>Two hun­dred hours of com­mu­nity ser­vice com­pleted as a grad­u­ate stu­dent, focused on envi­ron­men­tal res­to­ra­tion and STEM out­reach.</p>
+      <div class="engstory">
+        <div class="eng-kick">Three Talks</div>
+        <h3 class="eng-head">2024</h3>
+        <div class="eng-drule"></div>
+        <div class="eng-deck">Superkicks carried to two workshops; the boundary-to-bound dictionary at the April meeting</div>
+        <div class="eng-body">
+      <p><span class="bm">North American Einstein Toolkit Workshop</span>. <span class="bk">Thirty-Minute Talk</span>: <span class="bt">“Understanding the Origins of Black Hole Superkicks”</span></p>
+      <p><span class="bm">Penn State Neighborhood Workshop</span>. <span class="bk">Contributed Talk</span>: <span class="bt">“Understanding the Origins of Black Hole Superkicks”</span></p>
+      <p><span class="bm">APS April Meeting</span>. <span class="bk">Contributed Talk</span>: <span class="bt">“Testing the Boundary to Bound States Dictionary with Numerical Relativity”</span></p>
+        </div>
       </div>
     </div>
-    <div class="col">
-      <div class="notice">
-        <h4>Physics and Astronomy Graduate Student Organization</h4>
-        <p>Reg­u­larly involved in STEM out­reach such as Phys­ics Demo Day and the pump­kin drop con­test.</p>
-      </div>
-      <div class="notice">
-        <h4>Physics Outreach</h4>
-        <p>Talks to middle- and high-school groups about black holes and grav­i­ta­tional waves; regular vol­un­teer at phys­ics out­reach events such as Phys­ics Demo Day; writes arti­cles on astro­phys­ics for local orga­ni­za­tions.</p>
+
+    <!-- ARCHIVE -->
+    <div class="engarch">
+      <div class="arch-label">Earlier Appearances</div>
+      <div class="eng-body arch-body">
+      <p><span class="bm">AAS Winter Meeting, 2023</span>. <span class="bk">Poster</span>: <span class="bt">“Effect of Baryons on the Dynamical-Friction Timescale of Merging Dark Matter Halos”</span></p>
+      <p><span class="bm">APS April Meeting, 2022</span>. <span class="bk">Contributed Talk</span>: <span class="bt">“Effect of Baryons on the Dynamical-Friction Timescale of Merging Dark Matter Halos”</span></p>
       </div>
     </div>
+
   </div>
 
   <!-- MASTHEAD REPEAT — where a paper prints its own address -->
@@ -818,6 +900,3 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
   </div>
 
 </div>
-
-</body>
-</html>

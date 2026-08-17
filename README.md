@@ -1,6 +1,28 @@
-# anujkankani.github.io
+<p align="center">
+  <a href="https://anujkankani.github.io">
+    <img src="assets/og-home.jpg" width="680"
+         alt="Anuj Kankani — gravitational and high-energy astrophysics, West Virginia University">
+  </a>
+</p>
 
-Anuj Kankani's academic site — gravitational-wave physics, PhD candidate at West Virginia University. Served by GitHub Pages from `main`.
+<h1 align="center"><a href="https://anujkankani.github.io">anujkankani.github.io</a></h1>
+
+<p align="center">
+  <strong><a href="https://anujkankani.github.io">&#10148;&nbsp; VISIT THE SITE &nbsp;&#10148;</a></strong>
+</p>
+
+<p align="center">
+  <a href="https://anujkankani.github.io/swsh-visualizer.html">Spherical-harmonic viewer</a> &nbsp;·&nbsp;
+  <a href="https://anujkankani.github.io/geodesic-explorer.html">Geodesic explorer</a> &nbsp;·&nbsp;
+  <a href="https://anujkankani.github.io/AnujKankani-CV.pdf">CV</a>
+</p>
+
+---
+
+> Anuj Kankani — gravitational and high-energy astrophysics, PhD candidate at West Virginia University.
+> Publications, paper explainers, and interactive physics widgets you can run in the browser.
+
+This repository *is* the site: it is served by GitHub Pages from `main`.
 
 Alongside the usual publications-and-CV pages it hosts **interactive physics widgets**: self-contained HTML files that run real calculations in the browser, with no install, no backend, and no runtime dependencies.
 
@@ -8,8 +30,8 @@ Alongside the usual publications-and-CV pages it hosts **interactive physics wid
 
 | | |
 |---|---|
-| [`swsh-visualizer.html`](swsh-visualizer.html) | Spin-weighted spherical harmonics, s = −2 — the angular building blocks of a gravitational-wave signal. Re, Im, \|Y\| and \|Y\|² of ₋₂Y_ℓm drawn as a radius-deformed sphere, ℓ = 2…8. |
-| [`geodesic-explorer.html`](geodesic-explorer.html) | Equatorial **Kerr** geodesics (Schwarzschild is the a = 0 case). RK4 integration of massive and null orbits beside a live effective-potential panel, with the horizon, photon orbit and ISCO tracking the spin. |
+| **[Spherical-harmonic viewer ↗](https://anujkankani.github.io/swsh-visualizer.html)**<br><sub>source: [`swsh-visualizer.html`](swsh-visualizer.html)</sub> | Spin-weighted spherical harmonics, s = −2 — the angular building blocks of a gravitational-wave signal. Re, Im, \|Y\| and \|Y\|² of ₋₂Y_ℓm drawn as a radius-deformed sphere, ℓ = 2…8. |
+| **[Geodesic explorer ↗](https://anujkankani.github.io/geodesic-explorer.html)**<br><sub>source: [`geodesic-explorer.html`](geodesic-explorer.html)</sub> | Equatorial **Kerr** geodesics (Schwarzschild is the a = 0 case). RK4 integration of massive and null orbits beside a live effective-potential panel, with the horizon, photon orbit and ISCO tracking the spin. |
 
 Each is one file with inline `<style>` and `<script>` and zero runtime fetches, so it can be opened directly, iframed, or saved and read offline. Both run standalone or embedded (`?embed=1`).
 
