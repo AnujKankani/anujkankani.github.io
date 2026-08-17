@@ -84,3 +84,12 @@ tools/mktypetests.py
 anuj.png
 anuj.svg
 mkanuj.py
+
+# Working notes. Kept on disk, out of the repo -- it is a scratch list of what
+# is half-done and what is wrong with the site, which is useful to whoever is
+# editing and not something to publish next to the site it describes.
+# NOTE: untracking it does not remove it from history. It was committed in
+# c80ef20 and three commits after, so the old copies remain recoverable from
+# the log by anyone who clones. Rewriting history is the only way to change
+# that, and it has not been done.
+TODO.md

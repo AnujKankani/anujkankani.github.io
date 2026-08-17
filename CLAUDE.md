@@ -59,6 +59,12 @@ python3 tools/build.py         # inline shared tool CSS/JS after editing tools/_
 python3 tools/build.py --check # exit 1 if any tool page is stale
 python3 tools/mkphotos.py      # re-crop hero slideshow photos from anuj_photos/
 
+# The CV the site serves is a COPY of the design's output, so re-render and
+# re-publish are two steps. A check byte-compares them, because forgetting the
+# second one leaves the site handing out a stale PDF with no visible symptom:
+#   chrome --headless --print-to-pdf=<unc>\\cv.pdf localhost:8000/cv/design-4-scan/cv.html
+cp cv/design-4-scan/cv.pdf AnujKankani-CV.pdf
+
 # Node lives in the conda env `website_env` and is NOT on the default PATH:
 NODE=/home/anuj/anaconda3/envs/website_env/bin/node
 $NODE tools/test.js            # physics, UI, rendering and layout tests
@@ -279,7 +285,7 @@ Publications, talks and awards are plain HTML blocks meant to be duplicated — 
 
 The **Random** section is written but wrapped in an HTML comment, and its nav link removed — it held placeholder cards with dead links. The CSS is still live, so restoring it is a comment-delete plus re-adding the nav link. Instructions are in the comment itself; keep them.
 
-Known placeholders still in [index.html](index.html), not yet filled in: the `mailto:your.email@mail.wvu.edu` address, `scholar.google.com/…user=YOUR_ID`, the all-zeros ORCID, and `CV.pdf` (linked twice but not committed). A `figures/` directory is referenced only from inside the commented-out Random section, and does not exist yet.
+Placeholders that used to sit in [index.html](index.html) are now filled: the ORCID, the author profile link (Google Scholar was replaced by INSPIRE-HEP) and `CV.pdf`, which 404'd for months while being linked twice and is now `AnujKankani-CV.pdf` — named for what lands in a visitor's Downloads folder, not for what it is called in `cv/`. A `figures/` directory is referenced only from inside the commented-out Random section, and does not exist yet.
 
 **Deployed video IS tracked** (`assets/*.mp4`, ~5.6 MB for four files); the manim masters under `media/` are not. What ships is a web derivative — 30 fps, CRF 26, about 66% smaller than the 1080p60 master and visually identical on slide content. The re-encode command is in `.gitignore` next to the rule. Re-render freely; only re-encode into `assets/` when the deployed version should change, since each one is a new blob in history.
 

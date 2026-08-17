@@ -161,6 +161,49 @@ suite('swsh-visualizer :: orthonormality', () => {
    Schwarzschild geodesics -- landmark values must be exact.
    Geometrized units, G = c = M = 1. See TOOLS.md "Physics rules".
    ================================================================== */
+suite('index.html :: published CV', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const root = path.join(__dirname, '..');
+  const idx = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+
+  /* The CV the site serves is a COPY of the design's output. That is a
+     staleness trap of exactly the kind this repo keeps falling into: edit
+     cv/design-4-scan/cv.html, re-render, forget the copy, and the site keeps
+     handing visitors the old PDF with no symptom anywhere. Byte-compare them.
+
+     Re-publish with:
+       cp cv/design-4-scan/cv.pdf AnujKankani-CV.pdf */
+  const pub = path.join(root, 'AnujKankani-CV.pdf');
+  const srcPdf = path.join(root, 'cv', 'design-4-scan', 'cv.pdf');
+  ok('the published CV exists', fs.existsSync(pub));
+  ok('the CV design output exists', fs.existsSync(srcPdf));
+  if (fs.existsSync(pub) && fs.existsSync(srcPdf)) {
+    const a = fs.readFileSync(pub), b = fs.readFileSync(srcPdf);
+    ok(`published CV matches the design output (${a.length} bytes)`, a.equals(b),
+      'AnujKankani-CV.pdf is stale - re-copy it from cv/design-4-scan/cv.pdf');
+  }
+
+  /* Both CV links must point at the published file, and the old placeholder
+     path must be gone -- it 404'd for months while being linked twice. */
+  const pubLinks = (idx.match(/href="AnujKankani-CV\.pdf"/g) || []).length;
+  ok(`index.html links the published CV (${pubLinks} links)`, pubLinks >= 2);
+  /* Any OTHER root-level pdf link would be a second, competing CV. Links into
+     cv/ are excluded on purpose -- that is where the newspaper broadsheet
+     lives, and it is deliberately a different document. */
+  const rootPdfs = (idx.match(/href="(?!cv\/)([^":]+\.pdf)"/g) || [])
+    .filter(h => !h.includes('AnujKankani-CV.pdf'));
+  ok('no other root-level PDF is linked as a CV', rootPdfs.length === 0,
+    rootPdfs.join(' '));
+  ok('the old placeholder CV.pdf path is gone', !/href="CV\.pdf"/.test(idx));
+
+  /* It is a real PDF, not an HTML error page saved with the wrong suffix. */
+  if (fs.existsSync(pub)) {
+    ok('the published CV is a PDF',
+      fs.readFileSync(pub).slice(0, 5).toString() === '%PDF-');
+  }
+});
+
 suite('geodesic-explorer :: Schwarzschild landmarks', () => {
   const PI = Math.PI;
 
