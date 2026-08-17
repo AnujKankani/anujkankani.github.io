@@ -215,7 +215,7 @@ Six things are load-bearing:
 It sits in a flex row (`.hero-top`) beside `.hero-copy` — an earlier absolutely
 positioned version centred on `.wrap`, which contains the *figure* too, and hung
 115px past the divider. Hidden at ≤900px, a third breakpoint independent of the
-nav's 1007px and the figure's 700px. The slideshow costs the first screen about
+nav's 963px and the figure's 700px. The slideshow costs the first screen about
 78px (nav + hero 602 → 680 at 1440×900); still inside budget everywhere, worst
 case 640 of 720 at 1280×720.
 
@@ -248,7 +248,7 @@ The whole header is sized to a budget: **nav + hero must fit the first screen wi
 - **`REVEAL_R1` is the *measured* extent of the artwork (740), not a round number.** It was 1500, which outran the drawing: the reveal stopped uncovering anything at 22.4% of the cycle instead of at `EMERGE_FRAC`, the tail of the sweep was dead time, and the jet finished *before* the wave. Too small is a different and worse failure — anything past `R1` is clipped forever — so a check brackets it on both sides against the drawn extent, escapee drift included.
 - **Pacing lives in `EMERGE_FRAC`, and it has moved.** 0.54 originally, 0.415 since 2026-08-15 when the jet was sped up 30% by request. The jet cone now completes at ~38% of the cycle against the wave's 27%, i.e. ~1.4× the wave's time, down from ~1.8×. The test asserts only that the jet finishes clearly *after* the wave (>1.25×) — the ordering is the invariant, the ratio is a design choice. Change `EMERGE_FRAC` in the generator, the matching `@keyframes jetgrow` percentage, then **regenerate and re-paste the figure**: the particle delays are derived from it.
 - **`animation-fill-mode:backwards` on `.esc` is required**, not stylistic: without it a particle renders in its base opaque state *during* its delay, which is exactly the artefact the delay exists to prevent.
-- **`--len` is measured in JS**, not by the generator — an IIFE reads `getTotalLength()` off `.gw-wave` and sets the custom property, because the dash length has to be the path's real length.
+- **`--gw-len` is emitted by the generator onto the path itself**, as an inline `style="--gw-len:1763px"`, so the dash length travels with the path it describes and there is no second copy to drift. It used to be measured in the browser with `getTotalLength()`; that made a static committed figure depend on a runtime measurement and left the wave briefly *solid* before the script ran. There is deliberately **no fallback** — `stroke-dasharray`/`stroke-dashoffset` are inherited, so a missing value resolves to `none`/`0` and the wave renders solid, which degrades gracefully. A value *shorter* than the path is the dangerous case: `stroke-dasharray: L L` becomes a repeating pattern and the wave renders as disconnected fragments. Fail solid, never fragmented.
 - **It pauses off-screen.** An IntersectionObserver toggles `.is-paused`, and `.figanim.is-paused *{animation-play-state:paused}` reaches the descendants because play-state does not inherit to elements carrying their own animation.
 
 The 85% → 92% band in every keyframe is a deliberate **hold**: the wave and jet sit finished while only the particles keep moving, before everything fades and restarts.
@@ -271,7 +271,7 @@ Five rules here were each a shipped bug; changing any of them back reintroduces 
 
 The SWSH stage also takes a **per-gesture axis lock**: a drag accumulates raw movement until it clears 6px, picks horizontal or vertical from the dominant component, and ignores the other axis for the rest of the gesture. `touch-action: pan-y` alone is not enough — the browser only hands a vertical swipe back to the page after the first few `touchmove`s have already been delivered, and those were tilting the sphere before `pointercancel` arrived. Reasoned, not device-verified.
 
-**The hero figure's 70% width stops at `max-width:700px`.** It is a second, independent breakpoint from the nav's 1007px and they are not interchangeable — one is about how much horizontal room the nav needs, the other about when shrinking an already-small figure starts hurting. See The hero figure.
+**The hero figure's 70% width stops at `max-width:700px`.** It is a second, independent breakpoint from the nav's 963px and they are not interchangeable — one is about how much horizontal room the nav needs, the other about when shrinking an already-small figure starts hurting. See The hero figure.
 
 **`backdrop-filter` needs the `-webkit-` prefix.** Unprefixed only shipped in Safari 18, so on iOS 17 and earlier the sticky nav's blur is silently a no-op. Both declarations are present in `index.html` and `swsh-visualizer.html`.
 

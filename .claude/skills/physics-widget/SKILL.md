@@ -227,6 +227,13 @@ old suite.
 - **Mutation-test every check.** Reintroduce the bug; confirm the test fails.
 - A regex over a whole file **will match your own comments**. Match against
   the extracted function or rule body.
+- **A guard regex must tolerate the formatting a human will type**, and should
+  reject anything outside the safe set rather than skipping it. `/var\(--x\)/`
+  misses `var( --x )`; `(\d+)` misses a decimal; a parser matching only the
+  command letters you expect silently ignores the rest — and silently ignoring
+  input is precisely how a check passes while the thing it guards is broken.
+- **Assert the invariant, not a count.** "no unguarded use remains" survives the
+  next edit; "there are five uses" fails on it and says nothing about why.
 - **A source regex is a stopgap, not a test.** It is what you write when the
   code cannot be called; the fix is to make the code callable. Treat every
   `source X matches the expected form` check as a TODO against the signature.

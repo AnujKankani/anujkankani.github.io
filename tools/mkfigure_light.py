@@ -424,7 +424,23 @@ def _hero_art(idp=""):
     # Points are generated far-edge -> hole, then reversed here so the emitted
     # path STARTS at the hole. That is what lets the page's dash-offset
     # animation read as the wave streaming outward rather than draining inward.
-    o.append(f'<path class="gw-wave" d="{polyline(wpts[::-1])}" fill="none" stroke="{INDIGO}" '
+    #
+    # --gw-len is emitted ON the path, because the draw-in animation needs the
+    # path's own length as its dash length and this is the only place that
+    # number is knowable for free. It used to be measured in the browser with
+    # getTotalLength(); that made a static, committed figure depend on a
+    # runtime measurement, left the wave briefly solid before the script ran,
+    # and put the one value that must be right behind the one thing that can
+    # fail. Emitting it here means the length travels WITH the path -- there
+    # is no second copy to drift, which is a better guarantee than the
+    # generator/CSS constant pairs elsewhere in this file.
+    #
+    # Rounded UP: a dash shorter than the path turns `stroke-dasharray: L L`
+    # into a repeating pattern and the wave renders as disconnected fragments.
+    wlen = math.ceil(sum(math.dist(wpts[i], wpts[i + 1])
+                         for i in range(len(wpts) - 1)))
+    o.append(f'<path class="gw-wave" style="--gw-len:{wlen}px" '
+             f'd="{polyline(wpts[::-1])}" fill="none" stroke="{INDIGO}" '
              f'stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>')
     o.append('</g>')
 

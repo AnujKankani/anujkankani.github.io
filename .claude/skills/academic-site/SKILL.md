@@ -101,7 +101,10 @@ lives only in the band between them, which is exactly where nobody looks.
 **And that number moves whenever the bar's contents change.** The same nav
 later went 924 → 966 → 1008px as a type toggle and then a PDF link joined the
 theme toggle, and each addition silently re-broke a fresh band until the
-breakpoint was re-measured. Two consequences worth building in:
+breakpoint was re-measured. It then came back **down** to 964 when one nav
+label was shortened from "Research" to "Awards" — two characters off one link
+is 16px off the strip. The number tracks the bar's contents in both
+directions, so a pure rename is a re-measure. Two consequences worth building in:
 
 - **Pin the breakpoint to the control count in a test**, so adding a fourth
   button fails a check instead of quietly breaking 1008–1050px. The test that
@@ -317,8 +320,51 @@ stop, and it composites off the main thread. Five things bite:
   `animation-delay`.** Without it every element renders in its base state
   during its delay — which is exactly the "ahead of the wavefront" artefact the
   delay was added to prevent.
-- **Path-length dashes must be measured in JS.** `stroke-dasharray` needs the
-  path's real `getTotalLength()`; set it as a custom property once at init.
+- **Do NOT measure a static path at runtime.** A generated, committed figure
+  has a known length at build time, so emit it *from the generator onto the
+  element* — `style="--gw-len:1763px"` on the path itself. The value then
+  travels with the path it describes and there is no second copy to drift,
+  which is a stronger guarantee than the generator/CSS constant pairs above.
+  Measuring with `getTotalLength()` at load instead buys nothing and costs
+  three things: the figure depends on a runtime measurement, it renders in its
+  *undashed* state for the window between first paint and the script, and the
+  one value that must be right sits behind the one thing that can fail.
+
+- **A dash-driven draw-in has two failure modes and only one is loud. Choose
+  the loud one.**
+
+  | dash length | result |
+  |---|---|
+  | missing entirely | `stroke-dasharray`/`stroke-dashoffset` are *inherited*, so an undefined `var()` is invalid-at-computed-value-time → resolves to `none`/`0` → the line renders **solid and complete** |
+  | valid but shorter than the path | `stroke-dasharray: L L` becomes a **repeating** pattern → the line renders as disconnected fragments |
+  | valid but longer | the visible window sits in the gap for `(L−real)/L` of the sweep, so the draw-in stalls, then races |
+
+  So **omit the fallback rather than guessing one**. A missing value degrades
+  to a complete line; a wrong one degrades to something that looks like a
+  rendering bug. Fail solid, never fragmented. Assert both bounds in a test,
+  re-deriving the real length from the path actually pasted into the page.
+- **`var()` substitutes at computed-value time, so `@property` is irrelevant
+  to most animations.** Animating a *native* property whose keyframe value
+  comes from `var(--x)` interpolates normally, registered or not — by the time
+  the animation engine sees the keyframe it holds a length, not a token
+  stream. Registration only matters when you animate the **custom property
+  itself** (`@keyframes { --x: 0px } → { --x: 100px }`). Measured side by side:
+  registered and unregistered gave a bit-identical animation fraction.
+
+  Worse, reaching for `@property` defensively makes failures *quieter*: a
+  registered property falls back to its `initial-value` on an invalid
+  assignment, while an unregistered one keeps the garbage and kills the
+  consuming declaration loudly. On a dash length that converts "obviously
+  broken" into "silently wrong length" — which is the fragmented-line bug. And
+  `inherits: true` on a generic name like `--len` makes it a document-wide
+  global that every element computes.
+
+- **An inline style beats every CSS fallback.** If a script sets the value with
+  `element.style.setProperty(...)`, adding `var(--x, fallback)` to the
+  stylesheet changes nothing for anyone running that script. Fallbacks defend
+  the no-JS and pre-JS paths only — which is worth doing, but is not the same
+  as defending the value the script produces. Clamp or delete the script.
+
 - **`animation-play-state` does not inherit to elements carrying their own
   animation.** Pausing a subtree needs a descendant selector
   (`.fig.is-paused *`), not the container alone.
@@ -492,7 +538,18 @@ of the target width from a scratch harness page and read
 
 So **do not wait for an animation to reach a state — drive it there.** If the
 page's step function is a top-level global, call it in a loop and then render
-once. That is exact, reproduces byte-for-byte between runs, and removes timing
+once. For a **CSS** animation the equivalent is the Web Animations API:
+
+```js
+const an = el.getAnimations()[0];
+an.currentTime = 2500;            // exact, reproducible, no rAF needed
+getComputedStyle(el).strokeDashoffset;
+```
+
+I got this wrong *while testing a fix for it*: an A/B comparison of two
+animations read both at their start value, because virtual time never advanced
+them, and would have "proved" the two identical for entirely the wrong reason.
+Setting `currentTime` on each turned a meaningless equality into a real one. That is exact, reproduces byte-for-byte between runs, and removes timing
 from the problem entirely.
 
 ### Two things that silently invalidate a measurement
@@ -545,6 +602,23 @@ gated on visibility stays paused); a static `<iframe>` in markup can finish
 loading *before* an `onload` assigned later in the script; and Chrome caches
 harness pages between runs. **When a result is surprising, re-check the
 apparatus first.**
+
+### Find the free diagnostic before writing the fix
+
+When a visual bug is reported on a platform you cannot test, the temptation is
+to reason to a cause and ship a fix. Look first for a question whose answer
+*separates* the candidate causes at zero cost — usually something already in
+the design.
+
+One hero animation held its finished frame for ~9.9 s of every 17 s cycle. So
+"do the artefacts persist during the still period, or does it heal into one
+line?" splits a wrong-value bug from a repaint bug completely, and the reporter
+can answer it by looking. I shipped a fix before asking, and the fix could not
+have addressed the reported symptom in any browser running the page's own
+script — an inline style set by that script overrode everything I had added.
+
+Ask the separating question first. It costs one message and can save a
+redesign.
 
 ### What cannot be tested from a Linux/Chrome box
 
@@ -636,6 +710,17 @@ output in the test suite.
 - **A regex over a whole file will match your own comments.** Three tests
   passed against prose in the comment above the code they meant to check.
   Match against the extracted rule/function body.
+- **Assert the invariant, not a count.** "no bare `var(--x)` remains" survives
+  someone adding a sixth declaration; "there are five uses" fails on the next
+  edit and tells you nothing about what broke. Same for a numeric window: derive
+  the bound from what actually goes wrong — for a draw-in, "dead time under one
+  frame of the sweep" — rather than picking a round slack figure.
+- **A guard regex must tolerate the formatting a human will actually type.**
+  `/var\(--x\)/` misses `var( --x )`; `(\d+)px` misses `1762.5px`; a point
+  parser matching only `[ML]` silently skips the `H`/`V`/lowercase forms a path
+  optimiser emits — and silently under-summing a path length is exactly the
+  failure the check existed to catch. Where the safe set is small, **reject
+  anything outside it** rather than skipping it.
 - **Never pin an exact `class="…"` string.** A check anchored on
   `class="hero-fig"` stopped matching the moment a second class was added, and
   every assertion in that suite then passed vacuously against an empty match.

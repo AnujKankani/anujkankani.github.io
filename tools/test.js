@@ -2347,6 +2347,55 @@ suite('index.html :: hero figure', () => {
   ok('figure has no fixed width/height', !/<svg[^>]*\swidth="\d/.test(fig));
 
   const css = src.slice(0, src.indexOf('</style>'));
+
+  /* The wave's dash length is emitted BY THE GENERATOR as an inline
+     --gw-len on the path itself, so the value and the path it describes
+     cannot drift apart. Re-derive it here from the path actually pasted into
+     the page, because the paste is the thing that goes stale.
+
+     Why it matters: a dash length SHORTER than the path turns
+     `stroke-dasharray: L L` into a repeating pattern and the wave renders as
+     disconnected fragments. Longer is also wrong -- the visible window sits
+     in the gap for the first (L - real)/L of the sweep, so the draw-in stalls
+     and then races. There is deliberately NO fallback: a missing value
+     resolves to `none`/`0` on these inherited properties and the wave renders
+     solid, which degrades gracefully. */
+  {
+    const path = (src.match(/<path class="gw-wave"([^>]*)d="([^"]+)"/) || []);
+    const attrs = path[1] || '', d = path[2] || '';
+    const cmds = [...d.matchAll(/([A-Za-z])/g)].map(m => m[1]);
+    ok('wave path uses only M/L commands (the length sum assumes straight segments)',
+      cmds.length > 100 && cmds.every(c => c === 'M' || c === 'L'),
+      'found: ' + [...new Set(cmds)].join(','));
+
+    const pts = [...d.matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g)]
+      .map(m => [parseFloat(m[1]), parseFloat(m[2])]);
+    ok('wave path parses into points', pts.length === cmds.length);
+    let real = 0;
+    for (let k = 1; k < pts.length; k++)
+      real += Math.hypot(pts[k][0] - pts[k-1][0], pts[k][1] - pts[k-1][1]);
+
+    const baked = (attrs.match(/--gw-len:\s*([\d.]+)px/) || [])[1];
+    ok('the generator baked --gw-len onto the path', baked !== undefined);
+    /* Upper bound from the animation, not taste: dead time must stay under one
+       frame of the 0->27% sweep (17s cycle, 60fps), i.e. real * 1.0036. */
+    const maxLen = real * 1.0036;
+    ok(`--gw-len covers the path without overshooting (${baked} vs ${real.toFixed(1)})`,
+      Number(baked) >= real && Number(baked) <= maxLen,
+      `must be >= ${real.toFixed(1)} and <= ${maxLen.toFixed(1)}`);
+
+    /* No fallback, no second copy, and no runtime measurement. Each of these
+       reintroduces a way for the number to be wrong somewhere the first check
+       cannot see. */
+    ok('no --gw-len use carries a fallback (fail solid, never fragmented)',
+      !/var\(\s*--gw-len\s*,/.test(css));
+    ok('the dash length is not measured in the browser any more',
+      !/getTotalLength\(\)\s*;?\s*$/m.test(src.replace(/\/\*[\s\S]*?\*\//g, '')) ||
+      !/setProperty\(\s*['"]--gw-len/.test(src));
+    ok('the CSS reads the generator-emitted property',
+      /stroke-dasharray:var\(--gw-len\) var\(--gw-len\)/.test(css));
+  }
+
   /* Full bleed, with a budgeted height so the hero still fits the first
      screen. Filling a wide short box without distorting needs slice; without
      it the drawing scales down and floats in an empty band. */
