@@ -93,7 +93,7 @@ h1.banner{
 .lead{
   column-count:3; column-gap:12pt; column-rule:.5pt solid var(--hair);
   text-align:justify; hyphens:auto; -webkit-hyphens:auto;
-  font-size:8.6pt; line-height:1.26; height:2.16in;
+  font-size:8.6pt; line-height:1.26; height:2.02in;
   margin-top:8pt; padding-top:7pt; border-top:.5pt solid var(--hair);
 }
 .lead p{ text-indent:9pt; }
@@ -122,17 +122,17 @@ h1.banner{
           letter-spacing:.14em; text-align:center; padding-bottom:2.5pt;
           border-bottom:.5pt solid var(--hair); margin-bottom:5pt; }
 h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
-            font-size:12.4pt; line-height:1.04; text-align:center;
+            font-size:10.6pt; line-height:1.02; text-align:center;
             text-transform:uppercase; letter-spacing:.004em; }
 .st-rule{ width:36pt; height:0; border-top:.5pt solid var(--hair);
-          margin:5pt auto 4pt; }
+          margin:4pt auto 3pt; }
 .st-d1{ font-weight:bold; font-variant:small-caps; font-size:9.2pt;
         text-align:center; letter-spacing:.04em; line-height:1.18; }
-.st-d2{ font-style:italic; font-size:8.6pt; text-align:center;
-        line-height:1.2; margin-top:2.5pt; }
-.st-d3{ font-size:8.2pt; text-align:center; letter-spacing:.03em;
-        margin-top:3pt; font-variant:small-caps; }
-.dinkus{ text-align:center; margin:4pt 0 3pt; line-height:0; }
+.st-d2{ font-style:italic; font-size:8.4pt; text-align:center;
+        line-height:1.18; margin-top:2pt; }
+.st-d3{ font-size:8pt; text-align:center; letter-spacing:.03em;
+        margin-top:2.4pt; font-variant:small-caps; }
+.dinkus{ text-align:center; margin:3pt 0 2pt; line-height:0; }
 .st-tag{ text-align:center; font-style:italic; font-size:8pt; }
 
 /* ═══ RAIL (standing matter) ══════════════════════════════════════ */
@@ -212,14 +212,14 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
             background:var(--paper); display:inline-block; padding:0 10pt;
             position:relative; top:-6pt; }
 .standing-note{
-  font-size:8.4pt; line-height:1.3; text-align:center; font-style:italic;
+  font-size:8.2pt; line-height:1.26; text-align:center; font-style:italic;
   border-top:.5pt solid var(--hair); border-bottom:.5pt solid var(--hair);
-  padding:4pt 16pt 4.5pt; margin:0 auto 8pt; max-width:5.5in;
+  padding:3.4pt 16pt 3.8pt; margin:0 auto 6pt; max-width:5.5in;
 }
 .standing-note b{ font-style:normal; font-variant:small-caps;
                   letter-spacing:.05em; }
 .ann-grid{ display:flex; flex-wrap:wrap; }
-.ann{ flex:0 0 50%; padding:7.5pt 12pt; break-inside:avoid; text-align:center; }
+.ann{ flex:0 0 50%; padding:5.5pt 12pt; break-inside:avoid; text-align:center; }
 .ann:nth-child(odd){ padding-left:0; border-right:.5pt solid var(--hair); }
 .ann:nth-child(even){ padding-right:0; }
 .ann:nth-child(1),.ann:nth-child(2){ padding-top:0; }
@@ -229,7 +229,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
   font-family:'Engravers MT',serif; font-size:6.4pt; letter-spacing:.13em;
   margin-bottom:6pt;
 }
-.ann h3{ font-family:'Bodoni MT',serif; font-weight:normal; font-size:13pt;
+.ann h3{ font-family:'Bodoni MT',serif; font-weight:normal; font-size:11.6pt;
          line-height:1.05; text-transform:uppercase; letter-spacing:.01em; }
 .ann .a-rule{ width:34pt; border-top:.5pt solid var(--hair);
               margin:5pt auto 4pt; }
@@ -283,6 +283,15 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
 .civic .col:first-child{ padding-left:0; }
 .civic .col:last-child{ padding-right:0; }
 .civic .col + .col{ border-left:.5pt solid var(--hair); }
+/* A period column of notices closed with a "more to come" standing line.
+   Same vocabulary as the enclosure's other standing note, one step quieter. */
+.inprep{
+  margin:7pt auto 0; max-width:76%; padding-top:5pt;
+  border-top:.5pt solid #000;
+  font-size:8.9pt; line-height:1.34; text-align:center; font-style:italic;
+}
+.inprep b{ font-style:normal; font-variant:small-caps; font-weight:bold;
+           letter-spacing:.03em; }
 .notice{ break-inside:avoid; margin-bottom:11pt; }
 .notice:last-child{ margin-bottom:0; }
 .notice h4{ font-weight:bold; font-variant:small-caps; font-size:10.4pt;
@@ -362,7 +371,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
       <h1 class="banner">Kankani Models Black-Hole Mergers<br>and the Plasma That Surrounds Them</h1>
 
       <div class="deckrule"></div>
-      <div class="deck1">Seven Publications, Six of Them First-Authored; Three Refereed and In Print, Four Submitted and Under Review</div>
+      <div class="deck1">Seven Publications, Six of Them First-Authored, With Three More in Preparation</div>
 
       <div class="deckrule"></div>
       <div class="deck2">Primary Developer of gwBOB — Contributor to the Einstein Toolkit, to Entity and to NRPy — Co-Developer of LisaWave-JAX</div>
@@ -376,7 +385,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
 
         <p>He works on grav­i­ta­tional wave­form mod­el­ing, numer­i­cal rel­a­tiv­ity, and Gen­eral Rel­a­tiv­is­tic Par­ti­cle-in-Cell (GRPIC) sim­u­la­tions. He took his BS in Phys­ics (Hon­ors) at Texas A&amp;M Uni­ver­sity in May 2021, with minors in Com­puter Sci­ence and Astro­phys­ics.</p>
 
-        <p>Of his seven pub­li­ca­tions, three are ref­er­eed and in print — two in <i>Phys­i­cal Review D</i>, one in <i>Phys­i­cal Review E</i> — and are set out at the foot of this page. Four more are sub­mit­ted and under review; they are announced sep­a­rately, on Page Two. Six of the seven carry his name first.</p>
+        <p>Of his seven pub­li­ca­tions, four are sub­mit­ted and under review; the three on the direct wave and the BOB wave­form model are set out at the foot of this page. Three others are ref­er­eed and in print — two in <i>Phys­i­cal Review D</i>, one in <i>Phys­i­cal Review E</i> — and appear on Page Two beside the fourth sub­mis­sion. Six of the seven carry his name first.</p>
 
         <p>He is the pri­mary devel­oper of gwBOB, an open-source Python pack­age imple­ment­ing the Back­wards One Body wave­form model, con­trib­utes to the Ein­stein Tool­kit, to Entity and to NRPy, and co-devel­ops LisaWave-JAX. All five are on Page Three.</p>
 
@@ -386,43 +395,44 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
       <!-- REFEREED PUBLICATIONS -->
       <div class="sechead" style="margin-top:9pt;">
         <div class="r"></div>
-        <h2>Published and Refereed</h2>
+        <h2>Latest Dispatches</h2>
         <div class="r"></div>
       </div>
-      <div class="secsub">Three papers, refereed and in print. Submitted work is announced separately, on Page Two.</div>
+      <div class="secsub">Three papers submitted and under review. Refereed work in print appears on Page Two.</div>
 
       <div class="stories">
 
         <div class="story">
-          <div class="st-kick">Physical Review D &nbsp;·&nbsp; 2025</div>
-          <h3 class="st-head">Modeling Relative Peak Times of Gravitational Wave Harmonics</h3>
+          <div class="st-kick">Under Review &nbsp;·&nbsp; 2026</div>
+          <h3 class="st-head">The Direct Wave is Not a Meaningful Test of Horizon Properties</h3>
           <div class="st-rule"></div>
-          <div class="st-d1">Phys. Rev. D <b>112</b>, 124051 (2025)</div>
+          <div class="st-d1">Submitted to <i>Physical Review Letters</i></div>
           <div class="st-d2">Anuj Kankani and Sean T. McWilliams</div>
-          <div class="st-d3">arXiv:2506.17492</div>
+          <div class="st-d3">arXiv:2607.02380</div>
           <div class="dinkus"><svg width="15" height="14" viewBox="0 0 13 12" aria-hidden="true"><g stroke="#000" stroke-width=".95" stroke-linecap="round"><path d="M6.5 .9V5.1M4.7 1.95L8.3 4.05M4.7 4.05L8.3 1.95"/><path d="M3 6.9V11.1M1.2 7.95L4.8 10.05M1.2 10.05L4.8 7.95"/><path d="M10 6.9V11.1M8.2 7.95L11.8 10.05M8.2 10.05L11.8 7.95"/></g></svg></div>
-          <div class="st-tag">First author &nbsp;·&nbsp; Refereed</div>
+          <div class="st-tag">First author &nbsp;·&nbsp; Not yet refereed</div>
         </div>
 
         <div class="story">
-          <div class="st-kick">Physical Review D &nbsp;·&nbsp; 2024</div>
-          <h3 class="st-head">Testing the Boundary-to-Bound Correspondence with Numerical Relativity</h3>
+          <div class="st-kick">Under Review &nbsp;·&nbsp; 2026</div>
+          <h3 class="st-head">Direct Waves in Black-Hole Binary Mergers: Insights from the Backwards One Body Model</h3>
           <div class="st-rule"></div>
-          <div class="st-d1">Phys. Rev. D <b>110</b>, 064033 (2024)</div>
+          <div class="st-d1">Submitted to <i>Physical Review D</i></div>
           <div class="st-d2">Anuj Kankani and Sean T. McWilliams</div>
-          <div class="st-d3">arXiv:2404.03607</div>
+          <div class="st-d3">arXiv:2603.15474</div>
           <div class="dinkus"><svg width="15" height="14" viewBox="0 0 13 12" aria-hidden="true"><g stroke="#000" stroke-width=".95" stroke-linecap="round"><path d="M6.5 .9V5.1M4.7 1.95L8.3 4.05M4.7 4.05L8.3 1.95"/><path d="M3 6.9V11.1M1.2 7.95L4.8 10.05M1.2 10.05L4.8 7.95"/><path d="M10 6.9V11.1M8.2 7.95L11.8 10.05M8.2 10.05L11.8 7.95"/></g></svg></div>
-          <div class="st-tag">First author &nbsp;·&nbsp; Refereed</div>
+          <div class="st-tag">First author &nbsp;·&nbsp; Not yet refereed</div>
         </div>
 
         <div class="story">
-          <div class="st-kick">Physical Review E &nbsp;·&nbsp; 2021</div>
-          <h3 class="st-head">Optimization and Benchmarking of the Thermal Cycling Algorithm</h3>
+          <div class="st-kick">Under Review &nbsp;·&nbsp; 2025</div>
+          <h3 class="st-head">BOB the (Waveform) Builder: Optimizing Analytical Black-Hole Binary Merger Waveforms</h3>
           <div class="st-rule"></div>
-          <div class="st-d1">Phys. Rev. E <b>104</b>(3), 035302 (2021)</div>
-          <div class="st-d2">A. Barzegar, A. Kankani, S. Mandrà and H. G. Katzgraber</div>
+          <div class="st-d1">Submitted to <i>Physical Review D</i></div>
+          <div class="st-d2">Anuj Kankani and Sean T. McWilliams</div>
+          <div class="st-d3">arXiv:2510.25012</div>
           <div class="dinkus"><svg width="15" height="14" viewBox="0 0 13 12" aria-hidden="true"><g stroke="#000" stroke-width=".95" stroke-linecap="round"><path d="M6.5 .9V5.1M4.7 1.95L8.3 4.05M4.7 4.05L8.3 1.95"/><path d="M3 6.9V11.1M1.2 7.95L4.8 10.05M1.2 10.05L4.8 7.95"/><path d="M10 6.9V11.1M8.2 7.95L11.8 10.05M8.2 10.05L11.8 7.95"/></g></svg></div>
-          <div class="st-tag">Second author &nbsp;·&nbsp; Refereed</div>
+          <div class="st-tag">First author &nbsp;·&nbsp; Not yet refereed</div>
         </div>
 
       </div>
@@ -441,7 +451,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
           <div><span class="lb">Web</span>anujkankani.github.io</div>
           <div><span class="lb">Orcid</span>0000-0002-7422-9137</div>
           <div><span class="lb">Code</span>github.com/AnujKankani</div>
-          <div><span class="lb">Scholar</span>scholar.google.com/citations?user=PJ-efk0AAAAJ</div>
+          <div><span class="lb">Inspire</span>inspirehep.net/authors/2774144</div>
         </div>
       </div>
 
@@ -478,7 +488,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
   <div class="inside">
     <div class="ih">Inside This Issue</div>
     <div class="row">
-      <div class="cell"><b>Announcements</b><i>Four papers submitted<br>and under review</i><b>Page Two</b></div>
+      <div class="cell"><b>The Record</b><i>Three refereed in print,<br>one more submitted</i><b>Page Two</b></div>
       <div class="cell"><b>Engagements</b><i>Twelve meetings,<br>talks and posters</i><b>Page Two</b></div>
       <div class="cell"><b>Software &amp; Code</b><i>Five open-source<br>projects and roles</i><b>Page Three</b></div>
       <div class="cell"><b>Civic Notices</b><i>Consortium, service<br>and outreach</i><b>Page Three</b></div>
@@ -499,53 +509,59 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
   <div class="underhair"></div>
 
   <div class="enc-wrap blk"><div class="enclosure">
-    <div class="enc-label">Announcements</div>
+    <div class="enc-label">The Published Record</div>
 
     <div class="standing-note">
-      <b>Notice to the reader.</b> The four papers below have been <b>sub­mit­ted</b> to the
-      jour­nals named and have <b>not</b> com­pleted ref­er­ee­ing. They are printed here as
-      announce­ments, in a lighter face, and are delib­er­ately set apart from the three
-      ref­er­eed papers on Page One.
+      <b>Notice to the reader.</b> Each entry car­ries its stand­ing in the rule
+      above it. The first three are ref­er­eed and in print, with vol­ume and
+      article num­bers; the fourth, like the three on Page One, is sub­mit­ted
+      and not yet ref­er­eed.
     </div>
 
     <div class="ann-grid">
 
       <div class="ann">
-        <div class="ann-tag">Submitted — Under Review</div>
-        <h3>The Direct Wave is Not a Meaningful Test of Horizon Properties</h3>
+        <div class="ann-tag">Refereed &mdash; In Print</div>
+        <h3>Modeling Relative Peak Times of Gravitational Wave Harmonics</h3>
         <div class="a-rule"></div>
-        <div class="a-d1"><b>Submitted to</b> Physical Review Letters</div>
+        <div class="a-d1"><b>Phys. Rev. D</b> <b>112</b>, 124051 (2025)</div>
         <div class="a-d2">Anuj Kankani and Sean T. McWilliams</div>
-        <div class="a-d3">arXiv:2607.02380 &nbsp;·&nbsp; First author</div>
+        <div class="a-d3">arXiv:2506.17492 &nbsp;·&nbsp; First author</div>
       </div>
 
       <div class="ann">
-        <div class="ann-tag">Submitted — Under Review</div>
-        <h3>Direct Waves in Black-Hole Binary Mergers: Insights from the Backwards One Body Model</h3>
+        <div class="ann-tag">Refereed &mdash; In Print</div>
+        <h3>Testing the Boundary-to-Bound Correspondence with Numerical Relativity</h3>
         <div class="a-rule"></div>
-        <div class="a-d1"><b>Submitted to</b> Physical Review D</div>
+        <div class="a-d1"><b>Phys. Rev. D</b> <b>110</b>, 064033 (2024)</div>
         <div class="a-d2">Anuj Kankani and Sean T. McWilliams</div>
-        <div class="a-d3">arXiv:2603.15474 &nbsp;·&nbsp; First author</div>
+        <div class="a-d3">arXiv:2404.03607 &nbsp;·&nbsp; First author</div>
       </div>
 
       <div class="ann">
-        <div class="ann-tag">Submitted — Under Review</div>
-        <h3><span class="nocase">gwBOB</span>: A Python Package for Analytical Merger-Ringdown Gravitational Waveforms</h3>
+        <div class="ann-tag">Refereed &mdash; In Print</div>
+        <h3>Optimization and Benchmarking of the Thermal Cycling Algorithm</h3>
+        <div class="a-rule"></div>
+        <div class="a-d1"><b>Phys. Rev. E</b> <b>104</b>(3), 035302 (2021)</div>
+        <div class="a-d2">A. Barzegar, A. Kankani, S. Mandr&agrave; and H. G. Katzgraber</div>
+        <div class="a-d3">Second author</div>
+      </div>
+
+      <div class="ann">
+        <div class="ann-tag">Submitted &mdash; Under Review</div>
+        <h3>gwBOB: A Python Package for Analytical Merger-Ringdown Gravitational Waveforms</h3>
         <div class="a-rule"></div>
         <div class="a-d1"><b>Submitted to</b> Journal of Open Source Software</div>
         <div class="a-d2">Anuj Kankani, Angel Morales, Suchindram Dasgupta and Sean T. McWilliams</div>
         <div class="a-d3">First author</div>
       </div>
 
-      <div class="ann">
-        <div class="ann-tag">Submitted — Under Review</div>
-        <h3>BOB the (Waveform) Builder: Optimizing Analytical Black-Hole Binary Merger Waveforms</h3>
-        <div class="a-rule"></div>
-        <div class="a-d1"><b>Submitted to</b> Physical Review D</div>
-        <div class="a-d2">Anuj Kankani and Sean T. McWilliams</div>
-        <div class="a-d3">arXiv:2510.25012 &nbsp;·&nbsp; First author</div>
-      </div>
+    </div>
 
+    <div class="inprep">
+      <b>In Preparation.</b> Three fur&shy;ther papers are pres&shy;ent&shy;ly in
+      pre&shy;par&shy;a&shy;tion. Titles and jour&shy;nals are not yet set&shy;tled;
+      par&shy;tic&shy;u&shy;lars will fol&shy;low in a lat&shy;er edi&shy;tion.
     </div>
   </div></div>
 
@@ -586,9 +602,9 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
         <div class="t">“BOB the (Waveform) Builder: Optimizing Analytical Black-Hole Binary Merger Waveforms”</div>
       </div></div>
 
-      <div class="ent"><div class="y">—</div><div class="b">
+      <div class="ent"><div class="y">2026</div><div class="b">
         <div class="m">Center for Gravitational Waves and Cosmology Symposium</div>
-        <div class="k">Contributed Talk &nbsp;·&nbsp; Year not stated</div>
+        <div class="k">Contributed Talk</div>
         <div class="t">“Modeling Extreme Gravity: From Relativistic Plasmas to Gravitational Waves”</div>
       </div></div>
 
@@ -757,7 +773,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
       </div>
       <div class="off-cell">
         <div class="off-lb">In the Indexes</div>
-        <div class="off-v">ORCID 0000-0002-7422-9137<br>github.com/AnujKankani<br>scholar.google.com/citations?user=PJ-efk0AAAAJ</div>
+        <div class="off-v">ORCID 0000-0002-7422-9137<br>github.com/AnujKankani<br>inspirehep.net/authors/2774144</div>
       </div>
     </div>
   </div>

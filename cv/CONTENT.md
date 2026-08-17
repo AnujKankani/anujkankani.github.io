@@ -65,6 +65,11 @@ August 2017 – May 2021 · Minors in Computer Science and Astrophysics · GPA 3
    "Optimization and benchmarking of the thermal cycling algorithm",
    *Physical Review E* **104**(3), 035302.
 
+**In preparation:** three further papers, by topic — direct waves
+(gravitational waves), black-hole scattering (numerical relativity), and
+black-hole jets (GRPIC). No titles or venues are settled, so nothing beyond
+the topic may be printed.
+
 ## Software contributions
 
 - **gwBOB** — Primary Developer · github.com/AnujKankani/BackwardsOneBody
