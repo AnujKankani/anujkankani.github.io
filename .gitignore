@@ -100,3 +100,11 @@ TODO.md
 # than published with it. Same caveat -- it was committed in 76865ef and once
 # after, so those copies stay in history until it is rewritten.
 anuj_preferences.md
+
+# Intermediate renders and one-off probes from regenerating the social cards.
+# assets/ ships, so a stray PNG there would be published; the card itself is
+# assets/og-home.jpg, produced from the PNG by the ffmpeg step in TOOLS.md.
+# Note tools/_shared.* and tools/_template.html DO ship, so this names the one
+# probe file rather than globbing tools/_*.
+assets/_*.png
+tools/_ogprobe.html

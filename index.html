@@ -780,6 +780,18 @@
   .contact-note{display:block;margin-top:10px;font-size:17px;font-weight:400;
                 line-height:1.4;color:var(--field-soft);}
   footer .lead{color:var(--field-soft);max-width:520px;margin:0 0 30px;}
+  /* A link in footer prose inherits the base a{color:var(--accent)}, which in
+     the LIGHT palette is #3B3F9E -- a dark indigo on the near-black footer
+     band, about 1.6:1 against it and effectively invisible. The band always
+     uses the dark field regardless of theme, so its links take amber, the
+     same choice .bob-cap a and .tool-cap a already make. The underline is
+     what marks it as a link inside a run of prose. */
+  footer .lead a{
+    color:var(--amber);
+    border-bottom:1px solid rgba(233,162,59,.5);
+    transition:color .18s ease,border-color .18s ease;
+  }
+  footer .lead a:hover{color:#fff;border-bottom-color:#fff;}
   .contact-links{display:flex;gap:14px;flex-wrap:wrap;}
   .contact-links a{
     font-family:var(--f-sans);font-size:14px;color:var(--on-field);
@@ -1432,7 +1444,7 @@
     <h2>anuj.kankani@mail.wvu.edu
       <span class="contact-note">(If I don&rsquo;t respond, WVU/Outlook blocked your email. Please try again!)</span>
     </h2>
-    <p class="lead">As you can probably tell, most of this website was made with Claude. The paper explainers were made using Manim + Claude. Some skill md files can be found in my repo if you want to replicate anything in this website. If you use the files, please credit this website!</p>
+    <p class="lead">As you can probably tell, most of this website was made with Claude. The paper explainers were made using Manim + Claude. Some skill md files can be found in <a href="https://github.com/AnujKankani/anujkankani.github.io">my repo</a> if you want to replicate anything in this website. If you use the files, please credit this website!</p>
     <div class="contact-links">
       <a href="https://inspirehep.net/authors/2774144?ui-citation-summary=true">INSPIRE-HEP</a>
       <a href="https://orcid.org/0000-0002-7422-9137">ORCID</a>

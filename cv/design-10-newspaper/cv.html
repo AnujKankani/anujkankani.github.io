@@ -152,6 +152,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
 .rail .cx{ font-size:7.5pt; line-height:1.26; margin-top:4.5pt;
            overflow-wrap:anywhere; }
 .rail .cx div{ margin-top:2.2pt; }
+.rail .cx a, .off-v a{ color:inherit; text-decoration:none; }
 .rail .cx .lb{ display:block; font-family:'Engravers MT',serif; font-size:5.6pt;
                line-height:1.15; letter-spacing:.13em; }
 .rail .item{ margin-bottom:4.5pt; }
@@ -223,7 +224,8 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
 .ann:nth-child(odd){ padding-left:0; border-right:.5pt solid var(--hair); }
 .ann:nth-child(even){ padding-right:0; }
 .ann:nth-child(1),.ann:nth-child(2){ padding-top:0; }
-.ann:nth-child(3),.ann:nth-child(4){ border-top:.5pt solid var(--hair); }
+/* every row after the first takes a rule, however many entries there are */
+.ann:nth-child(n+3){ border-top:.5pt solid var(--hair); }
 .ann-tag{
   display:inline-block; border:.7pt solid var(--hair); padding:1.4pt 6pt 1.8pt;
   font-family:'Engravers MT',serif; font-size:6.4pt; letter-spacing:.13em;
@@ -252,6 +254,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
           letter-spacing:.02em; line-height:1.05; }
 .work .role{ font-variant:small-caps; font-weight:bold; font-size:9.2pt;
              letter-spacing:.05em; margin-top:2pt; }
+.work .url a{ color:inherit; text-decoration:none; }
 .work .url{ font-size:8.3pt; font-style:italic; overflow-wrap:anywhere;
             margin-top:1pt; }
 .work p{ font-size:9.2pt; line-height:1.34; text-align:justify;
@@ -352,7 +355,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
         <circle cx="22.5" cy="13" r="1.8" fill="#000"/>
       </svg>
     </div>
-    <div class="tagline">Curriculum Vitæ of Anuj Kankani &nbsp;·&nbsp; Gravitational-Wave Physics</div>
+    <div class="tagline">Curriculum Vitæ of Anuj Kankani &nbsp;·&nbsp; Gravitational and High-Energy Astrophysics</div>
     <div class="tagline2">Gravitational Waveform Modeling &nbsp;—&nbsp; Numerical Relativity &nbsp;—&nbsp; General Relativistic Particle-in-Cell Simulation</div>
     <div class="folio">
       <span>Vol.&nbsp;I &nbsp;—&nbsp; No.&nbsp;1</span>
@@ -385,11 +388,11 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
 
         <p>He works on grav­i­ta­tional wave­form mod­el­ing, numer­i­cal rel­a­tiv­ity, and Gen­eral Rel­a­tiv­is­tic Par­ti­cle-in-Cell (GRPIC) sim­u­la­tions. He took his BS in Phys­ics (Hon­ors) at Texas A&amp;M Uni­ver­sity in May 2021, with minors in Com­puter Sci­ence and Astro­phys­ics.</p>
 
-        <p>Of his seven pub­li­ca­tions, four are sub­mit­ted and under review; the three on the direct wave and the BOB wave­form model are set out at the foot of this page. Three others are ref­er­eed and in print — two in <i>Phys­i­cal Review D</i>, one in <i>Phys­i­cal Review E</i> — and appear on Page Two beside the fourth sub­mis­sion. Six of the seven carry his name first.</p>
+        <p>Of his seven pub­li­ca­tions, four are sub­mit­ted and under review; the three on the direct wave and the BOB wave­form model are set out at the foot of this page. Three others are ref­er­eed and in print — two in <i>Phys­i­cal Review D</i>, one in <i>Phys­i­cal Review E</i> — and appear on Page Two, which prints the com­plete record of all seven. Six of the seven carry his name first.</p>
 
         <p>He is the pri­mary devel­oper of gwBOB, an open-source Python pack­age imple­ment­ing the Back­wards One Body wave­form model, con­trib­utes to the Ein­stein Tool­kit, to Entity and to NRPy, and co-devel­ops LisaWave-JAX. All five are on Page Three.</p>
 
-        <p>He is a mem­ber of the LISA Con­sor­tium, in its wave­form and astro­phys­ics work­ing group. His engage­ments are on Page Two; his ser­vice and out­reach, on Page Three.</p>
+        <p>He is a mem­ber of the LISA Con­sor­tium, in its wave­form and astro­phys­ics work­ing group. His engage­ments are on Page Three; his ser­vice and out­reach, on Page Four.</p>
       </div>
 
       <!-- REFEREED PUBLICATIONS -->
@@ -398,7 +401,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
         <h2>Latest Dispatches</h2>
         <div class="r"></div>
       </div>
-      <div class="secsub">Three papers submitted and under review. Refereed work in print appears on Page Two.</div>
+      <div class="secsub">Three papers submitted and under review. The complete record of all seven appears on Page Two.</div>
 
       <div class="stories">
 
@@ -447,11 +450,11 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
         <div class="whorule"></div>
         <div class="dept">Department of Physics &amp; Astronomy<br>West Virginia University<br>Morgantown, West Virginia</div>
         <div class="cx">
-          <div><span class="lb">Post</span>anuj.kankani@mail.wvu.edu</div>
-          <div><span class="lb">Web</span>anujkankani.github.io</div>
-          <div><span class="lb">Orcid</span>0000-0002-7422-9137</div>
-          <div><span class="lb">Code</span>github.com/AnujKankani</div>
-          <div><span class="lb">Inspire</span>inspirehep.net/authors/2774144</div>
+          <div><span class="lb">Post</span><a href="mailto:anuj.kankani@mail.wvu.edu">anuj.kankani@mail.wvu.edu</a></div>
+          <div><span class="lb">Web</span><a href="https://anujkankani.github.io">anujkankani.github.io</a></div>
+          <div><span class="lb">Orcid</span><a href="https://orcid.org/0000-0002-7422-9137">0000-0002-7422-9137</a></div>
+          <div><span class="lb">Code</span><a href="https://github.com/AnujKankani">github.com/AnujKankani</a></div>
+          <div><span class="lb">Inspire</span><a href="https://inspirehep.net/authors/2774144">inspirehep.net/authors/2774144</a></div>
         </div>
       </div>
 
@@ -488,10 +491,10 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
   <div class="inside">
     <div class="ih">Inside This Issue</div>
     <div class="row">
-      <div class="cell"><b>The Record</b><i>Three refereed in print,<br>one more submitted</i><b>Page Two</b></div>
-      <div class="cell"><b>Engagements</b><i>Twelve meetings,<br>talks and posters</i><b>Page Two</b></div>
+      <div class="cell"><b>The Record</b><i>All seven papers,<br>with their standing</i><b>Page Two</b></div>
+      <div class="cell"><b>Engagements</b><i>Twelve meetings,<br>talks and posters</i><b>Page Three</b></div>
       <div class="cell"><b>Software &amp; Code</b><i>Five open-source<br>projects and roles</i><b>Page Three</b></div>
-      <div class="cell"><b>Civic Notices</b><i>Consortium, service<br>and outreach</i><b>Page Three</b></div>
+      <div class="cell"><b>Civic Notices</b><i>Consortium, service<br>and outreach</i><b>Page Four</b></div>
       <div class="cell"><b>Standing Matter</b><i>Office, study and<br>honours conferred</i><b>Column Four</b></div>
     </div>
   </div>
@@ -509,16 +512,52 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
   <div class="underhair"></div>
 
   <div class="enc-wrap blk"><div class="enclosure">
-    <div class="enc-label">The Published Record</div>
+    <div class="enc-label">The Complete Record</div>
 
     <div class="standing-note">
-      <b>Notice to the reader.</b> Each entry car­ries its stand­ing in the rule
-      above it. The first three are ref­er­eed and in print, with vol­ume and
-      article num­bers; the fourth, like the three on Page One, is sub­mit­ted
-      and not yet ref­er­eed.
+      <b>Notice to the reader.</b> All seven papers appear below, each with its
+      stand­ing in the rule above it: three ref­er­eed and in print, with vol­ume
+      and article num­bers, and four sub­mit­ted and not yet ref­er­eed. The three
+      dis­patches on Page One are repeated here, so this col­umn may be read alone.
     </div>
 
     <div class="ann-grid">
+
+      <div class="ann">
+        <div class="ann-tag">Submitted &mdash; Under Review</div>
+        <h3>The Direct Wave is Not a Meaningful Test of Horizon Properties</h3>
+        <div class="a-rule"></div>
+        <div class="a-d1"><b>Submitted to</b> Physical Review Letters</div>
+        <div class="a-d2">Anuj Kankani and Sean T. McWilliams</div>
+        <div class="a-d3">arXiv:2607.02380 &nbsp;·&nbsp; First author &nbsp;·&nbsp; Page One</div>
+      </div>
+
+      <div class="ann">
+        <div class="ann-tag">Submitted &mdash; Under Review</div>
+        <h3>Direct Waves in Black-Hole Binary Mergers: Insights from the Backwards One Body Model</h3>
+        <div class="a-rule"></div>
+        <div class="a-d1"><b>Submitted to</b> Physical Review D</div>
+        <div class="a-d2">Anuj Kankani and Sean T. McWilliams</div>
+        <div class="a-d3">arXiv:2603.15474 &nbsp;·&nbsp; First author &nbsp;·&nbsp; Page One</div>
+      </div>
+
+      <div class="ann">
+        <div class="ann-tag">Submitted &mdash; Under Review</div>
+        <h3>BOB the (Waveform) Builder: Optimizing Analytical Black-Hole Binary Merger Waveforms</h3>
+        <div class="a-rule"></div>
+        <div class="a-d1"><b>Submitted to</b> Physical Review D</div>
+        <div class="a-d2">Anuj Kankani and Sean T. McWilliams</div>
+        <div class="a-d3">arXiv:2510.25012 &nbsp;·&nbsp; First author &nbsp;·&nbsp; Page One</div>
+      </div>
+
+      <div class="ann">
+        <div class="ann-tag">Submitted &mdash; Under Review</div>
+        <h3>gwBOB: A Python Package for Analytical Merger-Ringdown Gravitational Waveforms</h3>
+        <div class="a-rule"></div>
+        <div class="a-d1"><b>Submitted to</b> Journal of Open Source Software</div>
+        <div class="a-d2">Anuj Kankani, Angel Morales, Suchindram Dasgupta and Sean T. McWilliams</div>
+        <div class="a-d3">First author</div>
+      </div>
 
       <div class="ann">
         <div class="ann-tag">Refereed &mdash; In Print</div>
@@ -547,15 +586,6 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
         <div class="a-d3">Second author</div>
       </div>
 
-      <div class="ann">
-        <div class="ann-tag">Submitted &mdash; Under Review</div>
-        <h3>gwBOB: A Python Package for Analytical Merger-Ringdown Gravitational Waveforms</h3>
-        <div class="a-rule"></div>
-        <div class="a-d1"><b>Submitted to</b> Journal of Open Source Software</div>
-        <div class="a-d2">Anuj Kankani, Angel Morales, Suchindram Dasgupta and Sean T. McWilliams</div>
-        <div class="a-d3">First author</div>
-      </div>
-
     </div>
 
     <div class="inprep">
@@ -565,14 +595,17 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
     </div>
   </div></div>
 
-  <div class="orn">
-    <svg width="170" height="10" viewBox="0 0 170 10" aria-hidden="true">
-      <path d="M0 5 H70 M100 5 H170" stroke="#000" stroke-width=".8"/>
-      <path d="M78 5 l7 -4.5 7 4.5 -7 4.5 z" fill="#000"/>
-      <circle cx="73.5" cy="5" r="1.6" fill="#000"/>
-      <circle cx="96.5" cy="5" r="1.6" fill="#000"/>
-    </svg>
+</div>
+
+<!-- ══════════════════════════ PAGE THREE ══════════════════════════ -->
+<div class="sheet">
+
+  <div class="runhead">
+    <span>Curriculum Vitæ &nbsp;·&nbsp; Anuj Kankani</span>
+    <span class="rh-mid">The Ringdown Register</span>
+    <span class="rh-pg">PAGE THREE</span>
   </div>
+  <div class="underhair"></div>
 
   <div class="sechead blk">
     <div class="r"></div>
@@ -661,18 +694,6 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
     </div>
   </div>
 
-</div>
-
-<!-- ══════════════════════════ PAGE THREE ══════════════════════════ -->
-<div class="sheet">
-
-  <div class="runhead">
-    <span>Curriculum Vitæ &nbsp;·&nbsp; Anuj Kankani</span>
-    <span class="rh-mid">The Ringdown Register</span>
-    <span class="rh-pg">PAGE THREE</span>
-  </div>
-  <div class="underhair"></div>
-
   <div class="sechead blk">
     <div class="r"></div>
     <h2>Software and Code</h2>
@@ -685,7 +706,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
       <div class="work">
         <h4>gwBOB</h4>
         <div class="role">Primary Developer</div>
-        <div class="url">github.com/AnujKankani/BackwardsOneBody</div>
+        <div class="url"><a href="https://github.com/AnujKankani/BackwardsOneBody">github.com/AnujKankani/BackwardsOneBody</a></div>
         <p>Open-source, user-friendly Python pack­age imple­ment­ing the Back­wards One Body wave­form model, with tools for anal­y­sis and NR com­par­i­son.</p>
       </div>
       <div class="work">
@@ -696,7 +717,7 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
       <div class="work">
         <h4>Entity</h4>
         <div class="role">Contributor</div>
-        <div class="url">entity-toolkit.github.io/wiki</div>
+        <div class="url"><a href="https://entity-toolkit.github.io/wiki">entity-toolkit.github.io/wiki</a></div>
         <p>Kokkos-based Gen­eral Rel­a­tiv­is­tic Par­ti­cle-in-Cell code for plasma astro­phys­ics.</p>
       </div>
     </div>
@@ -704,13 +725,13 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
       <div class="work">
         <h4>Einstein Toolkit</h4>
         <div class="role">Contributor</div>
-        <div class="url">einsteintoolkit.org</div>
+        <div class="url"><a href="https://einsteintoolkit.org">einsteintoolkit.org</a></div>
         <p>Open-source high-per­for­mance-com­put­ing code­base for numer­i­cal rel­a­tiv­ity.</p>
       </div>
       <div class="work">
         <h4>NRPy</h4>
         <div class="role">Contributor</div>
-        <div class="url">github.com/nrpy/nrpy</div>
+        <div class="url"><a href="https://github.com/nrpy/nrpy">github.com/nrpy/nrpy</a></div>
         <p>Python-based sym­bolic code-gen­er­a­tion tool­kit for rel­a­tiv­is­tic astro­phys­ics.</p>
       </div>
     </div>
@@ -724,6 +745,18 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
       <circle cx="96.5" cy="5" r="1.6" fill="#000"/>
     </svg>
   </div>
+
+</div>
+
+<!-- ══════════════════════════ PAGE FOUR ══════════════════════════ -->
+<div class="sheet">
+
+  <div class="runhead">
+    <span>Curriculum Vitæ &nbsp;·&nbsp; Anuj Kankani</span>
+    <span class="rh-mid">The Ringdown Register</span>
+    <span class="rh-pg">PAGE FOUR</span>
+  </div>
+  <div class="underhair"></div>
 
   <div class="sechead blk">
     <div class="r"></div>
@@ -769,11 +802,11 @@ h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
       </div>
       <div class="off-cell">
         <div class="off-lb">By Wire</div>
-        <div class="off-v">anuj.kankani@mail.wvu.edu<br>anujkankani.github.io</div>
+        <div class="off-v"><a href="mailto:anuj.kankani@mail.wvu.edu">anuj.kankani@mail.wvu.edu</a><br><a href="https://anujkankani.github.io">anujkankani.github.io</a></div>
       </div>
       <div class="off-cell">
         <div class="off-lb">In the Indexes</div>
-        <div class="off-v">ORCID 0000-0002-7422-9137<br>github.com/AnujKankani<br>inspirehep.net/authors/2774144</div>
+        <div class="off-v">ORCID <a href="https://orcid.org/0000-0002-7422-9137">0000-0002-7422-9137</a><br><a href="https://github.com/AnujKankani">github.com/AnujKankani</a><br><a href="https://inspirehep.net/authors/2774144">inspirehep.net/authors/2774144</a></div>
       </div>
     </div>
   </div>
