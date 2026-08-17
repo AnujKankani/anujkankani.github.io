@@ -81,6 +81,21 @@ Real examples, all shipped, all false outside the default view:
 - "m sets the number of azimuthal lobes" when the count is 2|m|.
 - a "− / +" legend on a field that is identically zero in that mode.
 
+**A legend entry is a claim that a marker is on screen.** It has to be gated
+by the same condition as the drawing, and the two drift apart the moment one
+gains a branch the other does not. One tool gated its ISCO circle, its shaded
+band and its potential marker on `type !== 'photon'` but left the legend
+unconditional, so photon mode showed a coloured swatch and "ISCO 6.00M" for a
+marker on neither canvas — and the ISCO is not a meaningful quantity for a
+null geodesic in the first place, so the entry was wrong twice over. The same
+gap hid behind a "guides" toggle: turn the guides off and the legend kept
+advertising what had just been erased.
+
+Mirror the drawing conditions into the legend explicitly, and assert them —
+the visibility is set from state that a static suite cannot drive, so pin the
+gating expressions as source contracts and drive the real UI through the modes
+in a browser harness to confirm.
+
 Practice: when adding any sentence to the page, ask which slider makes it
 false, then either fix the sentence, restrict the control, or add the caveat.
 Write a test that counts the real quantity and compares it to the copy.

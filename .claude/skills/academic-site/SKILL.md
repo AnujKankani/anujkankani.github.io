@@ -1,6 +1,6 @@
 ---
 name: academic-site
-description: Build and maintain a static academic site with embedded interactive physics widgets. Use when adding or changing a self-contained HTML tool, wiring it into a host page, adding inline SVG figures or CSS animation, building a photo slideshow or other image content, adding social-preview metadata, working on responsive/touch/layout behaviour, budgeting what fits above the fold, or verifying rendering. Covers the embed contract, the animation-loop rules, animating inline SVG in CSS and its delay/clip traps, theming inline figures, breakout layout past the reading column, the CSS traps that fail silently, and how to verify by measuring instead of guessing — including the probes that answer a different question than the one you asked.
+description: Build and maintain a static academic site with embedded interactive physics widgets. Use when adding or changing a self-contained HTML tool, wiring it into a host page, adding inline SVG figures or CSS animation, building a photo slideshow or other image content, adding social-preview metadata, working on responsive/touch/layout behaviour, budgeting what fits above the fold, generating a print document such as a CV as PDF from the same stack, swapping the display typeface at runtime, or verifying rendering. Covers the embed contract, the animation-loop rules, animating inline SVG in CSS and its delay/clip traps, theming inline figures, breakout layout past the reading column, the CSS traps that fail silently, the print-to-PDF traps (fixed-height pages overprint, hyphenation is absent headless), and how to verify by measuring instead of guessing — including the probes that answer a different question than the one you asked.
 ---
 
 # Academic site with interactive widgets
@@ -98,6 +98,21 @@ child's intrinsic width, the gaps, the container padding) and put the
 breakpoint above it. That failure is invisible on a desktop and on a phone; it
 lives only in the band between them, which is exactly where nobody looks.
 
+**And that number moves whenever the bar's contents change.** The same nav
+later went 924 → 966 → 1008px as a type toggle and then a PDF link joined the
+theme toggle, and each addition silently re-broke a fresh band until the
+breakpoint was re-measured. Two consequences worth building in:
+
+- **Pin the breakpoint to the control count in a test**, so adding a fourth
+  button fails a check instead of quietly breaking 1008–1050px. The test that
+  merely asserted `breakpoint >= 900` passed throughout and caught nothing.
+- **Reclaim width from the gap inside a control cluster, not the breakpoint.**
+  Three 34px buttons at the row's 20px gap needed 1020px — four pixels past
+  iPad landscape at 1024. Tightening the gap *between the icons* to 8px, while
+  leaving 20px between the cluster and the links, brought it to 1008 and made
+  the group read as one object. A breakpoint set above 1024 would have dropped
+  every landscape tablet into the mobile nav instead.
+
 **Give the HOST page a coarse-pointer block too.** Shared component CSS tends
 to get one early; the page's own chrome — nav links, a theme toggle, inline
 "open full" links — gets forgotten. Those measured 21px and 34px tall, under
@@ -156,6 +171,25 @@ padding `+ 290px` track `− 305px` client width. The arithmetic pins it
 precisely, which is the tell that it is one element and not a vague layout
 problem.
 
+### `overflow-wrap: break-word` does not shrink a grid track
+
+A long unbreakable string — a repo URL, a DOI — inside a grid or flex item
+holds its track open at the string's width, because an item's default
+`min-width:auto` forbids shrinking below min-content. Setting
+`overflow-wrap: break-word` on the body looks like the fix and is not: it
+*permits* a break when the line is laid out but **does not reduce intrinsic
+min-content width**, which is the number the track actually measures. Only
+`anywhere` does that.
+
+```css
+/* still 290px of min-content, still overflows */  overflow-wrap: break-word;
+/* min-content collapses, track can shrink   */  overflow-wrap: anywhere;
+```
+
+One card held a 265px column open at 336px this way — 51px of horizontal
+scroll at 320px wide, from one URL. `min-width:0` on the item is the other
+half of the fix; you usually want both.
+
 **A clip-path does not change computed style.** Probing `getComputedStyle(el)
 .opacity` to ask "is this visible?" will report the element as fully painted
 while the clip hides it completely — a probe that silently answers a different
@@ -195,6 +229,20 @@ rect. A hand-made card drifts the moment the page changes; a generated one
 cannot. Commit the generator — an asset whose generator is lost cannot be
 regenerated after the next redesign.
 
+**Generated is not the same as current.** A card built from a hero figure kept
+advertising that figure for months after the hero was replaced, because
+nothing re-runs the generator when the page changes. Every shared link showed
+art that was no longer on the site, and no test could see it. Treat "replace
+the hero" as including "regenerate the cards", and if the figure is inlined
+SVG, **lift it verbatim out of the shipped page** into the card rather than
+redrawing it — then the card is a copy of the real thing and the only failure
+left is forgetting to re-run.
+
+When you do swap it, **delete the old generator rather than leaving it inert.**
+A chirp-drawing script left behind after its `<path>` was removed throws on
+`getElementById(...).setAttribute`, taking out every script after it in the
+same block.
+
 ## Inline SVG figures that follow the theme
 
 Generate figures from a committed script, then **inline** the SVG rather than
@@ -206,6 +254,15 @@ themed build belongs in the page. Pasting the standalone build back in leaves
 a light figure sitting on a dark theme — so **test that no literal hex
 survives** in the inlined copy. That is the failure mode, and it is invisible
 until someone loads the other theme.
+
+**A band that is dark in BOTH themes needs its own link colour.** A footer
+painted with the dark field regardless of theme inherits the page's link
+colour, and in the *light* palette that accent is chosen for contrast against
+paper — about 1.6:1 against the dark band, i.e. invisible. It reads fine in
+dark mode, because the accent lightens there, so whoever tests in one theme
+never sees it. Give such bands their own link token, measure the ratio in both
+themes rather than trusting the palette, and underline links set in prose so
+colour is not the only signal.
 
 **Outline colour and "void" colour must be separate tokens.** The outline
 should flip light on a dark background. But a shape that means *absence* — a
@@ -277,6 +334,29 @@ jet and an undrawn wave, i.e. a blank figure.
 **A hold phase reads better than a loop.** Running the build-up over the first
 ~half of the cycle, then holding the finished frame with only the small motion
 continuing, gives a reader time to actually look at it.
+
+## Swapping a typeface at runtime
+
+An A/B or shuffle control over the display face is a few lines, and two things
+make it work:
+
+- **Weights must be variables, not literals.** Faces do not ship the same
+  weights. Asking a 400-only display serif for 700 gets a browser-synthesised
+  bold — smeared stems that read as a rendering fault, not a design. Route
+  `font-weight`, letter-spacing and any hero scale through custom properties
+  and let each face declare what it actually has.
+- **Every face in the pool must be in the font request, and that can fail
+  silently.** The Google Fonts API returns **HTTP 200 and omits a family**
+  whose axis spec is malformed inside a multi-family URL — the same request
+  alone returns a clean 400. The missing face falls back to `system-ui`, so one
+  value in ten looks broken and nothing errors. Assert pool ⊆ request in a
+  test, and verify the returned CSS actually names every family.
+
+Cost is smaller than it looks: ten extra families added ~2 KB gzipped to the
+one stylesheet request, because the font binaries only download when a face is
+first applied. Prefer not persisting the choice — a reload should restore the
+real typeface, so a visitor cannot get stuck reading the site in a display
+serif, and there is no pre-paint flash to handle.
 
 ## Photo slideshows in a fixed slot
 
@@ -456,7 +536,9 @@ compare it against another, the hidden one is not animating and never was.
 
 More time went into non-bugs here than into bugs. Before believing a
 measurement, confirm: the local server is still up (a dead server renders a
-blank page that reads as "the animation froze"); you are loading the real file
+blank page that reads as "the animation froze", and through the print path a
+one-page 50 KB PDF with no links, which reads exactly like markup you just
+broke — check the server before the diff); you are loading the real file
 and not a stale scratch copy; the iframe under test is actually on screen
 (IntersectionObserver never fires inside an off-screen iframe, so anything
 gated on visibility stays paused); a static `<iframe>` in markup can finish
@@ -503,6 +585,43 @@ Write throwaway measurement harnesses rather than guessing. Useful ones:
   view, compare applied height to content height
 
 Delete them afterwards; keep them out of the repo.
+
+## Printing a document (a CV) to PDF from the same stack
+
+Headless Chrome prints HTML to PDF, which makes a CV just another page in this
+repo. The medium has its own failure modes:
+
+- **A fixed-height page container does not reflow — it overprints.** If pages
+  are `.sheet{height:10.24in}` blocks, content that no longer fits does not
+  push to the next page; it prints *on top of* the following page's running
+  head. Twice, adding entries produced a document that still reported a
+  plausible page count while two items sat over the next masthead. Rasterise
+  and look at **every** page after any content change, not just the one you
+  edited.
+- **`hyphens: auto` is a no-op in headless Chrome.** The hyphenation
+  dictionary is a downloadable component that is absent, so `hyphens:auto` and
+  `hyphens:none` render identically and a long word overflows a narrow
+  justified column. Nothing warns you. `&shy;` works.
+- **Verify the fonts actually embedded** with `pdffonts`. A face you asked for
+  and do not have falls back silently — one candidate resolved to Times with
+  no error, which would have gutted a design that depended on it.
+- **Links survive the print path**, so extract them from the bytes (`/URI`
+  entries) rather than trusting the markup, and check they resolve. Construct
+  nothing: publisher DOIs are not always derivable from volume and article
+  number — a 2025 APS paper's "obvious" DOI 404s, because the publisher moved
+  to opaque identifiers that year.
+- **`pdftotext` output still contains your soft hyphens**, so `grep pumpkin`
+  fails on a document that renders it correctly. Flatten `\u00ad` before
+  checking facts, or you will chase a phantom.
+
+Verify against the document, never the markup: `pdfinfo` for page count and
+size, `pdftotext` for a fact sweep against a source-of-truth file, and
+`pdftoppm -png -r 110` plus actually looking at the pages.
+
+**If the site serves a copy of that PDF, the copy goes stale in silence.**
+Re-render, forget the copy, and visitors keep downloading the old one with no
+symptom anywhere. Byte-compare the published file against the generator's
+output in the test suite.
 
 ## Testing
 
