@@ -93,3 +93,10 @@ mkanuj.py
 # the log by anyone who clones. Rewriting history is the only way to change
 # that, and it has not been done.
 TODO.md
+
+# The site owner's design preferences, reconstructed from working sessions.
+# Local-only for the same reason as TODO.md: it is notes ABOUT working with
+# him, not documentation of the site, and it belongs beside the work rather
+# than published with it. Same caveat -- it was committed in 76865ef and once
+# after, so those copies stay in history until it is rewritten.
+anuj_preferences.md
