@@ -1234,6 +1234,32 @@ suite('geodesic-explorer :: claims match behaviour', () => {
   const src = fs.readFileSync(
     path.join(__dirname, '..', 'geodesic-explorer.html'), 'utf8');
 
+  /* A legend entry is a claim that a marker is on screen, so it must appear
+     exactly when that marker is drawn. Two of the four are conditional:
+
+       photon orbit  drawn inside `if (S.guides)`
+       ISCO          drawn inside `if (S.guides)` AND `if (S.type!=='photon')`
+
+     The horizon and the E^2 line are drawn unconditionally and never hide.
+     This shipped wrong: syncLegend() had no type branch, so photon mode kept
+     a coloured swatch and "ISCO 6.00M" for a marker on neither canvas -- and
+     the ISCO is not a meaningful quantity for a null geodesic at all.
+
+     Checked as source contracts because the visibility is set in JS from
+     state the harness cannot drive without a browser; the live states were
+     verified separately by driving the widget in a scratch iframe harness. */
+  const legendJs = (src.match(/function syncLegend\(\)\{[\s\S]*?\n\}/) || [''])[0];
+  ok('legend gives its conditional entries handles',
+    /id="legPhotonItem"/.test(src) && /id="legIscoItem"/.test(src));
+  ok('legend hides the photon-orbit entry when guides are off',
+    /legPhotonItem'\)\.style\.display\s*=\s*S\.guides\s*\?/.test(legendJs));
+  ok('legend hides the ISCO entry in photon mode and when guides are off',
+    /legIscoItem'\)[\s\S]{0,80}S\.guides\s*&&\s*S\.type!=='photon'/.test(legendJs));
+  /* syncLegend now depends on S.guides, so the guides button must call it --
+     before, that handler only re-rendered the canvases. */
+  ok('the guides toggle re-syncs the legend',
+    /guidesBtn'\)\.onclick[^\n]*syncLegend\(\)/.test(src));
+
   /* Bound to the shipped functions at a = 0. This suite checks that the
      tool's on-screen CLAIMS are true of the tool's own physics, so it has to
      ask the tool, not a copy of it. */
@@ -1839,6 +1865,155 @@ suite('every page :: social preview and favicon', () => {
   });
 });
 
+suite('every page :: structured data', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const root = path.resolve(__dirname, '..');
+  const SITE = 'https://anujkankani.github.io/';
+  const pages = ['index.html'].concat(
+    fs.readdirSync(root).filter((f) => /-(visualizer|explorer)\.html$/.test(f)));
+
+  pages.forEach((f) => {
+    const src = fs.readFileSync(path.join(root, f), 'utf8');
+    const m = src.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+    ok(`${f}: has a JSON-LD block`, !!m);
+    if (!m) return;
+
+    /* Invalid JSON is worse than none: the block is silently discarded and the
+       page looks fine, so nothing on the site would ever tell you. */
+    let data = null;
+    try { data = JSON.parse(m[1]); } catch (e) { /* reported below */ }
+    ok(`${f}: JSON-LD parses`, !!data, data ? '' : 'JSON.parse failed');
+    if (!data) return;
+
+    const nodes = data['@graph'] || [data];
+    ok(`${f}: declares @context`, data['@context'] === 'https://schema.org');
+    const types = nodes.flatMap((n) => [].concat(n['@type'] || []));
+    ok(`${f}: types are meaningful (${[...new Set(types)].join(', ')})`,
+      types.length > 0);
+
+    /* Every URL asserted here is a claim a crawler will follow. Relative ones
+       silently resolve against the wrong base in some consumers. */
+    const urls = JSON.stringify(data).match(/"https?:\/\/[^"]+"/g) || [];
+    ok(`${f}: all JSON-LD URLs are absolute (${urls.length})`,
+      urls.every((u) => /^"https?:\/\//.test(u)));
+
+    /* sameAs is how a search engine decides two identities are one person.
+       A placeholder there actively misinforms, so assert none creep in --
+       this is the same failure mode as the footer's 0000-0000-0000-0000. */
+    const flat = JSON.stringify(data);
+    ok(`${f}: no placeholder identifiers in structured data`,
+      !/YOUR_ID|0000-0000-0000-0000|example\.com|your\.email/.test(flat));
+  });
+
+  /* The tool pages are standalone applications, and saying so is what makes
+     them eligible to surface for "... visualizer" style queries rather than
+     only as pages that mention the words. */
+  ['swsh-visualizer.html', 'geodesic-explorer.html'].forEach((f) => {
+    const src = fs.readFileSync(path.join(root, f), 'utf8');
+    const d = JSON.parse(
+      src.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+    const app = (d['@graph'] || []).find((n) =>
+      [].concat(n['@type'] || []).includes('WebApplication'));
+    ok(`${f}: declares itself a WebApplication`, !!app);
+    ok(`${f}: says it is free to use`, !!app && app.isAccessibleForFree === true);
+    ok(`${f}: names what it is about`, !!app && (app.about || []).length >= 2);
+    ok(`${f}: title contains the word a searcher would type`,
+      /visuali[sz]er|explorer|simulator/i.test(
+        (src.match(/<title>([^<]*)/) || ['', ''])[1]));
+  });
+
+  /* An ORCID is checksummed (ISO 7064 MOD 11-2), so a wrong one is detectable
+     without a network call -- and the placeholder that shipped here for months,
+     0000-0000-0000-0000, fails it. This is the cheapest possible guard against
+     the single worst kind of error on an academic page: an identifier that
+     looks right and points at the wrong person, or nobody. */
+  {
+    const orcidOK = (o) => {
+      const d = o.replace(/-/g, '');
+      if (!/^\d{15}[\dX]$/.test(d)) return false;
+      let t = 0;
+      for (const c of d.slice(0, 15)) t = (t + Number(c)) * 2;
+      const r = (12 - (t % 11)) % 11;
+      return (r === 10 ? 'X' : String(r)) === d[15];
+    };
+    const home = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+    const found = [...home.matchAll(/orcid\.org\/([\dX-]{19})/g)].map((m) => m[1]);
+    ok(`ORCID present (${found.join(', ') || 'none'})`, found.length > 0);
+    ok('every ORCID on the page passes its checksum', found.every(orcidOK));
+    /* Belt and braces: the checksum would catch a typo, but the all-zeros
+       placeholder is worth naming so the failure message is obvious. */
+    ok('no placeholder ORCID', !/0000-0000-0000-0000/.test(home));
+  }
+
+  /* The address shown as the heading and the one behind the Email link have to
+     agree -- they were different for a while, with a real address on display
+     and a placeholder in the href, which is invisible until someone clicks. */
+  {
+    const home2 = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+    const shown = (home2.match(/<h2>\s*([\w.\-]+@[\w.\-]+)/) || [])[1];
+    const linked = (home2.match(/href="mailto:([^"]+)"/) || [])[1];
+    /* Assert AGREEMENT, not existence. Whether the address is clickable is a
+       judgement call -- there is a real argument for leaving it as plain text
+       -- but a mailto that disagrees with the address on screen is never
+       intentional, and it is invisible until somebody clicks it. That is the
+       failure this guards (the href sat on a placeholder for months while the
+       heading showed the real thing). */
+    ok(`displayed email is present (${shown || 'none'})`, !!shown);
+    ok(`any mailto matches the displayed address (${linked || 'no mailto'})`,
+      !linked || linked === shown);
+  }
+
+  /* Every identity link on the page was a placeholder at some point --
+     mailto:your.email@, citations?user=YOUR_ID, orcid 0000-0000-0000-0000, and
+     an arXiv author page that 404'd. Each looked plausible in the markup and
+     was only wrong when followed, which is the worst failure mode on a page
+     whose whole job is being contactable. Now that all four are real, lock the
+     door: any of these shapes reappearing anywhere in the page fails. */
+  {
+    /* Comments stripped FIRST. The Random section sits commented out in this
+       file complete with its href="#" placeholders, and matching raw HTML
+       flagged those as dead links on a live page. Third time this suite has
+       been caught matching markup that never renders -- match what ships. */
+    const home3 = fs.readFileSync(path.join(root, 'index.html'), 'utf8')
+      .replace(/<!--[\s\S]*?-->/g, '');
+    const BAD = [
+      [/YOUR_ID/, 'Google Scholar user=YOUR_ID'],
+      [/0000-0000-0000-0000/, 'placeholder ORCID'],
+      [/your\.email@/, 'placeholder email'],
+      [/example\.com/, 'example.com'],
+      [/href="#"/, 'dead href="#" link'],
+    ];
+    const hits = BAD.filter(([re]) => re.test(home3)).map(([, name]) => name);
+    ok(`no placeholder links remain (${hits.join(', ') || 'none'})`, hits.length === 0);
+
+    /* Contact links are the point of the footer; assert they are all absolute
+       and none is a bare fragment or relative path that would 404 off-site. */
+    const footer = home3.slice(home3.indexOf('<footer'));
+    const hrefs = [...footer.matchAll(/class="contact-links"[\s\S]*?<\/div>/g)]
+      .flatMap((b) => [...b[0].matchAll(/href="([^"]+)"/g)].map((m) => m[1]));
+    ok(`footer has the expected identity links (${hrefs.length})`, hrefs.length >= 5);
+    const offsite = hrefs.filter((h) => !/^(mailto:|https:\/\/)/.test(h));
+    ok(`every footer link is mailto: or https: (${offsite.join(', ') || 'ok'})`,
+      offsite.every((h) => /\.pdf$/i.test(h)));
+  }
+
+  /* index.html is the identity page: it has to carry a Person that the tool
+     pages can point back at, or the site is a set of unrelated documents. */
+  {
+    const d = JSON.parse(fs.readFileSync(path.join(root, 'index.html'), 'utf8')
+      .match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+    const person = d['@graph'].find((n) => n['@type'] === 'Person');
+    ok('index.html: carries a Person node', !!person);
+    ok('index.html: the Person has a stable @id the tools reference',
+      !!person && person['@id'] === SITE + '#anuj');
+    const arts = d['@graph'].filter((n) => n['@type'] === 'ScholarlyArticle');
+    ok(`index.html: publications are marked up (${arts.length})`, arts.length >= 5);
+    ok('every article links its arXiv record',
+      arts.every((a) => /^https:\/\/arxiv\.org\/abs\/[\d.]+$/.test(a.url || '')));
+  }
+});
+
 suite('index.html :: software links', () => {
   const fs = require('fs');
   const path = require('path');
@@ -2171,12 +2346,58 @@ suite('index.html :: hero figure', () => {
      At 720px it did not: the links wrapped onto two lines across the whole
      721-919px band, and below ~850px the nav also pushed the page into
      horizontal scroll with the theme toggle off-screen. iPad portrait (768px)
-     sat inside that. Measured requirement is 924px, so the breakpoint has to
-     be at least ~920. */
+     sat inside that.
+
+     The requirement is a function of what is IN the bar. With one toggle it
+     measured 924px; the type toggle added ~42px and took it to 966px, which
+     re-broke the 921-965 band in exactly the same way. So the number is
+     pinned to the toggle count here: add or remove a button in the nav and
+     this fails, which is the point -- it forces a re-measure with
+     an iframe harness rather than letting the breakpoint quietly go
+     stale. The old check asserted only `>= 900`, which the broken 920px
+     value passed. */
   const navbp = css.match(/@media\(max-width:(\d+)px\)\{\s*\.nav-inner/);
   ok('scrollable-nav breakpoint exists', !!navbp);
-  ok(`nav breakpoint covers the desktop nav's 924px requirement (${navbp ? navbp[1] : '?'}px)`,
-    !!navbp && Number(navbp[1]) >= 900);
+  const navMarkup = src.slice(src.indexOf('<nav>'), src.indexOf('</nav>'));
+  const toggles = (navMarkup.match(/class="theme-toggle/g) || []).length;
+  ok('nav still carries exactly the three controls the breakpoint was measured for',
+    toggles === 3);
+  /* The icons must stay a tightened cluster. At the .nav-right gap of 20px the
+     requirement measured 1020px -- past iPad landscape (1024) by four pixels. */
+  ok('nav icon cluster keeps its own tighter gap',
+    /\.nav-tools\{[^}]*gap:8px/.test(css));
+  /* Every family the random-typeface button can roll must also be requested
+     in the Google Fonts <link>, or picking it silently falls back to
+     system-ui and the button looks broken. This drifts in one direction --
+     someone adds a face to the JS pool and forgets the link -- and it is
+     invisible in review, so it is asserted rather than trusted.
+
+     Worth knowing why this is not merely theoretical: the Fonts API returns
+     HTTP 200 and quietly OMITS a family whose axis spec is malformed. A
+     `Bricolage Grotesque:opsz,wdth,wght@...` request 400s on its own but is
+     dropped without a word inside a multi-family URL. */
+  const link = (src.match(/fonts\.googleapis\.com\/css2\?([^"']+)/) || ['',''])[1];
+  const linked = new Set(
+    (link.match(/family=([^:&]+)/g) || [])
+      .map(f => decodeURIComponent(f.slice(7)).replace(/\+/g, ' ')));
+  const poolBlock = src.slice(src.indexOf('var FONTS=['),
+                              src.indexOf('var FONTS=[') + 2000);
+  const pool = (poolBlock.match(/\{n:'([^']+)'/g) || []).map(m => m.slice(4, -1));
+  ok('random-typeface pool is non-empty', pool.length >= 2);
+  const missing = pool.filter(f => !linked.has(f));
+  ok(`every pooled typeface is in the font link (${pool.length} pooled, ${linked.size} linked)`,
+    missing.length === 0, missing.join(', '));
+  /* The body and mono roles are not part of the swap and must survive it. */
+  ok('body and mono faces still requested',
+    linked.has('Newsreader') && linked.has('IBM Plex Mono'));
+  /* The pool drives weights through variables; a literal weight on a sans-role
+     rule would override whatever the rolled face can actually render. */
+  ok('heading weight is a variable, not a literal',
+    /h1,h2,h3\{[^}]*font-weight:var\(--fw-head\)/.test(css));
+
+  const NAV_NEED = 1008;  // measured at 1400px with document.fonts.ready resolved
+  ok(`nav breakpoint covers the desktop nav's ${NAV_NEED}px requirement (${navbp ? navbp[1] : '?'}px)`,
+    !!navbp && toggles === 3 && Number(navbp[1]) >= NAV_NEED - 1);
   /* The mobile treatment is what prevents the wrap; both halves must be there. */
   const navblk = navbp
     ? css.slice(css.indexOf(navbp[0]), css.indexOf(navbp[0]) + 700) : '';

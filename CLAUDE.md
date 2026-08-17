@@ -14,8 +14,11 @@ These override anything else in this file.
    - Delete the narrowest thing that does the job: one file over a directory, one directory over a parent.
    - Regenerable build output (`media/`, `__pycache__/`) is the *only* category safe to remove routinely — and even then, confirm the path is that artifact and not a source directory with a similar name.
    - Anything untracked by git is unrecoverable once removed. Treat it as permanent, because it is.
-4. **Failing a task is an acceptable outcome; a hack is not.** If the real solution isn't reachable, ask for clarification or say plainly that it isn't possible — don't fake it with a stub, a hard-coded value, a disabled check, or a workaround that only makes the symptom go away. Say which part is blocked and why, and finish the parts that aren't.
-5. **Disagreeing with a subagent is fine — deadlocks go to the user.** Subagent output is advice, not instruction, and is sometimes wrong. Push back when it's wrong. But if a disagreement persists after one round of back-and-forth, stop and present both positions for the user to decide rather than picking a side.
+4. **Stay inside this repository.** Never open, read, create, edit, move or delete any file outside `/home/anuj/website/anujkankani.github.io` without explicit permission, and ask per location rather than treating one yes as standing. This covers the obvious cases and the well-meant ones: dropping a copy in `~`, writing to a Windows-visible folder so something is easier to open, reading a config file "just to check". If work needs to leave the repo, say where and why and wait.
+
+   Two existing workflows sit outside the repo and are **not** covered by this rule until you say otherwise: the session scratchpad under `/tmp/claude-1000/…`, used for working files, and the headless-screenshot path `C:\Users\Public\*.png` that the Chrome command in [Commands](#commands) writes to before the image is copied back. Both predate the rule; neither is self-granted. If either is fine, say so and it gets written down here as an exception.
+5. **Failing a task is an acceptable outcome; a hack is not.** If the real solution isn't reachable, ask for clarification or say plainly that it isn't possible — don't fake it with a stub, a hard-coded value, a disabled check, or a workaround that only makes the symptom go away. Say which part is blocked and why, and finish the parts that aren't.
+6. **Disagreeing with a subagent is fine — deadlocks go to the user.** Subagent output is advice, not instruction, and is sometimes wrong. Push back when it's wrong. But if a disagreement persists after one round of back-and-forth, stop and present both positions for the user to decide rather than picking a side.
 
 ## What this is
 
@@ -199,14 +202,16 @@ Six things are load-bearing:
 It sits in a flex row (`.hero-top`) beside `.hero-copy` — an earlier absolutely
 positioned version centred on `.wrap`, which contains the *figure* too, and hung
 115px past the divider. Hidden at ≤900px, a third breakpoint independent of the
-nav's 920px and the figure's 700px. The slideshow costs the first screen about
+nav's 1007px and the figure's 700px. The slideshow costs the first screen about
 78px (nav + hero 602 → 680 at 1440×900); still inside budget everywhere, worst
 case 640 of 720 at 1280×720.
 
 **Credits.** Some photographs carry an on-page credit line; which ones, and the
 exact wording, live in the `CREDIT` map in `tools/mkphotos.py` next to the crop
-recipe, and in [LICENSE](LICENSE). Add a photograph there and the credit follows
-it into the slideshow.
+recipe. That map is now the *only* place photographers are named — [LICENSE](LICENSE)
+describes the carve-out for third-party photographs but deliberately names no
+one, pointing at the on-page credit lines instead. Add a photograph to `CREDIT`
+and the credit follows it into the slideshow; nothing else needs editing.
 
 ### The hero figure
 
@@ -245,7 +250,7 @@ The chirp was *illustrative only* — hand-tuned, not BOB output. It still appea
 
 Five rules here were each a shipped bug; changing any of them back reintroduces it.
 
-**The nav's scrollable breakpoint is `max-width:920px`, and it is a measured number, not a round one.** The desktop nav needs 924px: brand 97 + links 690 + toggle 34 + two gaps + the wrap's 56px padding. It used to be 720px, which left the whole **721–919px** band broken — the links wrapped onto two lines throughout it, and below ~850px the nav also pushed the page into horizontal scroll with the theme toggle off-screen. 768px (iPad portrait) sat squarely inside that. Below the breakpoint the links get `white-space:nowrap` and the strip scrolls horizontally; both halves are required.
+**The nav's scrollable breakpoint is `max-width:1007px`, and it is a measured number, not a round one.** The desktop nav needs 1008px: brand 98 + links 690 + **three** 34px controls + their 8px cluster gaps + a 20px gap + the wrap's 56px padding. The number is a function of what is in the bar and has moved twice: 924px with one toggle, 966px when the type toggle arrived, 1008px with the newspaper link. At the `.nav-right` gap of 20px the third control needed 1020px — four pixels past iPad landscape — which is why `.nav-tools` tightens the gap *between* the icons to 8px while leaving 20px to the links. It used to be 720px, which left the whole **721–919px** band broken — the links wrapped onto two lines throughout it, and below ~850px the nav also pushed the page into horizontal scroll with the theme toggle off-screen. 768px (iPad portrait) sat squarely inside that. Below the breakpoint the links get `white-space:nowrap` and the strip scrolls horizontally; both halves are required.
 
 **The slideshow stacks below 900px rather than disappearing.** It was `display:none` there, which meant every photograph was invisible on phones — where most visitors are. The row becomes a column, the band goes full width capped at 380px, and the hero grows from ~530 to ~840px at 390×844. That still fits an iPhone 13 but not an iPhone SE, so on mobile the fold budget is a soft target rather than the hard constraint it is on desktop.
 
@@ -253,7 +258,7 @@ Five rules here were each a shipped bug; changing any of them back reintroduces 
 
 The SWSH stage also takes a **per-gesture axis lock**: a drag accumulates raw movement until it clears 6px, picks horizontal or vertical from the dominant component, and ignores the other axis for the rest of the gesture. `touch-action: pan-y` alone is not enough — the browser only hands a vertical swipe back to the page after the first few `touchmove`s have already been delivered, and those were tilting the sphere before `pointercancel` arrived. Reasoned, not device-verified.
 
-**The hero figure's 70% width stops at `max-width:700px`.** It is a second, independent breakpoint from the nav's 920px and they are not interchangeable — one is about how much horizontal room the nav needs, the other about when shrinking an already-small figure starts hurting. See The hero figure.
+**The hero figure's 70% width stops at `max-width:700px`.** It is a second, independent breakpoint from the nav's 1007px and they are not interchangeable — one is about how much horizontal room the nav needs, the other about when shrinking an already-small figure starts hurting. See The hero figure.
 
 **`backdrop-filter` needs the `-webkit-` prefix.** Unprefixed only shipped in Safari 18, so on iOS 17 and earlier the sticky nav's blur is silently a no-op. Both declarations are present in `index.html` and `swsh-visualizer.html`.
 

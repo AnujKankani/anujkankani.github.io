@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Anuj Kankani — Curriculum Vitae</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════════
+   THE RINGDOWN REGISTER — the curriculum vitae of Anuj Kankani, set as a
+   late-19th-century broadsheet. System fonts only; each verified embedded
+   via pdffonts: Old English Text MT, Engravers MT, Bodoni MT (+Bold,
+   +Condensed), Times New Roman (+Bold, +Italic).
+   ══════════════════════════════════════════════════════════════════════ */
+
+@page { size: letter; margin: 0.38in 0.44in; }
+
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+:root{
+  --ink:#000;
+  --soft:#333;
+  --paper:#fcfbf7;      /* ~1.5% grey — reads as paper, near-free to print */
+  --hair:#000;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Times New Roman', Times, serif;
+  font-size:9pt;
+  line-height:1.24;
+}
+
+/* ─── sheets ───────────────────────────────────────────────────────── */
+.sheet{ width:7.62in; height:10.24in; display:flex; flex-direction:column; }
+.sheet + .sheet{ break-before:page; }
+
+/* ─── type atoms ───────────────────────────────────────────────────── */
+.sc{ font-variant:small-caps; letter-spacing:.03em; }
+.nocase{ text-transform:none; }
+
+/* ═══ NAMEPLATE ════════════════════════════════════════════════════ */
+.plate{ text-align:center; flex:0 0 auto; }
+.plate .overline{ border-top:.6pt solid var(--hair); border-bottom:2.4pt solid var(--hair);
+                  height:3pt; margin-bottom:4pt; }
+.plate-row{ display:flex; align-items:center; justify-content:center; gap:14pt; }
+.nameplate{
+  font-family:'Old English Text MT','Bodoni MT',serif;
+  font-size:46pt; line-height:1.0; letter-spacing:.5pt; white-space:nowrap;
+}
+.plate .tagline{
+  font-family:'Engravers MT',serif;
+  font-size:7.4pt; letter-spacing:.16em; margin-top:5pt;
+}
+.plate .tagline2{
+  font-style:italic; font-size:8pt; margin-top:2pt; color:var(--soft);
+}
+.folio{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-variant:small-caps; font-size:7.8pt; letter-spacing:.08em;
+  padding:3pt 2pt 3.6pt;
+  border-top:.6pt solid var(--hair); border-bottom:.6pt solid var(--hair);
+  margin-top:5pt;
+}
+.folio .mid{ letter-spacing:.11em; }
+
+/* ═══ PAGE-1: main well + standing rail ═══════════════════════════ */
+.p1{ display:flex; flex:1 1 auto; min-height:0; margin-top:6pt; }
+.well{ flex:1 1 auto; min-width:0; padding-right:10pt; }
+.rail{ flex:0 0 1.62in; border-left:.6pt solid var(--hair); padding-left:9pt; }
+
+/* ─── banner headline + stacked decks ─────────────────────────────── */
+.kicker{
+  font-family:'Engravers MT',serif;
+  font-size:7pt; letter-spacing:.19em; text-align:center;
+  padding-bottom:3pt; border-bottom:.5pt solid var(--hair); margin-bottom:5pt;
+}
+h1.banner{
+  font-family:'Bodoni MT Condensed','Bodoni MT',serif; font-weight:bold;
+  font-size:28pt; line-height:.98; text-align:center;
+  letter-spacing:.008em; text-transform:uppercase;
+}
+.deckrule{ width:54pt; height:0; border-top:.6pt solid var(--hair);
+           margin:5pt auto 4pt; }
+.deck1{ font-family:'Bodoni MT',serif; font-size:11.4pt; line-height:1.14;
+        text-align:center; text-transform:uppercase; letter-spacing:.012em; }
+.deck2{ font-weight:bold; font-variant:small-caps; font-size:10pt;
+        line-height:1.18; text-align:center; letter-spacing:.045em; }
+.deck3{ font-style:italic; font-size:9.2pt; line-height:1.22; text-align:center; }
+
+/* ─── lead story ──────────────────────────────────────────────────── */
+.lead{
+  column-count:3; column-gap:12pt; column-rule:.5pt solid var(--hair);
+  text-align:justify; hyphens:auto; -webkit-hyphens:auto;
+  font-size:8.6pt; line-height:1.26; height:2.16in;
+  margin-top:8pt; padding-top:7pt; border-top:.5pt solid var(--hair);
+}
+.lead p{ text-indent:9pt; }
+.lead p:first-of-type{ text-indent:0; }
+.lead p:first-of-type::first-letter{
+  float:left; font-family:'Bodoni MT',serif; font-weight:bold;
+  font-size:31pt; line-height:.78; padding:1pt 2.5pt 0 0;
+}
+.lead .runin{ font-variant:small-caps; letter-spacing:.03em; font-weight:bold; }
+
+/* ─── section header ──────────────────────────────────────────────── */
+.sechead{ display:flex; align-items:center; gap:8pt; }
+.sechead .r{ flex:1 1 auto; border-top:.6pt solid var(--hair);
+             border-bottom:.6pt solid var(--hair); height:2.6pt; }
+.sechead h2{ font-family:'Engravers MT',serif; font-weight:normal;
+             font-size:10.2pt; letter-spacing:.15em; white-space:nowrap; }
+.secsub{ text-align:center; font-style:italic; font-size:8pt; margin-top:3.5pt; }
+
+/* ─── refereed publication "stories" ──────────────────────────────── */
+.stories{ display:flex; margin-top:5pt; }
+.story{ flex:1 1 0; padding:0 9pt; break-inside:avoid; }
+.story:first-child{ padding-left:0; }
+.story:last-child{ padding-right:0; }
+.story + .story{ border-left:.5pt solid var(--hair); }
+.st-kick{ font-family:'Engravers MT',serif; font-size:6.6pt;
+          letter-spacing:.14em; text-align:center; padding-bottom:2.5pt;
+          border-bottom:.5pt solid var(--hair); margin-bottom:5pt; }
+h3.st-head{ font-family:'Bodoni MT',serif; font-weight:bold;
+            font-size:12.4pt; line-height:1.04; text-align:center;
+            text-transform:uppercase; letter-spacing:.004em; }
+.st-rule{ width:36pt; height:0; border-top:.5pt solid var(--hair);
+          margin:5pt auto 4pt; }
+.st-d1{ font-weight:bold; font-variant:small-caps; font-size:9.2pt;
+        text-align:center; letter-spacing:.04em; line-height:1.18; }
+.st-d2{ font-style:italic; font-size:8.6pt; text-align:center;
+        line-height:1.2; margin-top:2.5pt; }
+.st-d3{ font-size:8.2pt; text-align:center; letter-spacing:.03em;
+        margin-top:3pt; font-variant:small-caps; }
+.dinkus{ text-align:center; margin:4pt 0 3pt; line-height:0; }
+.st-tag{ text-align:center; font-style:italic; font-size:8pt; }
+
+/* ═══ RAIL (standing matter) ══════════════════════════════════════ */
+.railhead{
+  font-family:'Engravers MT',serif; font-size:7.4pt; letter-spacing:.13em;
+  text-align:center; border-top:1.6pt solid var(--hair);
+  border-bottom:.5pt solid var(--hair); padding:2.6pt 0 2.2pt; margin-bottom:4.5pt;
+}
+.railhead.first{ border-top:2.4pt solid var(--hair); }
+.railhead:not(.first){ margin-top:8pt; }
+.rail .box{ border:.7pt solid var(--hair); padding:5pt 5pt 5.5pt; text-align:center; }
+.rail .who{ font-family:'Bodoni MT',serif; font-weight:bold; font-size:12pt;
+            text-transform:uppercase; letter-spacing:.03em; line-height:1.05; }
+.rail .whorule{ width:44pt; border-top:.5pt solid var(--hair);
+                margin:3.5pt auto 3.5pt; }
+.rail .dept{ font-size:7.8pt; line-height:1.24; font-style:italic; }
+.rail .cx{ font-size:7.5pt; line-height:1.26; margin-top:4.5pt;
+           overflow-wrap:anywhere; }
+.rail .cx div{ margin-top:2.2pt; }
+.rail .cx .lb{ display:block; font-family:'Engravers MT',serif; font-size:5.6pt;
+               line-height:1.15; letter-spacing:.13em; }
+.rail .item{ margin-bottom:4.5pt; }
+.rail .item:last-child{ margin-bottom:0; }
+.rail .it-h{ font-weight:bold; font-variant:small-caps; font-size:8.6pt;
+             letter-spacing:.04em; line-height:1.12; }
+.rail .it-s{ font-size:7.8pt; line-height:1.25; font-style:italic; }
+.rail .it-b{ font-size:7.4pt; line-height:1.24; text-align:justify;
+             hyphens:auto; -webkit-hyphens:auto; }
+.rail ul{ list-style:none; font-size:8.2pt; line-height:1.36; }
+.rail ul li{ padding-left:9pt; text-indent:-9pt; }
+.rail ul li::before{ content:"\2014\00a0"; }
+.rail .yr{ font-family:'Bodoni MT',serif; font-weight:bold; font-size:7.8pt; }
+.rail table.brief{ width:100%; border-collapse:collapse; font-size:7.9pt; }
+.rail table.brief td{ padding:2.1pt 0; border-bottom:.4pt dotted #666;
+                      vertical-align:top; line-height:1.16; }
+.rail table.brief tr:last-child td{ border-bottom:0; }
+.rail table.brief .nm{ font-weight:bold; }
+.rail table.brief .rl{ text-align:right; font-style:italic; font-size:7.3pt;
+                       white-space:nowrap; padding-left:4pt; }
+.rail .seepg{ text-align:center; font-size:7pt; font-variant:small-caps;
+              letter-spacing:.08em; margin-top:4pt; }
+
+/* ═══ INSIDE-THIS-ISSUE strip ═════════════════════════════════════ */
+.inside{
+  flex:0 0 auto; margin-top:8pt;
+  border-top:2.4pt solid var(--hair); border-bottom:.6pt solid var(--hair);
+  padding:5pt 0 6pt;
+}
+.inside .ih{ font-family:'Engravers MT',serif; font-size:7pt;
+             letter-spacing:.17em; text-align:center; margin-bottom:4.5pt; }
+.inside .row{ display:flex; }
+.inside .cell{ flex:1 1 0; text-align:center; font-size:7.8pt;
+               line-height:1.24; padding:0 6pt; }
+.inside .cell + .cell{ border-left:.5pt solid var(--hair); }
+.inside .cell b{ font-variant:small-caps; letter-spacing:.05em; }
+.inside .cell i{ display:block; font-size:7.1pt; }
+
+/* ═══ INSIDE PAGES (2–3) ══════════════════════════════════════════ */
+.runhead{
+  flex:0 0 auto;
+  display:flex; justify-content:space-between; align-items:baseline;
+  border-bottom:2.4pt solid var(--hair); padding-bottom:3pt;
+  font-variant:small-caps; font-size:7.8pt; letter-spacing:.09em;
+}
+.runhead .rh-mid{ font-family:'Old English Text MT',serif; font-size:14pt;
+                  font-variant:normal; letter-spacing:0; }
+.runhead .rh-pg{ font-family:'Bodoni MT',serif; font-weight:bold; font-size:9pt;
+                 letter-spacing:.06em; }
+.underhair{ flex:0 0 auto; border-top:.6pt solid var(--hair); margin-bottom:11pt; }
+.blk{ flex:0 0 auto; }
+.grow{ flex:1 1 auto; min-height:0; }
+
+/* ─── announcements enclosure ─────────────────────────────────────── */
+.enc-wrap{ text-align:center; }
+.enclosure{ border:.8pt solid var(--hair); padding:0 10pt 7pt; text-align:left; }
+.enc-label{ font-family:'Engravers MT',serif; font-size:9pt; letter-spacing:.15em;
+            background:var(--paper); display:inline-block; padding:0 10pt;
+            position:relative; top:-6pt; }
+.standing-note{
+  font-size:8.4pt; line-height:1.3; text-align:center; font-style:italic;
+  border-top:.5pt solid var(--hair); border-bottom:.5pt solid var(--hair);
+  padding:4pt 16pt 4.5pt; margin:0 auto 8pt; max-width:5.5in;
+}
+.standing-note b{ font-style:normal; font-variant:small-caps;
+                  letter-spacing:.05em; }
+.ann-grid{ display:flex; flex-wrap:wrap; }
+.ann{ flex:0 0 50%; padding:7.5pt 12pt; break-inside:avoid; text-align:center; }
+.ann:nth-child(odd){ padding-left:0; border-right:.5pt solid var(--hair); }
+.ann:nth-child(even){ padding-right:0; }
+.ann:nth-child(1),.ann:nth-child(2){ padding-top:0; }
+.ann:nth-child(3),.ann:nth-child(4){ border-top:.5pt solid var(--hair); }
+.ann-tag{
+  display:inline-block; border:.7pt solid var(--hair); padding:1.4pt 6pt 1.8pt;
+  font-family:'Engravers MT',serif; font-size:6.4pt; letter-spacing:.13em;
+  margin-bottom:6pt;
+}
+.ann h3{ font-family:'Bodoni MT',serif; font-weight:normal; font-size:13pt;
+         line-height:1.05; text-transform:uppercase; letter-spacing:.01em; }
+.ann .a-rule{ width:34pt; border-top:.5pt solid var(--hair);
+              margin:5pt auto 4pt; }
+.ann .a-d1{ font-style:italic; font-size:9.4pt; line-height:1.2; }
+.ann .a-d1 b{ font-style:normal; font-variant:small-caps; font-weight:bold;
+              letter-spacing:.05em; }
+.ann .a-d2{ font-size:8.6pt; line-height:1.24; margin-top:2.5pt; }
+.ann .a-d3{ font-size:8.1pt; font-variant:small-caps; letter-spacing:.04em;
+            margin-top:2.5pt; }
+
+/* ─── software: trade notices ─────────────────────────────────────── */
+.works{ display:flex; margin-top:14pt; }
+.works .col{ flex:1 1 0; padding:0 10pt; }
+.works .col:first-child{ padding-left:0; }
+.works .col:last-child{ padding-right:0; }
+.works .col + .col{ border-left:.5pt solid var(--hair); }
+.work{ break-inside:avoid; margin-bottom:19pt; }
+.work:last-child{ margin-bottom:0; }
+.work h4{ font-family:'Bodoni MT',serif; font-weight:bold; font-size:14.5pt;
+          letter-spacing:.02em; line-height:1.05; }
+.work .role{ font-variant:small-caps; font-weight:bold; font-size:9.2pt;
+             letter-spacing:.05em; margin-top:2pt; }
+.work .url{ font-size:8.3pt; font-style:italic; overflow-wrap:anywhere;
+            margin-top:1pt; }
+.work p{ font-size:9.2pt; line-height:1.34; text-align:justify;
+         hyphens:auto; -webkit-hyphens:auto; margin-top:5pt;
+         border-top:.5pt solid var(--hair); padding-top:5pt; }
+
+/* ─── engagements ─────────────────────────────────────────────────── */
+.eng{ display:flex; margin-top:7pt; }
+.eng .col{ flex:1 1 0; padding:0 11pt; }
+.eng .col:first-child{ padding-left:0; }
+.eng .col:last-child{ padding-right:0; }
+.eng .col + .col{ border-left:.5pt solid var(--hair); }
+.ent{ display:flex; gap:7pt; padding:5pt 0; break-inside:avoid;
+      border-bottom:.4pt dotted #555; }
+.ent:first-child{ padding-top:0; }
+.ent:last-child{ border-bottom:0; }
+.ent .y{ flex:0 0 30pt; font-family:'Bodoni MT',serif; font-weight:bold;
+         font-size:10pt; text-align:right; padding-top:.5pt; }
+.ent .b{ flex:1 1 auto; }
+.ent .m{ font-variant:small-caps; font-weight:bold; font-size:9.2pt;
+         letter-spacing:.035em; line-height:1.16; }
+.ent .k{ font-family:'Engravers MT',serif; font-size:6.2pt;
+         letter-spacing:.12em; margin-top:1pt; }
+.ent .t{ font-size:8.6pt; line-height:1.22; font-style:italic; margin-top:.5pt; }
+
+/* ─── civic notices ───────────────────────────────────────────────── */
+.civic{ display:flex; margin-top:10pt; }
+.civic .col{ flex:1 1 0; padding:0 11pt; }
+.civic .col:first-child{ padding-left:0; }
+.civic .col:last-child{ padding-right:0; }
+.civic .col + .col{ border-left:.5pt solid var(--hair); }
+.notice{ break-inside:avoid; margin-bottom:11pt; }
+.notice:last-child{ margin-bottom:0; }
+.notice h4{ font-weight:bold; font-variant:small-caps; font-size:10.4pt;
+            letter-spacing:.05em; line-height:1.14; }
+.notice p{ font-size:9.1pt; line-height:1.3; text-align:justify;
+           hyphens:auto; -webkit-hyphens:auto; margin-top:2pt; }
+
+/* ─── colophon ────────────────────────────────────────────────────── */
+.colophon{ flex:0 0 auto; border-top:2.4pt solid var(--hair); padding-top:6pt; margin-top:10pt; }
+.colophon .ch{ font-family:'Engravers MT',serif; font-size:6.8pt;
+               letter-spacing:.16em; text-align:center; margin-bottom:4pt; }
+.colophon p{ font-size:7.8pt; line-height:1.32; text-align:justify;
+             hyphens:auto; -webkit-hyphens:auto; column-count:2;
+             column-gap:16pt; column-rule:.4pt solid var(--hair); }
+.colophon .ital{ font-style:italic; }
+
+.orn{ text-align:center; margin:11pt 0 9pt; flex:0 0 auto; }
+
+/* ─── masthead repeat: where a paper prints its own address ───────── */
+.office{ margin-top:10pt; border-top:1.6pt solid var(--hair);
+         border-bottom:1.6pt solid var(--hair); padding:7pt 0 8pt; }
+.off-head{ font-family:'Engravers MT',serif; font-size:7.6pt; letter-spacing:.16em;
+           text-align:center; margin-bottom:6pt; }
+.off-row{ display:flex; }
+.off-cell{ flex:1 1 0; padding:0 12pt; text-align:center; }
+.off-cell + .off-cell{ border-left:.5pt solid var(--hair); }
+.off-lb{ font-family:'Engravers MT',serif; font-size:6pt; letter-spacing:.14em;
+         margin-bottom:3pt; }
+.off-v{ font-size:9pt; line-height:1.42; overflow-wrap:anywhere; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════ PAGE ONE ══════════════════════════ -->
+<div class="sheet">
+
+  <!-- NAMEPLATE -->
+  <div class="plate">
+    <div class="overline"></div>
+    <div class="plate-row">
+      <svg width="80" height="26" viewBox="0 0 80 26" aria-hidden="true">
+        <g fill="none" stroke="#000" stroke-width="1">
+          <path d="M2 13 H54"/>
+          <path d="M10 9.5 C22 3.5, 36 3.5, 48 9.5"/>
+          <path d="M10 16.5 C22 22.5, 36 22.5, 48 16.5"/>
+        </g>
+        <path d="M64 13 l6 -5.5 6 5.5 -6 5.5 z" fill="#000"/>
+        <circle cx="57.5" cy="13" r="1.8" fill="#000"/>
+      </svg>
+      <div class="nameplate">The Ringdown Register</div>
+      <svg width="80" height="26" viewBox="0 0 80 26" aria-hidden="true">
+        <g fill="none" stroke="#000" stroke-width="1">
+          <path d="M26 13 H78"/>
+          <path d="M32 9.5 C44 3.5, 58 3.5, 70 9.5"/>
+          <path d="M32 16.5 C44 22.5, 58 22.5, 70 16.5"/>
+        </g>
+        <path d="M4 13 l6 -5.5 6 5.5 -6 5.5 z" fill="#000"/>
+        <circle cx="22.5" cy="13" r="1.8" fill="#000"/>
+      </svg>
+    </div>
+    <div class="tagline">Curriculum Vitæ of Anuj Kankani &nbsp;·&nbsp; Gravitational-Wave Physics</div>
+    <div class="tagline2">Gravitational Waveform Modeling &nbsp;—&nbsp; Numerical Relativity &nbsp;—&nbsp; General Relativistic Particle-in-Cell Simulation</div>
+    <div class="folio">
+      <span>Vol.&nbsp;I &nbsp;—&nbsp; No.&nbsp;1</span>
+      <span class="mid">Morgantown, West Virginia &nbsp;—&nbsp; Sunday, August 16, 2026</span>
+      <span>Price Five Cents</span>
+    </div>
+  </div>
+
+  <div class="p1">
+
+    <!-- ─────────── MAIN WELL ─────────── -->
+    <div class="well">
+
+      <div class="kicker">West Virginia University &nbsp;·&nbsp; Department of Physics &amp; Astronomy</div>
+
+      <h1 class="banner">Kankani Models Black-Hole Mergers<br>and the Plasma That Surrounds Them</h1>
+
+      <div class="deckrule"></div>
+      <div class="deck1">Seven Publications, Six of Them First-Authored; Three Refereed and In Print, Four Submitted and Under Review</div>
+
+      <div class="deckrule"></div>
+      <div class="deck2">Primary Developer of gwBOB — Contributor to the Einstein Toolkit, to Entity and to NRPy — Co-Developer of LisaWave-JAX</div>
+
+      <div class="deckrule"></div>
+      <div class="deck3">Doctoral Candidate at West Virginia University — Expected 2027 — Advisor, Sean&nbsp;T.&nbsp;McWilliams</div>
+
+      <!-- LEAD STORY -->
+      <div class="lead">
+        <p><span class="runin">Anuj Kan­kani</span> is a doc­toral can­di­date in the Depart­ment of Phys­ics &amp; Astron­omy at West Vir­ginia Uni­ver­sity, Mor­gan­town, under Sean&nbsp;T. McWil­liams, expect­ing to grad­u­ate in 2027.</p>
+
+        <p>He works on grav­i­ta­tional wave­form mod­el­ing, numer­i­cal rel­a­tiv­ity, and Gen­eral Rel­a­tiv­is­tic Par­ti­cle-in-Cell (GRPIC) sim­u­la­tions. He took his BS in Phys­ics (Hon­ors) at Texas A&amp;M Uni­ver­sity in May 2021, with minors in Com­puter Sci­ence and Astro­phys­ics.</p>
+
+        <p>Of his seven pub­li­ca­tions, three are ref­er­eed and in print — two in <i>Phys­i­cal Review D</i>, one in <i>Phys­i­cal Review E</i> — and are set out at the foot of this page. Four more are sub­mit­ted and under review; they are announced sep­a­rately, on Page Two. Six of the seven carry his name first.</p>
+
+        <p>He is the pri­mary devel­oper of gwBOB, an open-source Python pack­age imple­ment­ing the Back­wards One Body wave­form model, con­trib­utes to the Ein­stein Tool­kit, to Entity and to NRPy, and co-devel­ops LisaWave-JAX. All five are on Page Three.</p>
+
+        <p>He is a mem­ber of the LISA Con­sor­tium, in its wave­form and astro­phys­ics work­ing group. His engage­ments are on Page Two; his ser­vice and out­reach, on Page Three.</p>
+      </div>
+
+      <!-- REFEREED PUBLICATIONS -->
+      <div class="sechead" style="margin-top:9pt;">
+        <div class="r"></div>
+        <h2>Published and Refereed</h2>
+        <div class="r"></div>
+      </div>
+      <div class="secsub">Three papers, refereed and in print. Submitted work is announced separately, on Page Two.</div>
+
+      <div class="stories">
+
+        <div class="story">
+          <div class="st-kick">Physical Review D &nbsp;·&nbsp; 2025</div>
+          <h3 class="st-head">Modeling Relative Peak Times of Gravitational Wave Harmonics</h3>
+          <div class="st-rule"></div>
+          <div class="st-d1">Phys. Rev. D <b>112</b>, 124051 (2025)</div>
+          <div class="st-d2">Anuj Kankani and Sean T. McWilliams</div>
+          <div class="st-d3">arXiv:2506.17492</div>
+          <div class="dinkus"><svg width="15" height="14" viewBox="0 0 13 12" aria-hidden="true"><g stroke="#000" stroke-width=".95" stroke-linecap="round"><path d="M6.5 .9V5.1M4.7 1.95L8.3 4.05M4.7 4.05L8.3 1.95"/><path d="M3 6.9V11.1M1.2 7.95L4.8 10.05M1.2 10.05L4.8 7.95"/><path d="M10 6.9V11.1M8.2 7.95L11.8 10.05M8.2 10.05L11.8 7.95"/></g></svg></div>
+          <div class="st-tag">First author &nbsp;·&nbsp; Refereed</div>
+        </div>
+
+        <div class="story">
+          <div class="st-kick">Physical Review D &nbsp;·&nbsp; 2024</div>
+          <h3 class="st-head">Testing the Boundary-to-Bound Correspondence with Numerical Relativity</h3>
+          <div class="st-rule"></div>
+          <div class="st-d1">Phys. Rev. D <b>110</b>, 064033 (2024)</div>
+          <div class="st-d2">Anuj Kankani and Sean T. McWilliams</div>
+          <div class="st-d3">arXiv:2404.03607</div>
+          <div class="dinkus"><svg width="15" height="14" viewBox="0 0 13 12" aria-hidden="true"><g stroke="#000" stroke-width=".95" stroke-linecap="round"><path d="M6.5 .9V5.1M4.7 1.95L8.3 4.05M4.7 4.05L8.3 1.95"/><path d="M3 6.9V11.1M1.2 7.95L4.8 10.05M1.2 10.05L4.8 7.95"/><path d="M10 6.9V11.1M8.2 7.95L11.8 10.05M8.2 10.05L11.8 7.95"/></g></svg></div>
+          <div class="st-tag">First author &nbsp;·&nbsp; Refereed</div>
+        </div>
+
+        <div class="story">
+          <div class="st-kick">Physical Review E &nbsp;·&nbsp; 2021</div>
+          <h3 class="st-head">Optimization and Benchmarking of the Thermal Cycling Algorithm</h3>
+          <div class="st-rule"></div>
+          <div class="st-d1">Phys. Rev. E <b>104</b>(3), 035302 (2021)</div>
+          <div class="st-d2">A. Barzegar, A. Kankani, S. Mandrà and H. G. Katzgraber</div>
+          <div class="dinkus"><svg width="15" height="14" viewBox="0 0 13 12" aria-hidden="true"><g stroke="#000" stroke-width=".95" stroke-linecap="round"><path d="M6.5 .9V5.1M4.7 1.95L8.3 4.05M4.7 4.05L8.3 1.95"/><path d="M3 6.9V11.1M1.2 7.95L4.8 10.05M1.2 10.05L4.8 7.95"/><path d="M10 6.9V11.1M8.2 7.95L11.8 10.05M8.2 10.05L11.8 7.95"/></g></svg></div>
+          <div class="st-tag">Second author &nbsp;·&nbsp; Refereed</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─────────── STANDING RAIL ─────────── -->
+    <div class="rail">
+
+      <div class="railhead first">This Office</div>
+      <div class="box">
+        <div class="who">Anuj Kankani</div>
+        <div class="whorule"></div>
+        <div class="dept">Department of Physics &amp; Astronomy<br>West Virginia University<br>Morgantown, West Virginia</div>
+        <div class="cx">
+          <div><span class="lb">Post</span>anuj.kankani@mail.wvu.edu</div>
+          <div><span class="lb">Web</span>anujkankani.github.io</div>
+          <div><span class="lb">Orcid</span>0000-0002-7422-9137</div>
+          <div><span class="lb">Code</span>github.com/AnujKankani</div>
+          <div><span class="lb">Scholar</span>scholar.google.com/citations?user=PJ-efk0AAAAJ</div>
+        </div>
+      </div>
+
+      <div class="railhead">Terms of Study</div>
+      <div class="item">
+        <div class="it-h">West Virginia University</div>
+        <div class="it-s">PhD in Physics — in progress</div>
+        <div class="it-b">Expected grad­u­a­tion 2027. Advi­sor: Sean T. McWil­liams. Grade-point aver­age 3.9 / 4.0.</div>
+      </div>
+      <div class="item">
+        <div class="it-h">Texas A&amp;M University</div>
+        <div class="it-s">BS in Physics (Honors)</div>
+        <div class="it-b">Col­lege Sta­tion, Texas. August 2017 – May 2021. Minors in Com­puter Sci­ence and Astro­phys­ics. Grade-point aver­age 3.84 / 4.0.</div>
+      </div>
+
+      <div class="railhead">Honours Conferred</div>
+      <div class="item">
+        <div class="it-h">Ruby Distinguished Doctoral Fellow <span class="yr">2021–2024</span></div>
+        <div class="it-b">Awarded to out­stand­ing doc­toral stu­dents in STEM fields at West Vir­ginia Uni­ver­sity.</div>
+      </div>
+      <div class="item">
+        <div class="it-h">NASA WV Space Grant Graduate Fellowship <span class="yr">2024–2025</span></div>
+        <div class="it-b">For the pro­posal “Mod­el­ing Black Hole Merg­ers with a Dynam­i­cal Back­ground Space­time.”</div>
+      </div>
+      <div class="item">
+        <div class="it-h">Mohindar Seehra Research Award <span class="yr">2025</span></div>
+        <div class="it-b">Depart­men­tal award rec­og­niz­ing out­stand­ing research efforts in Phys­ics.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- INSIDE THIS ISSUE -->
+  <div class="inside">
+    <div class="ih">Inside This Issue</div>
+    <div class="row">
+      <div class="cell"><b>Announcements</b><i>Four papers submitted<br>and under review</i><b>Page Two</b></div>
+      <div class="cell"><b>Engagements</b><i>Twelve meetings,<br>talks and posters</i><b>Page Two</b></div>
+      <div class="cell"><b>Software &amp; Code</b><i>Five open-source<br>projects and roles</i><b>Page Three</b></div>
+      <div class="cell"><b>Civic Notices</b><i>Consortium, service<br>and outreach</i><b>Page Three</b></div>
+      <div class="cell"><b>Standing Matter</b><i>Office, study and<br>honours conferred</i><b>Column Four</b></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════ PAGE TWO ══════════════════════════ -->
+<div class="sheet">
+
+  <div class="runhead">
+    <span>Curriculum Vitæ &nbsp;·&nbsp; Anuj Kankani</span>
+    <span class="rh-mid">The Ringdown Register</span>
+    <span class="rh-pg">PAGE TWO</span>
+  </div>
+  <div class="underhair"></div>
+
+  <div class="enc-wrap blk"><div class="enclosure">
+    <div class="enc-label">Announcements</div>
+
+    <div class="standing-note">
+      <b>Notice to the reader.</b> The four papers below have been <b>sub­mit­ted</b> to the
+      jour­nals named and have <b>not</b> com­pleted ref­er­ee­ing. They are printed here as
+      announce­ments, in a lighter face, and are delib­er­ately set apart from the three
+      ref­er­eed papers on Page One.
+    </div>
+
+    <div class="ann-grid">
+
+      <div class="ann">
+        <div class="ann-tag">Submitted — Under Review</div>
+        <h3>The Direct Wave is Not a Meaningful Test of Horizon Properties</h3>
+        <div class="a-rule"></div>
+        <div class="a-d1"><b>Submitted to</b> Physical Review Letters</div>
+        <div class="a-d2">Anuj Kankani and Sean T. McWilliams</div>
+        <div class="a-d3">arXiv:2607.02380 &nbsp;·&nbsp; First author</div>
+      </div>
+
+      <div class="ann">
+        <div class="ann-tag">Submitted — Under Review</div>
+        <h3>Direct Waves in Black-Hole Binary Mergers: Insights from the Backwards One Body Model</h3>
+        <div class="a-rule"></div>
+        <div class="a-d1"><b>Submitted to</b> Physical Review D</div>
+        <div class="a-d2">Anuj Kankani and Sean T. McWilliams</div>
+        <div class="a-d3">arXiv:2603.15474 &nbsp;·&nbsp; First author</div>
+      </div>
+
+      <div class="ann">
+        <div class="ann-tag">Submitted — Under Review</div>
+        <h3><span class="nocase">gwBOB</span>: A Python Package for Analytical Merger-Ringdown Gravitational Waveforms</h3>
+        <div class="a-rule"></div>
+        <div class="a-d1"><b>Submitted to</b> Journal of Open Source Software</div>
+        <div class="a-d2">Anuj Kankani, Angel Morales, Suchindram Dasgupta and Sean T. McWilliams</div>
+        <div class="a-d3">First author</div>
+      </div>
+
+      <div class="ann">
+        <div class="ann-tag">Submitted — Under Review</div>
+        <h3>BOB the (Waveform) Builder: Optimizing Analytical Black-Hole Binary Merger Waveforms</h3>
+        <div class="a-rule"></div>
+        <div class="a-d1"><b>Submitted to</b> Physical Review D</div>
+        <div class="a-d2">Anuj Kankani and Sean T. McWilliams</div>
+        <div class="a-d3">arXiv:2510.25012 &nbsp;·&nbsp; First author</div>
+      </div>
+
+    </div>
+  </div></div>
+
+  <div class="orn">
+    <svg width="170" height="10" viewBox="0 0 170 10" aria-hidden="true">
+      <path d="M0 5 H70 M100 5 H170" stroke="#000" stroke-width=".8"/>
+      <path d="M78 5 l7 -4.5 7 4.5 -7 4.5 z" fill="#000"/>
+      <circle cx="73.5" cy="5" r="1.6" fill="#000"/>
+      <circle cx="96.5" cy="5" r="1.6" fill="#000"/>
+    </svg>
+  </div>
+
+  <div class="sechead blk">
+    <div class="r"></div>
+    <h2>Engagements and Appearances</h2>
+    <div class="r"></div>
+  </div>
+  <div class="secsub blk">Twelve meetings and workshops — nine talks, two posters, one attended.</div>
+
+  <div class="eng grow">
+    <div class="col">
+
+      <div class="ent"><div class="y">2026</div><div class="b">
+        <div class="m">Plasmas Around Black Holes and Neutron Stars (SCEECS)</div>
+        <div class="k">Poster</div>
+        <div class="t">“Driving Temperature Anisotropies in the Jets of Black Holes”</div>
+      </div></div>
+
+      <div class="ent"><div class="y">2026</div><div class="b">
+        <div class="m">16th International LISA Symposium</div>
+        <div class="k">Contributed Talk</div>
+        <div class="t">“BOB the (Waveform) Builder + Direct Waves”</div>
+      </div></div>
+
+      <div class="ent"><div class="y">2026</div><div class="b">
+        <div class="m">APS Global Physics Summit</div>
+        <div class="k">Contributed Talk</div>
+        <div class="t">“BOB the (Waveform) Builder: Optimizing Analytical Black-Hole Binary Merger Waveforms”</div>
+      </div></div>
+
+      <div class="ent"><div class="y">—</div><div class="b">
+        <div class="m">Center for Gravitational Waves and Cosmology Symposium</div>
+        <div class="k">Contributed Talk &nbsp;·&nbsp; Year not stated</div>
+        <div class="t">“Modeling Extreme Gravity: From Relativistic Plasmas to Gravitational Waves”</div>
+      </div></div>
+
+      <div class="ent"><div class="y">2025</div><div class="b">
+        <div class="m">Prospects in Theoretical Physics — Gravitational Waves from Theory to Observation</div>
+        <div class="k">Attended</div>
+      </div></div>
+
+      <div class="ent"><div class="y">2025</div><div class="b">
+        <div class="m">APS Global Physics Summit</div>
+        <div class="k">Contributed Talk</div>
+        <div class="t">“Merger-Ringdown Modeling of Gravitational Waves Beyond the Dominant Mode”</div>
+      </div></div>
+
+    </div>
+    <div class="col">
+
+      <div class="ent"><div class="y">2025</div><div class="b">
+        <div class="m">AAS Winter Meeting</div>
+        <div class="k">Contributed Talk</div>
+        <div class="t">“Understanding the Origins of Black Hole Superkicks”</div>
+      </div></div>
+
+      <div class="ent"><div class="y">2024</div><div class="b">
+        <div class="m">North American Einstein Toolkit Workshop</div>
+        <div class="k">Thirty-Minute Talk</div>
+        <div class="t">“Understanding the Origins of Black Hole Superkicks”</div>
+      </div></div>
+
+      <div class="ent"><div class="y">2024</div><div class="b">
+        <div class="m">Penn State Neighborhood Workshop</div>
+        <div class="k">Contributed Talk</div>
+        <div class="t">“Understanding the Origins of Black Hole Superkicks”</div>
+      </div></div>
+
+      <div class="ent"><div class="y">2024</div><div class="b">
+        <div class="m">APS April Meeting</div>
+        <div class="k">Contributed Talk</div>
+        <div class="t">“Testing the Boundary to Bound States Dictionary with Numerical Relativity”</div>
+      </div></div>
+
+      <div class="ent"><div class="y">2023</div><div class="b">
+        <div class="m">AAS Winter Meeting</div>
+        <div class="k">Poster</div>
+        <div class="t">“Effect of Baryons on the Dynamical-Friction Timescale of Merging Dark Matter Halos”</div>
+      </div></div>
+
+      <div class="ent"><div class="y">2022</div><div class="b">
+        <div class="m">APS April Meeting</div>
+        <div class="k">Contributed Talk</div>
+        <div class="t">“Effect of Baryons on the Dynamical-Friction Timescale of Merging Dark Matter Halos”</div>
+      </div></div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════ PAGE THREE ══════════════════════════ -->
+<div class="sheet">
+
+  <div class="runhead">
+    <span>Curriculum Vitæ &nbsp;·&nbsp; Anuj Kankani</span>
+    <span class="rh-mid">The Ringdown Register</span>
+    <span class="rh-pg">PAGE THREE</span>
+  </div>
+  <div class="underhair"></div>
+
+  <div class="sechead blk">
+    <div class="r"></div>
+    <h2>Software and Code</h2>
+    <div class="r"></div>
+  </div>
+  <div class="secsub blk">Five open-source projects — primary developer of one, co-developer of another, contributor to three.</div>
+
+  <div class="works blk">
+    <div class="col">
+      <div class="work">
+        <h4>gwBOB</h4>
+        <div class="role">Primary Developer</div>
+        <div class="url">github.com/AnujKankani/BackwardsOneBody</div>
+        <p>Open-source, user-friendly Python pack­age imple­ment­ing the Back­wards One Body wave­form model, with tools for anal­y­sis and NR com­par­i­son.</p>
+      </div>
+      <div class="work">
+        <h4>LisaWave-JAX</h4>
+        <div class="role">Co-developer — in development</div>
+        <p>JAX-based LISA data-anal­y­sis tools for mas­sive black holes and galac­tic bina­ries.</p>
+      </div>
+      <div class="work">
+        <h4>Entity</h4>
+        <div class="role">Contributor</div>
+        <div class="url">entity-toolkit.github.io/wiki</div>
+        <p>Kokkos-based Gen­eral Rel­a­tiv­is­tic Par­ti­cle-in-Cell code for plasma astro­phys­ics.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="work">
+        <h4>Einstein Toolkit</h4>
+        <div class="role">Contributor</div>
+        <div class="url">einsteintoolkit.org</div>
+        <p>Open-source high-per­for­mance-com­put­ing code­base for numer­i­cal rel­a­tiv­ity.</p>
+      </div>
+      <div class="work">
+        <h4>NRPy</h4>
+        <div class="role">Contributor</div>
+        <div class="url">github.com/nrpy/nrpy</div>
+        <p>Python-based sym­bolic code-gen­er­a­tion tool­kit for rel­a­tiv­is­tic astro­phys­ics.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="orn">
+    <svg width="170" height="10" viewBox="0 0 170 10" aria-hidden="true">
+      <path d="M0 5 H70 M100 5 H170" stroke="#000" stroke-width=".8"/>
+      <path d="M78 5 l7 -4.5 7 4.5 -7 4.5 z" fill="#000"/>
+      <circle cx="73.5" cy="5" r="1.6" fill="#000"/>
+      <circle cx="96.5" cy="5" r="1.6" fill="#000"/>
+    </svg>
+  </div>
+
+  <div class="sechead blk">
+    <div class="r"></div>
+    <h2>Civic Notices</h2>
+    <div class="r"></div>
+  </div>
+  <div class="secsub blk">Consortium membership, departmental service, outreach and community work.</div>
+
+  <div class="civic grow">
+    <div class="col">
+      <div class="notice">
+        <h4>LISA Consortium</h4>
+        <p>Mem­ber of the wave­form and astro­phys­ics work­ing group.</p>
+      </div>
+      <div class="notice">
+        <h4>Astronomy Journal Club — Organizer</h4>
+        <p>Orga­nized and led the depart­ment’s weekly journal club, facil­i­tat­ing dis­cus­sions on recent research in astron­omy and astro­phys­ics.</p>
+      </div>
+      <div class="notice">
+        <h4>Community Service — 200 Hours</h4>
+        <p>Two hun­dred hours of com­mu­nity ser­vice com­pleted as a grad­u­ate stu­dent, focused on envi­ron­men­tal res­to­ra­tion and STEM out­reach.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="notice">
+        <h4>Physics and Astronomy Graduate Student Organization</h4>
+        <p>Reg­u­larly involved in STEM out­reach such as Phys­ics Demo Day and the pump­kin drop con­test.</p>
+      </div>
+      <div class="notice">
+        <h4>Physics Outreach</h4>
+        <p>Talks to middle- and high-school groups about black holes and grav­i­ta­tional waves; regular vol­un­teer at phys­ics out­reach events such as Phys­ics Demo Day; writes arti­cles on astro­phys­ics for local orga­ni­za­tions.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MASTHEAD REPEAT — where a paper prints its own address -->
+  <div class="office blk">
+    <div class="off-head">Terms of Correspondence</div>
+    <div class="off-row">
+      <div class="off-cell">
+        <div class="off-lb">By Post</div>
+        <div class="off-v">Department of Physics &amp; Astronomy<br>West Virginia University<br>Morgantown, West Virginia</div>
+      </div>
+      <div class="off-cell">
+        <div class="off-lb">By Wire</div>
+        <div class="off-v">anuj.kankani@mail.wvu.edu<br>anujkankani.github.io</div>
+      </div>
+      <div class="off-cell">
+        <div class="off-lb">In the Indexes</div>
+        <div class="off-v">ORCID 0000-0002-7422-9137<br>github.com/AnujKankani<br>scholar.google.com/citations?user=PJ-efk0AAAAJ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLOPHON -->
+  <div class="colophon">
+    <div class="ch">Colophon and Statement of the Press</div>
+    <p><span class="ital">The Ringdown Register</span> is not a news­pa­per. It is the cur­ric­u­lum vitæ of Anuj Kan­kani, set in the manner of a broad­sheet front page of the eight­een-nine­ties. The title is invented; no pub­li­ca­tion of that name exists, and none is imi­tated. Every fact printed in these col­umns is drawn from that cur­ric­u­lum vitæ, and noth­ing has been added for effect — there are no quo­ta­tions, no cor­re­spon­dents, no reports, and no assess­ment of the work beyond what its author has stated. The volume num­ber, the price line and the orna­ments are cos­tume; the date­line is the day of set­ting. Set in Old Eng­lish Text MT for the nameplate, Bodoni MT for head­lines, Engravers MT for stand­ing heads, and Times New Roman for text and decks. Com­posed in HTML and printed to PDF. Mor­gan­town, West Vir­ginia, August 2026.</p>
+  </div>
+
+</div>
+
+</body>
+</html>

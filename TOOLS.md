@@ -315,7 +315,7 @@ where `WEBSITE_NODE=/home/anuj/anaconda3/envs/website_env/bin/node` (conda env `
 
 `tools/extract.js` pulls the inline `<script>` bodies out of a tool page and evaluates them in a `vm` sandbox with minimal DOM stubs, so the tests exercise **the actual functions inlined in the page**, not copies. A sign error introduced while refactoring a renderer fails here.
 
-Coverage runs wider than physics now — the recurring lesson has been that the bugs live in the layer *between* the physics and the screen, so the suite grew to cover that layer too. Twelve suites:
+Coverage runs wider than physics now — the recurring lesson has been that the bugs live in the layer *between* the physics and the screen, so the suite grew to cover that layer too. Nineteen suites:
 
 - **Physics** — `₋₂Y_lm` closed forms for (2,±2), (2,0), the `e^{imφ}` azimuthal law, Condon–Shortley phase, orthonormality across ℓ, nodal-circle and azimuthal-lobe counts; Schwarzschild landmarks (ISCO r=6M and L²=12, photon sphere r=3M, b_crit=3√3M, horizon Veff=0, Newtonian limit); Kerr landmarks and dynamics, with `accel = −½ dVeff/dr` and the a→0 Schwarzschild reduction checked numerically.
 - **UI state** — presets drive the real controls through `loadUI`, and on-screen claims are checked against actual behaviour.

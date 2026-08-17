@@ -3,17 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>s = −2 Spin-Weighted Spherical Harmonics</title>
-<meta name="description" content="An interactive s = −2 spin-weighted spherical harmonic visualizer — the angular basis of gravitational-wave emission. Sweep ℓ and m, switch fields, rotate the sphere.">
+<title>Spin-Weighted Spherical Harmonic Visualizer (s = −2)</title>
+<meta name="description" content="Interactive s = -2 spin-weighted spherical harmonic visualizer. Sweep l from 2 to 8 and m from -l to +l, switch Re, Im, |Y| and |Y|^2, and rotate the sphere in your browser.">
 <meta name="author" content="Anuj Kankani">
+<meta name="keywords" content="spin-weighted spherical harmonics, s=-2 spherical harmonic visualizer, -2Ylm, spin weighted spherical harmonic calculator, gravitational wave modes, quasinormal mode visualiser, spherical harmonic plot, interactive physics widget">
 <link rel="canonical" href="https://anujkankani.github.io/swsh-visualizer.html">
 
 <!-- Social preview. og:image MUST be absolute: scrapers do not resolve
      relative paths and fail silently, showing a card with no image. -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Anuj Kankani">
-<meta property="og:title" content="Spin-weighted spherical harmonics (s = −2)">
-<meta property="og:description" content="An interactive visualizer for the angular basis of gravitational-wave emission. Sweep ℓ and m, switch fields, rotate the sphere.">
+<meta property="og:title" content="Spin-weighted spherical harmonic visualizer (s = −2)">
+<meta property="og:description" content="Interactive s = -2 spin-weighted spherical harmonic visualizer. Sweep l from 2 to 8 and m from -l to +l, switch Re, Im, |Y| and |Y|^2, and rotate the sphere in your browser.">
 <meta property="og:url" content="https://anujkankani.github.io/swsh-visualizer.html">
 <meta property="og:image" content="https://anujkankani.github.io/assets/og-swsh.jpg">
 <meta property="og:image:width" content="1200">
@@ -26,6 +27,75 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='0'%3E%3Cstop%20offset='0'%20stop-color='%237C83F0'/%3E%3Cstop%20offset='.55'%20stop-color='%23E070B4'/%3E%3Cstop%20offset='1'%20stop-color='%23F0B457'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%230E141F'/%3E%3Cpath%20d='M3.2%2016.0L3.5%2016.0L3.7%2016.0L4.0%2016.0L4.3%2016.0L4.5%2016.0L4.8%2016.0L5.1%2015.9L5.3%2015.9L5.6%2015.8L5.9%2015.8L6.1%2015.7L6.4%2015.7L6.7%2015.6L6.9%2015.5L7.2%2015.5L7.5%2015.4L7.7%2015.3L8.0%2015.2L8.3%2015.1L8.5%2015.1L8.8%2015.0L9.1%2015.0L9.3%2014.9L9.6%2014.9L9.9%2015.0L10.1%2015.0L10.4%2015.1L10.7%2015.2L10.9%2015.3L11.2%2015.5L11.5%2015.8L11.7%2016.0L12.0%2016.3L12.3%2016.7L12.5%2017.1L12.8%2017.5L13.1%2017.9L13.3%2018.3L13.6%2018.7L13.9%2019.2L14.1%2019.5L14.4%2019.9L14.7%2020.1L14.9%2020.3L15.2%2020.3L15.5%2020.2L15.7%2019.9L16.0%2019.5L16.3%2018.9L16.5%2018.1L16.8%2017.2L17.1%2016.1L17.3%2014.8L17.6%2013.5L17.9%2012.2L18.1%2011.0L18.4%209.9L18.7%209.1L18.9%208.5L19.2%208.4L19.5%208.7L19.7%209.6L20.0%2011.0L20.3%2012.9L20.5%2015.2L20.8%2017.7L21.1%2020.3L21.3%2022.1L21.6%2022.8L21.9%2022.8L22.1%2022.2L22.4%2021.0L22.7%2019.5L22.9%2017.9L23.2%2016.4L23.5%2015.1L23.7%2014.2L24.0%2013.7L24.3%2013.6L24.5%2013.8L24.8%2014.4L25.1%2015.1L25.3%2015.8L25.6%2016.4L25.9%2016.8L26.1%2017.0L26.4%2017.0L26.7%2016.8L26.9%2016.4L27.2%2016.0L27.5%2015.7L27.7%2015.5L28.0%2015.5L28.3%2015.6L28.5%2015.8L28.8%2016.0'%20fill='none'%20stroke='url(%23g)'%20stroke-width='2.7'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E">
 <meta name="theme-color" content="#0B1220">
 
+
+<!-- Structured data: this page is a standalone interactive tool, not
+     just a page about one. WebApplication + LearningResource is what
+     tells a search engine it is something you can USE, which is how it
+     surfaces for "... visualizer" and "... simulator" queries. -->
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": [
+          "WebApplication",
+          "LearningResource"
+        ],
+        "@id": "https://anujkankani.github.io/swsh-visualizer.html#app",
+        "name": "Spin-weighted spherical harmonic visualizer (s = −2)",
+        "url": "https://anujkankani.github.io/swsh-visualizer.html",
+        "description": "Interactive spin-weighted spherical harmonic visualizer for s = -2. Sweep l from 2 to 8 and m from -l to +l, switch between Re, Im, |Y| and |Y|^2, and rotate the sphere. The angular basis of gravitational-wave emission, in the browser -- no install.",
+        "applicationCategory": "EducationalApplication",
+        "applicationSubCategory": "Physics visualization",
+        "operatingSystem": "Any (modern web browser)",
+        "browserRequirements": "Requires JavaScript and HTML5 canvas.",
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@id": "https://anujkankani.github.io/#anuj"
+        },
+        "creator": {
+          "@id": "https://anujkankani.github.io/#anuj"
+        },
+        "learningResourceType": "Interactive simulation",
+        "educationalLevel": "Undergraduate, Graduate",
+        "about": [
+          {
+            "@type": "Thing",
+            "name": "Spin-weighted spherical harmonics"
+          },
+          {
+            "@type": "Thing",
+            "name": "Gravitational-wave modes"
+          },
+          {
+            "@type": "Thing",
+            "name": "Black-hole ringdown"
+          },
+          {
+            "@type": "Thing",
+            "name": "Angular basis functions"
+          }
+        ],
+        "keywords": "spin-weighted spherical harmonics, s=-2 spherical harmonic visualizer, -2Ylm, spin weighted spherical harmonic calculator, gravitational wave modes, quasinormal mode visualiser, spherical harmonic plot, interactive physics widget",
+        "license": "https://github.com/AnujKankani/anujkankani.github.io/blob/main/LICENSE",
+        "isPartOf": {
+          "@id": "https://anujkankani.github.io/#website"
+        }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://anujkankani.github.io/#anuj",
+        "name": "Anuj Kankani",
+        "url": "https://anujkankani.github.io/"
+      }
+    ]
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -503,7 +573,7 @@
     </div>
   </div>
 
-  <p class="note">The radius is deformed by the chosen field — colored by sign for Re and Im, by magnitude for |Y|² — so <b>ℓ − max(|m|, 2) gives the number of nodal circles in latitude</b> — the spin weight sets a floor, which is why ₋₂Y<sub>ℓm</sub> is not the scalar ℓ − |m| rule — and the Re and Im views show <b>2|m| azimuthal lobes</b>, separated by 2|m| nodal meridians. <b>|Y| and |Y|² are axisymmetric at every m</b>, so those lobes vanish in both — they differ only in how sharply the latitude profile is peaked, |Y|² exaggerating the contrast between lobe and node. At m = 0 the mode is axisymmetric in every view, and Im vanishes identically. Each mode is normalized to its own peak, so shapes are comparable but amplitudes are not: the (2,2) mode dominates most black-hole mergers, and higher modes carry the finer structure that models like BOB aim to capture.</p>
+  <p class="note">The radius is deformed by the chosen field — colored by sign for Re and Im, by magnitude for |Y| and |Y|² — so <b>ℓ − max(|m|, 2) gives the number of nodal circles in latitude</b> — the spin weight sets a floor, which is why ₋₂Y<sub>ℓm</sub> is not the scalar ℓ − |m| rule — and the Re and Im views show <b>2|m| azimuthal lobes</b>, separated by 2|m| nodal meridians. <b>|Y| and |Y|² are axisymmetric at every m</b>, so those lobes vanish in both — they differ only in how sharply the latitude profile is peaked, |Y|² exaggerating the contrast between lobe and node. At m = 0 the mode is axisymmetric in every view, and Im vanishes identically. Each mode is normalized to its own peak, so shapes are comparable but amplitudes are not: the (2,2) mode dominates most black-hole mergers, and higher modes carry the finer structure that models like BOB aim to capture.</p>
   <p class="srcline">Source: <a href="https://github.com/AnujKankani/anujkankani.github.io/blob/main/swsh-visualizer.html" target="_blank" rel="noopener">swsh-visualizer.html</a> · <a href="https://github.com/AnujKankani/anujkankani.github.io/blob/main/LICENSE" target="_blank" rel="noopener">MIT licensed</a> — self-contained, no dependencies; save the page and it still runs.</p>
 </div>
 

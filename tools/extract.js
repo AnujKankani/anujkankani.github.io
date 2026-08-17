@@ -187,13 +187,28 @@ function seedRangesFromMarkup(file, sandbox) {
   }
 }
 
-/* Pull inline <script> bodies out of a page (skipping src= tags). */
+/* Pull inline <script> bodies out of a page.
+
+   Skips two kinds that are not executable JavaScript:
+     src=          external, nothing inline to run
+     type=...      anything with a type that is not a JS MIME type -- in
+                   practice application/ld+json, which is structured data for
+                   search engines. Evaluating it throws "Unexpected token ':'"
+                   on the first key, and because loadUI is strict that took
+                   down every suite downstream of it. A <script> tag is not
+                   automatically a script. */
+const JS_TYPE = /^(text\/javascript|application\/javascript|module|)$/i;
+
 function scriptsOf(file) {
   const html = fs.readFileSync(path.join(ROOT, file), 'utf8');
   const out = [];
-  const re = /<script(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/script>/g;
+  const re = /<script(?![^>]*\ssrc=)([^>]*)>([\s\S]*?)<\/script>/g;
   let m;
-  while ((m = re.exec(html))) out.push(m[1]);
+  while ((m = re.exec(html))) {
+    const type = (m[1].match(/\stype\s*=\s*["']([^"']*)["']/i) || ['', ''])[1].trim();
+    if (!JS_TYPE.test(type)) continue;
+    out.push(m[2]);
+  }
   return out;
 }
 

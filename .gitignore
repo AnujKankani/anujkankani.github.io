@@ -48,3 +48,39 @@ __pycache__/
 
 # Windows "downloaded from the internet" markers next to the papers
 *:Zone.Identifier
+
+# CV work. Two designs ship: cv/design-4-scan (the CV in use) and
+# cv/design-10-newspaper (the broadsheet the nav links to). Everything else
+# is exploration and stays out of history.
+cv/other_design/
+cv/_probe/
+
+# Rendered CV output and the agents' working files. cv.html is the source,
+# cv.pdf is the deliverable the site links, NOTES.md is the rationale --
+# everything else in these directories is scratch: page rasters, greyscale
+# proofs, zoom crops, .part fragments, one-off probes. Allowlisted rather than
+# pattern-matched, because each design left a different mess and a pattern
+# list silently misses the next one. Rasters regenerate in one command:
+#   pdftoppm -png -r 110 cv/<dir>/cv.pdf cv/<dir>/page
+cv/design-4-scan/*
+!cv/design-4-scan/cv.html
+!cv/design-4-scan/cv.pdf
+!cv/design-4-scan/NOTES.md
+cv/design-10-newspaper/*
+!cv/design-10-newspaper/cv.html
+!cv/design-10-newspaper/cv.pdf
+!cv/design-10-newspaper/NOTES.md
+
+# Typeface exploration: seven copies of the same markup in different font
+# pairings, plus the iframe harnesses used to measure the nav breakpoint, prove
+# each pooled typeface really loads, and drive the geodesic legend through its
+# states. Useful on disk, not site content -- and the set-*.html pages fetch
+# Google Fonts for families the site does not ship, which is exactly what the
+# no-runtime-fetch rule forbids. Regenerate with tools/mktypetests.py.
+type-tests/
+tools/mktypetests.py
+
+# Cartoon of the site owner drawn in the hero figure's idiom. Nothing links it.
+anuj.png
+anuj.svg
+mkanuj.py

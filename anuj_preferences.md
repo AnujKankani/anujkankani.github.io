@@ -34,6 +34,11 @@ leaning on one hard. Anything here can be overridden by just saying so.
   every `.md` file (*"let's make sure all the existing information is
   correct"*). Stale accurate-sounding prose is treated as a defect, not
   cosmetics.
+- **Nothing leaves the repository without asking.** Added as golden rule 4 on
+  2026-08-16 after I copied a generated figure into `~/session-cartoon/` and
+  `C:\Users\Public\` to make it easier to open — helpful in intent, outside
+  the repo without permission in fact. The boundary is the repo, and "it was
+  only a copy" is not an exemption. *(stated)*
 - **Delete carefully, but do delete.** *"you can delete unused code but make
   sure to double check your files so you only delete what is intended and
   nothing extra."*
@@ -45,7 +50,7 @@ leaning on one hard. Anything here can be overridden by just saying so.
   items were dropped, deferred, or judged not worth doing. *(inferred)*
 - **Adversarial review is wanted, and its output is not gospel.** The ask is
   consistently "review, then tell me which are real" — a vetted list, not a
-  relay. Golden rule 5 in CLAUDE.md says the same: disagree with a subagent
+  relay. Golden rule 6 in CLAUDE.md says the same: disagree with a subagent
   when it is wrong, escalate a genuine deadlock. *(stated, via `/agents` use
   and the phrasing "determine which are real issues")*
 
