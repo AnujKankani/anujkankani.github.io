@@ -392,9 +392,8 @@ which cost an afternoon once:
 The favicon is the chirp mark with the cycle count cut until it survives
 16 px. **The chirp is no longer drawn on the homepage** — it was replaced by
 the split black-hole figure on 2026-08-14 — so the favicon and `og-home.jpg`
-now advertise a figure the page does not contain. Open item in
-[TODO.md](TODO.md): keep the chirp as the site's mark, or re-shoot the card
-from the new hero.
+now advertise a figure the page does not contain. Still undecided: keep the
+chirp as the site's mark, or re-shoot the card from the new hero.
 Regenerate with `node tools/mkfav.js <outdir>`, then paste the contents of
 `favicon-uri.txt` into the `<link rel="icon">` of all three pages.
 
