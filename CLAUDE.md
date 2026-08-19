@@ -51,6 +51,8 @@ Development tooling lives in `tools/` and never ships to the browser: a build st
 
 Anything else at the root is either a doc or a scratch file. `_fit.html` is a working harness, not site content.
 
+`google3103db661acd3bc4.html` is the **Google Search Console verification token** — 53 bytes whose entire job is to be served verbatim at the site root. **Never delete it, rename it, or move it into a folder.** Google re-checks it periodically and verification lapses the moment it stops resolving, which silently costs the Search Console data and the ability to request indexing. It is not site content and has no `<head>`; the deployed-page suites skip it or tolerate it. `.nojekyll` is what keeps Jekyll from touching it.
+
 There is one build step, and it is optional-by-default: `tools/build.py` inlines shared CSS/JS into the interactive tool pages so they stay consistent without gaining a runtime dependency. It only touches files containing `<!-- VIZ:CSS -->` / `<!-- VIZ:JS -->` markers **and** matching `TOOL_GLOBS` (`*-visualizer.html`, `*-explorer.html`) at the repo root; [index.html](index.html) has its own styles and is deliberately outside the system. The glob is a trap worth knowing: a tool page named anything else is skipped *in silence*, its VIZ blocks stay empty, and `--check` still says "up to date" because it never looked. `tools/_template.html` is deliberately outside the globs for the same reason — so it cannot go stale. See [TOOLS.md](TOOLS.md).
 
 ## Commands
