@@ -1884,7 +1884,10 @@ suite('every page :: social preview and favicon', () => {
     ok(`${f}: og:url matches canonical`,
       !!canon && meta('property', 'og:url') === canon[1]);
 
-    /* A favicon FILE would be the first runtime fetch other than the font. */
+    /* A LINKED favicon file would be the first runtime fetch other than the
+       font, so the declared icon stays a data: URI. Note this is not the whole
+       story -- see the favicon.ico checks below, which cover the copy Google
+       Search needs and browsers never request. */
     const icon = head.match(/<link rel="icon" href="([^"]+)">/);
     ok(`${f}: favicon is inlined, not fetched`,
       !!icon && icon[1].startsWith('data:image/svg+xml,'));
@@ -1892,6 +1895,42 @@ suite('every page :: social preview and favicon', () => {
 
     ok(`${f}: theme-color declared`, !!meta('name', 'theme-color'));
   });
+
+  /* Google Search cannot use a data: URI favicon, so a site that only inlines
+     its icon shows the generic globe in results. Google falls back to the
+     well-known /favicon.ico, so the same mark ships twice: inline for
+     browsers, as a file for the crawler.
+
+     Measured: a page that already declares <link rel="icon"> never requests
+     /favicon.ico, so the file adds no runtime fetch. (A page WITHOUT the link
+     does request it -- that is exactly the fallback Google relies on.)
+
+     Regenerate both together with tools/mkfav.js + tools/mkfavico.py, or the
+     tab icon and the search result will show different logos. */
+  {
+    const fsI = require('fs'), pathI = require('path');
+    const ico = pathI.join(__dirname, '..', 'favicon.ico');
+    ok('favicon.ico exists for Google Search', fsI.existsSync(ico));
+    if (fsI.existsSync(ico)) {
+      const b = fsI.readFileSync(ico);
+      ok('favicon.ico is a real ICO (reserved=0, type=1)',
+        b.readUInt16LE(0) === 0 && b.readUInt16LE(2) === 1);
+      const n = b.readUInt16LE(4);
+      const sizes = [];
+      for (let i = 0; i < n; i++) {
+        const off = 6 + i * 16;
+        sizes.push([b[off] || 256, b[off + 1] || 256]);
+      }
+      ok(`favicon.ico carries several sizes (${sizes.map(s => s[0]).join('/')})`,
+        n >= 3);
+      ok('every embedded image is square', sizes.every(s => s[0] === s[1]));
+      /* Google wants a reasonably large square; 48 is its stated floor. */
+      ok('favicon.ico includes a >=48px image',
+        sizes.some(s => s[0] >= 48));
+      ok('the generator for it is committed',
+        fsI.existsSync(pathI.join(__dirname, 'mkfavico.py')));
+    }
+  }
 
   /* index.html drives theme-color from the theme script rather than a
      media query, because a media query keeps reporting the SYSTEM colour

@@ -410,6 +410,19 @@ which cost an afternoon once:
 - Without an explicit `--window-size`, headless Chrome's viewport is
   **800×600**. Every capture and every layout measurement here passes one.
 
+The favicon ships **twice, from one mark**: as a `data:` URI in each page's
+`<head>` (what browsers draw, zero requests) and as `favicon.ico` at the repo
+root (what Google Search crawls). Google cannot use a `data:` URI favicon and
+falls back to `/favicon.ico`; without the file, search results show a generic
+globe. Browsers that already have the inline icon never request the file, so it
+costs no runtime fetch — measured against a real server log. Regenerate both
+together or the tab and the search result drift apart:
+
+```bash
+node tools/mkfav.js <dir>          # favicon.svg + the data URI to paste
+python3 tools/mkfavico.py <dir>    # favicon.ico at the repo root
+```
+
 The favicon is the chirp mark with the cycle count cut until it survives
 16 px. **The chirp is no longer drawn on the homepage** — it was replaced by
 the split black-hole figure on 2026-08-14, and `og-home.jpg` was re-shot from

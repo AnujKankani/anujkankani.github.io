@@ -3,6 +3,12 @@
 // black-hole figure), and og-home.jpg was regenerated from that figure on
 // 2026-08-17 -- so this favicon is the only place the chirp still appears.
 // If the mark is ever retired, this generator goes with it.
+//
+// This emits the SVG and the data: URI only. The SAME mark also ships as
+// favicon.ico at the repo root, because Google Search cannot use a data: URI
+// favicon and falls back to /favicon.ico -- without it, search results show a
+// generic globe. Rasterise with tools/mkfavico.py after running this, or the
+// tab icon and the search result will show different logos.
 const fs = require('fs');
 const OUT = process.argv[2];
 

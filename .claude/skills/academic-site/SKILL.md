@@ -216,11 +216,25 @@ of these fail **silently** — no error, no warning, nothing in devtools:
 
 - **`og:image` must be an absolute URL.** Scrapers do not resolve relative
   paths; they simply report no image.
-- **Keep the favicon a `data:` URI**, or it becomes the first runtime fetch
-  other than the font. Percent-encode it, spaces included. Simplify the mark
-  until it survives 16px — a faithful miniature of a detailed logo turns to
-  mush. Cut detail, not size, and render it at 16/32/64 on light *and* dark to
-  check.
+- **Keep the *declared* favicon a `data:` URI**, or it becomes the first
+  runtime fetch other than the font. Percent-encode it, spaces included.
+  Simplify the mark until it survives 16px — a faithful miniature of a detailed
+  logo turns to mush. Cut detail, not size, and render it at 16/32/64 on light
+  *and* dark to check.
+
+- **…but ALSO ship a real `/favicon.ico`, or search results show a generic
+  globe.** Google Search cannot use a `data:` URI favicon. It falls back to the
+  well-known `/favicon.ico` path, so a site that only inlines its icon gets no
+  icon in results — with nothing in the page to suggest why. Ship the same mark
+  twice: inline in `<head>` for browsers, as a file at the root **with no
+  `<link>` pointing at it**. Measured: a page that already declares an icon
+  never requests `/favicon.ico`, so the file adds no runtime fetch; a page
+  *without* the declaration does request it, which is the fallback Google
+  relies on. Multi-size ICO, square, including something ≥48px.
+
+  The cost is a mark that now exists in two places and can drift. Regenerate
+  both from one source and assert both exist, or the tab and the search result
+  will eventually show different logos.
 
 `theme-color` must be driven by the same function that applies the theme, not
 a `media="(prefers-color-scheme: …)"` pair — a media query keeps reporting the
