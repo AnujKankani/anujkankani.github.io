@@ -72,9 +72,14 @@ seen what would get this candidate shortlisted.
 
 ## Layout as it stands
 
-Three pages. Page 1 is header, education, publications, software. Page 2 is
-conferences then awards. Page 3 is involvement and service, with its own running
-head so it reads as intentional rather than as spill.
+Three pages in both builds; see the table below for what sits where. The last
+page carries its own running head so it reads as intentional rather than as
+spill.
+
+Total ink is about 2.07 pages, so the third page is never full. Two pages would
+need roughly 155px of compression out of conferences and the section margins —
+possible, but it would undo the leading that was deliberately opened up in
+September 2026.
 
 It became three pages when the leading was opened up and Awards and Software were
 pulled out of a shared two-up band into full-width sections. That band was worth
@@ -93,6 +98,54 @@ shorter column ran out.
 
 ## For anyone editing this
 
+- **The typeface is Times New Roman** (October 2026, by request). It was
+  Georgia for body and Segoe UI for the rail, then briefly Arial. Both
+  `--serif` and `--sans` resolve to one family, kept as separate variables so
+  the two roles stay addressable if the split ever returns.
+
+  **Changing the typeface means re-measuring three things**, because each one
+  sits right at a limit and fails silently:
+
+  | | Georgia/Segoe | Arial | Times |
+  |---|---|---|---|
+  | research strip, one line | 8.7 ok | 8.56 | 8.70 |
+  | `CO-DEVELOPER`, one line | 7.2 ok | 6.697 | 6.660 |
+  | `COLLABORATION`, no out-dent | 7.1 **over by 4.5px** | 6.382 | 6.225 |
+
+  Shipped: 8.7 / 6.6 / 6.2. The lesson that cost the most time is that
+  "Times is narrower than Arial" is false for letter-spaced caps -- both rail
+  thresholds came out *lower* in Times. Measure, do not reason from the
+  typeface's reputation.
+
+  The rail also has two different failure modes, so the same overflow looks
+  unlike itself depending on where it happens: `.soft .rail` is
+  `white-space:normal` and *wraps* (`CO-DEVELOPER` broke at its own hyphen),
+  every other rail is `nowrap` and *out-dents* past the page's left text edge
+  (`COLLABORATION`). A probe that only checks one of the two will pass a
+  broken page.
+- **The two builds break in different places.** In Preparation is about a third
+  of a page, so the same break positions cannot serve both:
+
+  | | page 1 | page 2 | page 3 |
+  |---|---|---|---|
+  | public | education, publications, software | conferences, awards | involvement |
+  | private | education, publications, in-prep | software, conferences | awards, involvement |
+
+  `cv.html` holds the **public** positions; `tools/mkcv.py` moves both blocks
+  up one section when it builds the private variant. Anchors are the section
+  banner comments, which survive content growth. This matters: using the
+  private positions in the public file stranded a third of page 1 as
+  whitespace, which is exactly the bug that prompted the split.
+
+- **Pagination is by hand.** Two `.pagebreak` divs decide where pages 2 and 3
+  start, and each continuation carries a literal `Page N of 3`. Content growth
+  does not renumber anything: when page 1 overflowed, Chrome inserted a natural
+  break *before* the first forced one and the CV printed four pages while every
+  footer still read "of 3". The fix is to move the break points so each page's
+  content fits above them — never to renumber the footers, which just makes the
+  extra page official. The whole document is only ~2.3 pages of ink, so there is
+  always room; the question is only where the seams go. `index.html :: published
+  CV` asserts the rendered page count against the footers' own claim.
 - **`break-inside: avoid` on a large block is a cliff, not a slope.** The old
   awards+software band was ~3in tall; the moment page 1 grew past its budget the
   whole band jumped to page 2 and left page 1 half empty — 2 → 3 pages from about

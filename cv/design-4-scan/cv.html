@@ -21,8 +21,10 @@
   --accent:   #16354f;   /* deep slate blue -> ~34% grey desaturated */
   --rule:     #b9c0c7;
   --rule-hi:  #16354f;
-  --serif:    Georgia, 'Times New Roman', Times, serif;
-  --sans:     'Segoe UI', -apple-system, Helvetica, Arial, sans-serif;
+  /* Single typeface, by request. --serif/--sans are kept as separate
+     variables so the two roles stay addressable if the split returns. */
+  --serif:    'Times New Roman', Times, 'Liberation Serif', serif;
+  --sans:     'Times New Roman', Times, 'Liberation Serif', serif;
 }
 
 *{ box-sizing:border-box; }
@@ -62,6 +64,36 @@ a{ color:inherit; text-decoration:none; }
   white-space:nowrap;
 }
 .rail b{ color:var(--accent); font-weight:700; letter-spacing:.03em; }
+
+/* NOT DEAD CSS. This rule and `h2 .hnote` below style the In Preparation
+   section, which lives in the gitignored fragment cv/design-4-scan/
+   _inprep.html and is spliced in by tools/mkcv.py to build the private
+   variant. The section is absent from THIS file on purpose -- the public
+   HTML is served, so hiding it in CSS would still publish the titles.
+   Deleting these rules silently breaks the private CV.
+
+   Topic tag for In Preparation. It occupies the same rail slot as the journal
+   abbreviations in Publications directly above, so it is parenthesised and
+   muted rather than accented: "GW" sitting where "PRD" sits would skim as a
+   venue. The three tokens are the three research interests named in the
+   header strip, which is the point -- the section shows the spread of the
+   work. The expected date is stated once on the heading instead of running
+   down a column where it would say nothing new per row. */
+.rail .topic{
+  display:block;
+  color:var(--mute);
+  font-weight:600;
+  font-size:7.4pt;
+  letter-spacing:.04em;
+}
+h2 .hnote{
+  float:right;
+  font-weight:400;
+  font-size:7.4pt;
+  letter-spacing:.06em;
+  text-transform:none;
+  color:var(--mute);
+}
 
 /* ============================ HEADER ============================ */
 header{
@@ -118,6 +150,9 @@ h1{
 .focus .rail{ padding-top:0.6pt; font-size:7.4pt; }
 .focus .t{
   font-family:var(--sans);
+  /* 8.7pt set this on one line in Georgia and wraps to two in Arial, which
+     costs the strip its "this is the thesis" read. Measured threshold is
+     8.56pt; 8.5 leaves a little margin. Re-measure if the wording changes. */
   font-size:8.7pt;
   text-wrap:balance;
   line-height:1.35;
@@ -188,19 +223,39 @@ h3 .count{ font-weight:400; color:var(--faint); letter-spacing:.04em; }
    headings used to: refereed venues take the accent, unrefereed ones the
    muted grey. Without this the rail skims as seven journal papers. */
 .rail .jr.prov{ color:var(--mute); font-weight:600; }
-/* Work in preparation, stated as topics rather than titles -- no title or
-   venue is settled, and printing a provisional one would be a claim the
-   record does not support. */
-.prepnote{
-  font-family:var(--sans);
-  font-size:8.4pt;
-  line-height:1.4;
-  color:var(--mute);
-  margin:0 0 5pt;
-}
-.prepnote b{ color:var(--ink); font-weight:600; }
-.prepnote .sep{ color:var(--faint); }
 .pub{ margin-bottom:7.6pt; }
+
+/* Publications as a bulleted list rather than a rail. Venue, year and status
+   are all already stated in the citation line, so the scan column was
+   repeating what sat two inches to its right; with the status words gone it
+   was repeating only "PRD". The bullet is absolutely positioned so the text
+   block keeps a true hanging indent -- a list-item marker would sit on the
+   first line box and the wrapped author line would not align under the title.
+   Scoped to .pubs: In Preparation keeps its rail, where the topic tag really
+   does vary per row. */
+.sec.pubs .pub{
+  display:block;
+  position:relative;
+  /* Indented off the left text edge so the list reads as a list rather than
+     as a second column of headings. It does NOT reach the 58pt rail, so
+     The bullet is aligned with the rail column so that the Education year,
+     this bullet and the In Preparation topic tag all sit on one vertical
+     line. That forces the measure: 58pt is the rail track and 12pt the
+     gutter, so titles land at 70pt, the same left edge as every other
+     section's content. Keep both numbers in step with `.row`. */
+  margin-left:58pt;
+  padding-left:12pt;
+}
+.sec.pubs .pub::before{
+  content:"";
+  position:absolute;
+  left:-3pt;              /* = -width, so the dot ends on the rail edge */
+  top:4.3pt;
+  width:3pt;
+  height:3pt;
+  border-radius:50%;
+  background:var(--accent);
+}
 .pub:last-child{ margin-bottom:0; }
 .pub .title{
   font-size:10.8pt;
@@ -325,12 +380,22 @@ h3 .count{ font-weight:400; color:var(--faint); letter-spacing:.04em; }
    to someone else's codebase. Greyscale keeps the distinction because the
    weights differ too. */
 .soft{ margin-bottom:5.6pt; }
+.sec.keep{ break-inside:avoid; }
 .soft:last-child{ margin-bottom:0; }
 .soft .rail{
   white-space:normal;      /* "Primary developer" wraps to two lines in 58pt */
   line-height:1.25;
   padding-top:1.7pt;
-  font-size:7.2pt;
+  /* This column is white-space:normal, so an over-wide label WRAPS rather
+     than out-denting: in Arial at 7.2pt "CO-DEVELOPER" broke at its own
+     hyphen and set as "CO-" over "DEVELOPER", which reads as a typo.
+     Measured threshold is 6.697pt. Dropping letter-spacing instead would
+     have taken it to 0.005em, losing the tracking the whole rail relies on,
+     and widening the track would misalign this section's content column from
+     every other section. Re-measure if a longer role label is added.
+     Thresholds measured: 6.697pt in Arial, 6.660pt in Times New Roman --
+     letter-spaced caps are not meaningfully narrower in either. */
+  font-size:6.6pt;
   letter-spacing:.055em;
   text-transform:uppercase;
 }
@@ -429,17 +494,45 @@ h3 .count{ font-weight:400; color:var(--faint); letter-spacing:.04em; }
 
 /* ============================ SERVICE ============================ */
 .svc{ margin-bottom:9pt; }
-.svc .rail{ font-size:7.1pt; letter-spacing:.05em; padding-top:2.1pt; }
+/* COLLABORATION is the longest label in this column and the rail is
+   nowrap, so when it exceeds the 58pt track it OUT-DENTS past the page's
+   left text edge rather than clipping -- it sat 4.5px proud in Georgia and
+   8.7px in Arial. Measured fitting size is 6.382pt in Arial, 6.225pt in
+   Times New Roman. */
+.svc .rail{ font-size:6.2pt; letter-spacing:.05em; padding-top:2.1pt; }
 .svc:last-child{ margin-bottom:0; }
 .svc .n{
+  display:block;
   font-size:10.1pt;
   font-weight:700;
   color:var(--ink-hi);
 }
-.svc .d{
+/* Each entry is a heading with one bulleted sentence under it, rather than a
+   name and an em-dashed fragment on one line. The bullet matches the one in
+   Publications: absolutely positioned so the wrapped lines keep a true
+   hanging indent under the first. `.d` is gone with the old inline form. */
+.svc .sl{
+  margin:1.6pt 0 0;
+  padding:0;
+  list-style:none;
+}
+.svc .sl li + li{ margin-top:2.4pt; }
+.svc .sl li{
+  position:relative;
+  padding-left:12pt;
   font-size:9.7pt;
   color:var(--mute);
-  line-height:1.3;
+  line-height:1.32;
+}
+.svc .sl li::before{
+  content:"";
+  position:absolute;
+  left:2.5pt;
+  top:4.3pt;
+  width:3pt;
+  height:3pt;
+  border-radius:50%;
+  background:var(--accent);
 }
 
 /* ============================ PAGE 2 ============================ */
@@ -500,7 +593,7 @@ h3 .count{ font-weight:400; color:var(--faint); letter-spacing:.04em; }
     <div class="rail"><b>2021&ndash;27</b><span class="yr">expected</span></div>
     <div>
       <div class="inst">West Virginia University <span class="deg">&mdash; PhD in Physics</span></div>
-      <div class="meta">Advisor: Sean T. McWilliams <span class="sep">·</span> GPA 3.9/4.0 <span class="sep">·</span> Morgantown, WV</div>
+      <div class="meta">Expected graduation May 2027 <span class="sep">·</span> Advisor: Sean T. McWilliams <span class="sep">·</span> GPA 3.9/4.0 <span class="sep">·</span> Morgantown, WV</div>
     </div>
   </div>
 
@@ -514,13 +607,10 @@ h3 .count{ font-weight:400; color:var(--faint); letter-spacing:.04em; }
 </section>
 
 <!-- --------------------------- PUBLICATIONS --------------------------- -->
-<section class="sec">
+<section class="sec pubs">
   <h2>Publications</h2>
 
-  <div class="prepnote"><b>Three papers in preparation:</b> direct waves (GW) <span class="sep">·</span> black-hole scattering (NR) <span class="sep">·</span> black-hole jets (GRPIC).</div>
-
   <div class="row pub">
-    <div class="rail"><span class="jr prov">PRL</span><span class="yr">2026</span><span class="sub">submitted</span></div>
     <div>
       <div class="title">The Direct Wave is Not a Meaningful Test of Horizon Properties</div>
       <div class="auth"><span class="me">Anuj Kankani</span> and Sean T. McWilliams <span class="sep">·</span> <span class="venue">submitted to <i>Physical Review Letters</i></span> <span class="sep">·</span> <a class="arx" href="https://arxiv.org/abs/2607.02380">arXiv:2607.02380</a></div>
@@ -528,15 +618,6 @@ h3 .count{ font-weight:400; color:var(--faint); letter-spacing:.04em; }
   </div>
 
   <div class="row pub">
-    <div class="rail"><span class="jr prov">PRD</span><span class="yr">2026</span><span class="sub">submitted</span></div>
-    <div>
-      <div class="title">Direct Waves in Black-Hole Binary Mergers: Insights from the Backwards One Body Model</div>
-      <div class="auth"><span class="me">Anuj Kankani</span> and Sean T. McWilliams <span class="sep">·</span> <span class="venue">submitted to <i>Physical Review D</i></span> <span class="sep">·</span> <a class="arx" href="https://arxiv.org/abs/2603.15474">arXiv:2603.15474</a></div>
-    </div>
-  </div>
-
-  <div class="row pub">
-    <div class="rail"><span class="jr prov">JOSS</span><span class="sub">submitted</span></div>
     <div>
       <div class="title">gwBOB: A Python Package for Analytical Merger-Ringdown Gravitational Waveforms</div>
       <div class="auth"><span class="me">Anuj Kankani</span>, Angel Morales, Suchindram Dasgupta and Sean T. McWilliams <span class="sep">·</span> <span class="venue" style="white-space:nowrap">submitted to <i>Journal of Open Source Software</i></span></div>
@@ -544,15 +625,20 @@ h3 .count{ font-weight:400; color:var(--faint); letter-spacing:.04em; }
   </div>
 
   <div class="row pub">
-    <div class="rail"><span class="jr prov">PRD</span><span class="yr">2025</span><span class="sub">submitted</span></div>
     <div>
-      <div class="title">BOB the (Waveform) Builder: Optimizing Analytical Black-Hole Binary Merger Waveforms</div>
-      <div class="auth"><span class="me">Anuj Kankani</span> and Sean T. McWilliams <span class="sep">·</span> <span class="venue">submitted to <i>Physical Review D</i></span> <span class="sep">·</span> <a class="arx" href="https://arxiv.org/abs/2510.25012">arXiv:2510.25012</a></div>
+      <div class="title">Direct Waves in Black Hole Binary Mergers: Insights from the Backward One-Body Model</div>
+      <div class="auth"><span class="me">Anuj Kankani</span> and Sean T. McWilliams <span class="sep">·</span> <a class="venue" href="https://doi.org/10.1103/kjjd-nk8f">Phys. Rev. D <b>114</b>, 084025 (2026)</a> <span class="sep">·</span> <a class="arx" href="https://arxiv.org/abs/2603.15474">arXiv:2603.15474</a></div>
     </div>
   </div>
 
   <div class="row pub">
-    <div class="rail"><span class="jr">PRD</span><span class="yr">2025</span></div>
+    <div>
+      <div class="title">Analyzing Analytical Black-Hole Binary Merger Waveforms with the Backwards One-Body Formalism</div>
+      <div class="auth"><span class="me">Anuj Kankani</span> and Sean T. McWilliams <span class="sep">·</span> <a class="venue" href="https://doi.org/10.1103/v6wx-spvl">Phys. Rev. D <b>114</b>, 084007 (2026)</a> <span class="sep">·</span> <a class="arx" href="https://arxiv.org/abs/2510.25012">arXiv:2510.25012</a></div>
+    </div>
+  </div>
+
+  <div class="row pub">
     <div>
       <div class="title">Modeling Relative Peak Times of Gravitational Wave Harmonics</div>
       <div class="auth"><span class="me">Anuj Kankani</span> and Sean T. McWilliams <span class="sep">·</span> <a class="venue" href="https://doi.org/10.1103/dtpx-w9nn">Phys. Rev. D <b>112</b>, 124051 (2025)</a> <span class="sep">·</span> <a class="arx" href="https://arxiv.org/abs/2506.17492">arXiv:2506.17492</a></div>
@@ -560,7 +646,6 @@ h3 .count{ font-weight:400; color:var(--faint); letter-spacing:.04em; }
   </div>
 
   <div class="row pub">
-    <div class="rail"><span class="jr">PRD</span><span class="yr">2024</span></div>
     <div>
       <div class="title">Testing the Boundary-to-Bound Correspondence with Numerical Relativity</div>
       <div class="auth"><span class="me">Anuj Kankani</span> and Sean T. McWilliams <span class="sep">·</span> <a class="venue" href="https://doi.org/10.1103/PhysRevD.110.064033">Phys. Rev. D <b>110</b>, 064033 (2024)</a> <span class="sep">·</span> <a class="arx" href="https://arxiv.org/abs/2404.03607">arXiv:2404.03607</a></div>
@@ -568,7 +653,6 @@ h3 .count{ font-weight:400; color:var(--faint); letter-spacing:.04em; }
   </div>
 
   <div class="row pub">
-    <div class="rail"><span class="jr">PRE</span><span class="yr">2021</span></div>
     <div>
       <div class="title">Optimization and benchmarking of the thermal cycling algorithm</div>
       <div class="auth">A. Barzegar, <span class="me">A. Kankani</span>, S. Mandr&agrave; &amp; H. G. Katzgraber <span class="sep">·</span> <a class="venue" href="https://doi.org/10.1103/PhysRevE.104.035302">Phys. Rev. E <b>104</b>(3), 035302 (2021)</a></div>
@@ -578,7 +662,7 @@ h3 .count{ font-weight:400; color:var(--faint); letter-spacing:.04em; }
 </section>
 
 <!-- ----------------------------- SOFTWARE ----------------------------- -->
-<section class="sec">
+<section class="sec keep">
   <h2>Software</h2>
 
   <div class="row soft lead">
@@ -732,7 +816,6 @@ h3 .count{ font-weight:400; color:var(--faint); letter-spacing:.04em; }
   </div>
 </section>
 
-<!-- ------------------------ SERVICE & OUTREACH ------------------------ -->
 <!-- ------------------------------ AWARDS ------------------------------ -->
 <section class="sec">
   <h2>Awards &amp; Fellowships</h2>
@@ -771,33 +854,45 @@ h3 .count{ font-weight:400; color:var(--faint); letter-spacing:.04em; }
   <div class="pg">Page 3 of 3</div>
 </div>
 
+<!-- ------------------------ SERVICE & OUTREACH ------------------------ -->
 <section class="sec">
   <h2>Involvement, Service &amp; Outreach</h2>
 
   <div class="row svc">
     <div class="rail"><b>COLLABORATION</b></div>
-    <div><span class="n">LISA Consortium</span> <span class="d">&mdash; member of the waveform and astrophysics working group.</span></div>
+    <div>
+      <div class="n">LISA Consortium</div>
+      <ul class="sl"><li>I am a member of the waveform and astrophysics working group, where I help make sure NR will meet the accuracy requirements demanded by LISA.</li></ul>
+    </div>
   </div>
 
   <div class="row svc">
     <div class="rail"><b>DEPARTMENT</b></div>
-    <div><span class="n">Astronomy Journal Club</span> <span class="d">(Organizer) &mdash; organized and led the department&rsquo;s weekly journal club, facilitating discussions on recent research in astronomy and astrophysics.</span></div>
-  </div>
-
-  <div class="row svc">
-    <div class="rail"><b>DEPARTMENT</b></div>
-    <div><span class="n">Physics and Astronomy Graduate Student Organization</span> <span class="d">&mdash; regularly involved in STEM outreach such as Physics Demo Day and the pumpkin drop contest.</span></div>
+    <div>
+      <div class="n">Astronomy Journal Club</div>
+      <ul class="sl"><li>I organized and led the department&rsquo;s weekly journal club, facilitating discussions on recent research in astronomy and astrophysics.</li></ul>
+    </div>
   </div>
 
   <div class="row svc">
     <div class="rail"><b>OUTREACH</b></div>
-    <div><span class="n">Physics outreach</span> <span class="d">&mdash; talks to middle- and high-school groups about black holes and gravitational waves; regular volunteer at physics outreach events such as Physics Demo Day; writes articles on astrophysics for local organizations.</span></div>
+    <div>
+      <div class="n">Physics outreach</div>
+      <ul class="sl">
+        <li>I give talks to middle- and high-school groups about black holes and gravitational waves, volunteer at physics outreach events, and write articles on astrophysics for local organizations.</li>
+        <li>I regularly take part in STEM outreach such as Physics Demo Day and the pumpkin drop contest.</li>
+      </ul>
+    </div>
   </div>
 
   <div class="row svc">
     <div class="rail"><b>SERVICE</b></div>
-    <div><span class="n">200 hours of community service</span> <span class="d">completed as a graduate student &mdash; focused on environmental restoration and STEM outreach.</span></div>
+    <div>
+      <div class="n">Community service</div>
+      <ul class="sl"><li>I completed 200 hours of community service as a graduate student, focused on environmental restoration and STEM outreach.</li></ul>
+    </div>
   </div>
+
 </section>
 
 </body>

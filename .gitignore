@@ -71,6 +71,19 @@ cv/design-10-newspaper/*
 !cv/design-10-newspaper/cv.pdf
 !cv/design-10-newspaper/NOTES.md
 
+# The CV exists in two variants. The PUBLIC one carries no in-preparation work
+# and is what cv/design-4-scan/cv.html and AnujKankani-CV.pdf are. The PRIVATE
+# one adds the In Preparation section and never leaves this machine.
+#
+# Keeping the section out of the tracked HTML is the whole point: that file is
+# served by GitHub Pages, so a CSS rule hiding the section would still ship the
+# titles to anyone who views source. The fragment and the built page are
+# already covered by cv/design-4-scan/* above; this is the root-level PDF.
+#   python3 tools/mkcv.py   # rebuild cv-inprep.html from cv.html + _inprep.html
+Anuj_Kankani_CV_including_inprep.pdf
+# Same reason: cv/CONTENT.md is tracked, so the paper titles live here.
+cv/_CONTENT-inprep.md
+
 # Typeface exploration: seven copies of the same markup in different font
 # pairings, plus the iframe harnesses used to measure the nav breakpoint, prove
 # each pooled typeface really loads, and drive the geodesic legend through its

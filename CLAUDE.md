@@ -72,6 +72,13 @@ python3 tools/mkphotos.py      # re-crop hero slideshow photos from anuj_photos/
 #   chrome --headless --print-to-pdf=<unc>\\cv.pdf localhost:8000/cv/design-4-scan/cv.html
 cp cv/design-4-scan/cv.pdf AnujKankani-CV.pdf
 
+# The CV ships in TWO variants and only one of them is public:
+#   cv/design-4-scan/cv.html  -> AnujKankani-CV.pdf              public, tracked
+#   + cv/design-4-scan/_inprep.html (gitignored fragment)
+#     -> cv-inprep.html -> Anuj_Kankani_CV_including_inprep.pdf  private
+python3 tools/mkcv.py          # rebuild cv-inprep.html from the two sources
+python3 tools/mkcv.py --check  # exit 1 if it is missing or stale
+
 # Node lives in the conda env `website_env` and is NOT on the default PATH:
 NODE=/home/anuj/anaconda3/envs/website_env/bin/node
 $NODE tools/test.js            # physics, UI, rendering and layout tests
@@ -289,6 +296,34 @@ Verified across ten device viewports (iPhone SE/13/14 Pro Max, Pixel 5, Galaxy S
 - Headless Chrome reports `pointer: fine`, so the coarse-pointer rules never apply. To test them, read the `@media (pointer: coarse)` block out of `document.styleSheets` and apply its declarations to the matched elements — that tests the rule instead of trusting it exists.
 
 **iOS Safari cannot be tested here.** It is WebKit; the local Chrome is Blink, so Android behaviour is genuinely verifiable and iPhone behaviour is not. What is checked for iOS is static: `playsinline` on every `<video>` (without it iOS takes video fullscreen), the `-webkit-` prefixes, and that the tool pages' `vh` heights are overridden by fixed px in embed mode so the URL-bar viewport quirk cannot feed back into iframe sizing. Rendering of the inline SVG hero, its CSS animation (in particular `@keyframes jetgrow`, which animates the SVG geometry property `r` as a CSS property — verified in Blink, *unverified* in WebKit; if it no-ops there the jet will simply appear whole rather than grow, which degrades acceptably), and the vertical zoom rail's `writing-mode` path remain unverified on a real device.
+
+### The two CV variants
+
+The CV exists in a public and a private build, and the difference is the
+**In Preparation** section.
+
+| | public | private |
+|---|---|---|
+| page | `cv/design-4-scan/cv.html` (tracked) | `cv-inprep.html` (generated, ignored) |
+| PDF | `AnujKankani-CV.pdf` (tracked, linked from the site) | `Anuj_Kankani_CV_including_inprep.pdf` (ignored) |
+| in-preparation papers | none | five, from `_inprep.html` (ignored) |
+
+`tools/mkcv.py` splices the gitignored fragment into the public page to build
+the private one; `--check` reports it stale. Edit shared content in `cv.html`
+and papers in `_inprep.html`, then rebuild. Both variants are 3 pages.
+
+**Why this is a build step and not a CSS rule.** `cv/design-4-scan/cv.html` is
+*served by GitHub Pages*. Hiding the section with `display:none` would still
+ship every title to anyone who views source. The content has to be absent from
+the tracked file, which is also why `cv/CONTENT.md` — tracked — carries only a
+pointer, with the titles in `cv/_CONTENT-inprep.md` (ignored). Git history was
+checked when the split was made: only a topic-level note was ever committed, no
+titles and no coauthor names.
+
+Four paths must stay ignored, and the `index.html :: published CV` suite
+asserts it, along with the absence of every fragment title from the public
+page. The titles are not hard-coded in the suite — it reads them out of the
+fragment when present, because `tools/test.js` is tracked too.
 
 ## Content editing
 

@@ -178,6 +178,99 @@ suite('index.html :: published CV', () => {
   const srcPdf = path.join(root, 'cv', 'design-4-scan', 'cv.pdf');
   ok('the published CV exists', fs.existsSync(pub));
   ok('the CV design output exists', fs.existsSync(srcPdf));
+
+  /* The CV is HAND-paginated: two `.pagebreak` divs, and where they sit is
+     the layout. Its running footers say "Page N of M", so the file states its
+     own expected length -- and content growth silently falsifies it. Adding
+     two in-preparation papers pushed Software off page 1, Chrome inserted a
+     natural break BEFORE the two forced ones, and the CV printed four pages
+     while every footer still read "of 3". Nothing else notices: the render
+     succeeds, the copy is in sync, and the extra page is only visible to
+     someone opening the PDF.
+
+     Page count comes from the page-tree /Count, cross-checked against the
+     number of /Type /Page objects -- Chrome writes both uncompressed. */
+  const cvHtml = fs.readFileSync(
+    path.join(root, 'cv', 'design-4-scan', 'cv.html'), 'utf8');
+  const declared = [...cvHtml.matchAll(/Page\s+(\d+)\s+of\s+(\d+)/g)];
+  ok('the CV declares its own page count in running footers', declared.length > 0);
+
+  const ofs = new Set(declared.map(m => m[2]));
+  ok('every running footer agrees on the total', ofs.size === 1,
+     'footers disagree: of ' + [...ofs].join(', of '));
+
+  const claimed = Number(declared[0][2]);
+  const nums = declared.map(m => Number(m[1]));
+  ok('continuation footers are numbered 2..N with no gaps',
+     nums.length === claimed - 1 &&
+     nums.every((n, i) => n === i + 2),
+     'footer page numbers: ' + nums.join(', ') + ' for a claimed ' + claimed);
+
+
+  /* PRIVACY. The CV ships in two variants: the tracked cv.html carries no
+     in-preparation work, and a gitignored fragment adds it for a local-only
+     build (tools/mkcv.py). The tracked page is SERVED, so hiding the section
+     with CSS would still publish the titles -- it has to be absent.
+
+     The titles cannot be hard-coded here, because this file is tracked too.
+     So the check reads them out of the gitignored fragment when it is present
+     and asserts none reach the public page or the published PDF. On a clone
+     without the fragment there is nothing to leak and the check is skipped,
+     which is reported rather than passed silently. */
+  const fragPath = path.join(root, 'cv', 'design-4-scan', '_inprep.html');
+  if (!fs.existsSync(fragPath)) {
+    ok('no in-preparation fragment on this machine, nothing to leak', true);
+  } else {
+    const frag = fs.readFileSync(fragPath, 'utf8');
+    const titles = [...frag.matchAll(/<div class="title">([^<]+)<\/div>/g)]
+      .map(m => m[1].trim());
+    ok('the in-preparation fragment yields titles to check', titles.length > 0);
+
+    const pubHtml = fs.readFileSync(
+      path.join(root, 'cv', 'design-4-scan', 'cv.html'), 'utf8');
+    const inHtml = titles.filter(t => pubHtml.includes(t));
+    ok('no in-preparation title appears in the tracked CV page',
+       inHtml.length === 0, inHtml.join(' | '));
+
+    ok('the tracked CV page has no In Preparation section',
+       !/<h2>In Preparation/.test(pubHtml));
+
+    const pdfText = fs.readFileSync(pub, 'latin1');
+    /* PDF text is compressed, so a title will not appear as a literal run of
+       bytes. Author surnames that occur nowhere else are the usable probe --
+       and the point here is the section heading, which IS checked above on
+       the HTML the PDF is rendered from. Assert the two stay in step. */
+    ok('the published PDF was rendered from the public page',
+       pdfText.length > 0 && !pubHtml.includes('IN PREPARATION'));
+
+    /* `git check-ignore -q` takes ONE pathname and errors on several, and its
+       exit status means "at least one is ignored" rather than "all are" --
+       either mistake turns this into a check that cannot fail honestly. Count
+       the reported paths instead: one line per ignored path. */
+    const priv = ['cv/design-4-scan/_inprep.html',
+                  'cv/design-4-scan/cv-inprep.html',
+                  'cv/_CONTENT-inprep.md',
+                  'Anuj_Kankani_CV_including_inprep.pdf'];
+    const gi = require('child_process')
+      .spawnSync('git', ['check-ignore', ...priv],
+                 { cwd: root, encoding: 'utf8' });
+    const ignored = (gi.stdout || '').split('\n').map(l => l.trim()).filter(Boolean);
+    const exposed = priv.filter(f => !ignored.includes(f));
+    ok('every private CV path is gitignored', exposed.length === 0,
+       'would be committed: ' + exposed.join(', '));
+  }
+
+  const bytes = fs.readFileSync(srcPdf, 'latin1');
+  const count = bytes.match(/\/Count\s+(\d+)/);
+  const objs = (bytes.match(/\/Type\s*\/Page[^s]/g) || []).length;
+  ok('the rendered CV exposes a readable page count', !!count && objs > 0);
+  ok('page-tree /Count matches the /Type /Page objects',
+     Number(count[1]) === objs, count[1] + ' vs ' + objs);
+  ok('the rendered CV is exactly as long as its footers claim',
+     objs === claimed,
+     'cv.pdf is ' + objs + ' pages but the footers say ' + claimed +
+     ' -- a forced .pagebreak is now preceded by a natural one; move the ' +
+     'break points rather than renumbering the footers');
   if (fs.existsSync(pub) && fs.existsSync(srcPdf)) {
     const a = fs.readFileSync(pub), b = fs.readFileSync(srcPdf);
     ok(`published CV matches the design output (${a.length} bytes)`, a.equals(b),

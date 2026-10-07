@@ -43,18 +43,30 @@ August 2017 – May 2021 · Minors in Computer Science and Astrophysics · GPA 3
 
 ## Publications
 
+Order on the CV is **the two submitted papers first**, then accepted, then
+published newest-first. Site owner's instruction, 2026-10-04 -- it leads with
+what is in flight rather than strictly by date.
+
 1. **Anuj Kankani** and Sean T. McWilliams, "The Direct Wave is Not a Meaningful
    Test of Horizon Properties", submitted to *Physical Review Letters*,
    arXiv:2607.02380
-2. **Anuj Kankani** and Sean T. McWilliams, "Direct Waves in Black-Hole Binary
-   Mergers: Insights from the Backwards One Body Model", submitted to
-   *Physical Review D*, arXiv:2603.15474
+2. **Anuj Kankani** and Sean T. McWilliams, "Direct Waves in Black Hole Binary
+   Mergers: Insights from the Backward One-Body Model",
+   *Phys. Rev. D* **114**, 084025 (2026), arXiv:2603.15474,
+   doi:10.1103/kjjd-nk8f. Published 2026-10-07. The published title differs
+   from the preprint's: "Black-Hole" lost its hyphen and "Backwards One Body"
+   became "Backward One-Body". Opaque APS DOI, confirmed against the journal
+   page.
 3. **Anuj Kankani**, Angel Morales, Suchindram Dasgupta and Sean T. McWilliams,
    "gwBOB: A Python Package for Analytical Merger-Ringdown Gravitational
    Waveforms", submitted to *Journal of Open Source Software*
-4. **Anuj Kankani** and Sean T. McWilliams, "BOB the (Waveform) Builder:
-   Optimizing Analytical Black-Hole Binary Merger Waveforms", submitted to
-   *Physical Review D*, arXiv:2510.25012
+4. **Anuj Kankani** and Sean T. McWilliams, "Analyzing analytical black-hole
+   binary merger waveforms with the backwards one-body formalism",
+   *Phys. Rev. D* **114**, 084007 (2026), arXiv:2510.25012,
+   doi:10.1103/v6wx-spvl -- an opaque APS DOI, supplied by the author and
+   confirmed against the journal page. arXiv still carried the old title and no
+   journal reference when checked on 2026-10-04, so arXiv is not a usable
+   source for this one.
 5. **Anuj Kankani** and Sean T. McWilliams, "Modeling Relative Peak Times of
    Gravitational Wave Harmonics", *Phys. Rev. D* **112**, 124051 (2025),
    arXiv:2506.17492
@@ -65,10 +77,18 @@ August 2017 – May 2021 · Minors in Computer Science and Astrophysics · GPA 3
    "Optimization and benchmarking of the thermal cycling algorithm",
    *Physical Review E* **104**(3), 035302.
 
-**In preparation:** three further papers, by topic — direct waves
-(gravitational waves), black-hole scattering (numerical relativity), and
-black-hole jets (GRPIC). No titles or venues are settled, so nothing beyond
-the topic may be printed.
+## In preparation
+
+Titles, author lists and target venues are **local only** and deliberately
+absent from this file: it is tracked, and the repository is public. They live
+in `cv/_CONTENT-inprep.md`, alongside the markup in
+`cv/design-4-scan/_inprep.html`, both gitignored.
+
+What may be said in public: further papers are in preparation. Nothing more --
+no count, no topics, no titles. The count in particular goes stale every time
+the pipeline moves.
+
+See `tools/mkcv.py` for how the two CV variants are built.
 
 ## Software contributions
 
@@ -122,15 +142,19 @@ the topic may be printed.
 
 ## Involvement and service
 
-- **LISA Consortium** — member of the waveform and astrophysics working group.
-- **Physics and Astronomy Graduate Student Organization** — regularly involved in
-  STEM outreach such as Physics Demo Day and the pumpkin drop contest.
+- **LISA Consortium** — member of the waveform and astrophysics working
+  group, helping make sure NR will meet the accuracy requirements demanded
+  by LISA.
 - **Astronomy Journal Club** (Organizer) — organized and led the department's
   weekly journal club, facilitating discussions on recent research in astronomy
   and astrophysics.
 - **200 hours of community service** completed as a graduate student — focused on
   environmental restoration and STEM outreach.
-- **Physics outreach** — talks to middle- and high-school groups about black
+- **Physics outreach** — includes regular STEM outreach such as Physics Demo
+  Day and the pumpkin drop contest (previously listed under the Physics and
+  Astronomy Graduate Student Organization, dropped as a separate entry on
+  2026-10-04 at the site owner's request); talks to middle- and high-school
+  groups about black
   holes and gravitational waves; regular volunteer at physics outreach events
   such as Physics Demo Day; writes articles on astrophysics for local
   organizations.
